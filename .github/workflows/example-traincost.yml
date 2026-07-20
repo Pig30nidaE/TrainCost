@@ -38,7 +38,7 @@ jobs:
           test -s "$REPORT_PATH"
           test "$COMMENT_POSTED" = "false"
 
-          grep -F -- "Config: examples/pytorch-demo/config.yaml" "$REPORT_PATH"
+          grep -F -- 'Config: `examples/pytorch-demo/config.yaml`.' "$REPORT_PATH"
           grep -F -- 'Base branch: $0.04' "$REPORT_PATH"
           grep -F -- 'This PR: $21.33' "$REPORT_PATH"
           grep -F -- 'Increase: +48,662%' "$REPORT_PATH"
