@@ -36,7 +36,7 @@ For released usage from another repository, use the root action:
 
 ```yaml
 - name: Run TrainCost CI
-  uses: OWNER/traincost-ci@v1
+  uses: Pig30nidaE/TrainCost@v0.1.0
   with:
     config-path: "config.yaml"
     gpu-prices: "T4=0.5,A10G=1.2,A100=3.5"
@@ -44,8 +44,6 @@ For released usage from another repository, use the root action:
     comment-mode: "false"
     report-path: "report.md"
 ```
-
-`OWNER/traincost-ci@v1` is a placeholder for the eventual published action owner and release ref.
 
 `comment-mode: "false"` is the dry-run mode. It only writes the report file.
 

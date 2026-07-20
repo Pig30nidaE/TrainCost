@@ -20,14 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Run TrainCost CI
-        uses: OWNER/traincost-ci@v1
+        uses: Pig30nidaE/TrainCost@v0.1.0
         with:
           config-path: "config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
@@ -36,11 +35,9 @@ jobs:
           report-path: "report.md"
 ```
 
-`OWNER/traincost-ci@v1` is a placeholder. Replace it with the published TrainCost CI action owner and release ref before using the workflow in another repository.
-
 Use `comment-mode: "false"` for dry runs. The action only writes `report.md` and does not post to the pull request.
 
-Use `comment-mode: "true"` when you want TrainCost CI to post or update a PR comment. This requires `pull-requests: write`. If GitHub does not provide write permission, such as some fork pull requests, the action still writes the report and exits successfully.
+Use `comment-mode: "true"` when you want TrainCost CI to post or update a PR comment. Add `pull-requests: write` to the job permissions for that mode. If GitHub does not provide write permission, such as some fork pull requests, the action still writes the report and exits successfully.
 
 ## Inputs
 

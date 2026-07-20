@@ -83,14 +83,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Review ML training cost
-        uses: OWNER/traincost-ci@v1
+        uses: Pig30nidaE/TrainCost@v0.1.0
         with:
           config-path: "config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
@@ -99,7 +98,7 @@ jobs:
           report-path: "report.md"
 ```
 
-`OWNER/traincost-ci@v1` is a placeholder. Replace it with the published TrainCost CI action owner and release ref when installing from another repository.
+This example uses report-only mode and therefore needs only `contents: read`. Add `pull-requests: write` when enabling `comment-mode: "true"`.
 
 Add cost-related fields to a training config:
 

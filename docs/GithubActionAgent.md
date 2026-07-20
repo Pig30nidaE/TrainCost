@@ -48,7 +48,7 @@ steps:
   - uses: actions/checkout@v4
 
   - name: Run TrainCost CI
-    uses: OWNER/traincost-ci@v1
+    uses: Pig30nidaE/TrainCost@v0.1.0
     with:
       config-path: "config.yaml"
       gpu-prices: "T4=0.5,A10G=1.2,A100=3.5"

@@ -10,15 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Review ML training cost
-        # Demo placeholder: replace OWNER/traincost-ci@v1 with the published action ref.
-        uses: OWNER/traincost-ci@v1
+        uses: Pig30nidaE/TrainCost@v0.1.0
         with:
           config-path: "config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
