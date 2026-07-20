@@ -2,17 +2,17 @@
 
 ## 1. Current Project Phase
 
-Release Candidate Preparation
+Release Approval
 
-The MVP report-only path is validated end to end. A live GitHub-hosted pull request detected the canonical demo config change, loaded separate base and head versions, generated the expected cost-risk report, wrote the action outputs, and completed with `comment-mode: false`.
+The MVP report-only path is validated end to end. Release preparation commit `d97fdf5fc568aa3bc82bb591c10a0a5dd27eaa3a` passed PM review and is approved for a release pull request. The tag and GitHub Release do not exist yet.
 
 What changed from the previous PM status:
 
-- The root smoke workflow now targets `examples/pytorch-demo/config.yaml` and uses read-only repository permissions.
-- Live demo PR [#2](https://github.com/Pig30nidaE/TrainCost/pull/2) ran on a GitHub-hosted runner.
-- The report showed `$0.04` base cost, `$21.33` PR cost, and a `+48,662%` increase with all expected warnings.
-- The verification step confirmed that the report file exists and `comment-posted=false`.
-- The previous live GitHub-hosted PR blocker is resolved.
+- Public installation examples now use the intended ref `Pig30nidaE/TrainCost@v0.1.0`.
+- The internal smoke workflow remains on `uses: ./`.
+- `docs/release_notes_v0.1.0.md` documents the first release and its known limitations.
+- PM independently reran 15 core tests, 8 GitHub Action tests, action metadata checks, and the canonical report comparison.
+- The cheap baseline config remains unchanged.
 
 ## 2. MVP Completion Summary
 
@@ -60,51 +60,24 @@ No token, credential, secret value, or environment dump appeared in the supplied
 
 No MVP blocker remains for the report-only GitHub Action path.
 
-The following items are release preparation or residual risks, not blockers for Release Candidate status:
+The following items are publication steps or residual risks, not blockers for the approved release commit:
 
 - No `v0.1.0` release tag has been created yet.
-- Public installation examples still use a documented placeholder action ref.
+- The release preparation branch must be reviewed and merged into `main` before tagging.
 - `comment-mode: true` has not been exercised against a live pull request. The MVP acceptance path uses report preparation with `comment-mode: false`.
 - The fallback YAML parser intentionally supports common mappings and scalar values rather than the full YAML language.
 
-## 6. Next Agent Assignment
+## 6. Next Release Action
 
-### Task 1 - GithubAction
+No additional agent work is assigned before the release pull request. The next action is PM-controlled publication preparation:
 
-Goal:
-Prepare the repository for a `v0.1.0` release decision without creating the tag or release yet.
-
-Prompt to send:
-
-```text
-You are the GithubAction Agent for TrainCost CI.
-
-Read AGENTS.md, docs/pm_status.md, and docs/qa_report.md first.
-
-The live GitHub-hosted pull request smoke test with comment-mode=false has passed.
-Your task is release preparation only. Do not add product features or change estimation behavior.
-
-Do not create new agents.
-Do not add dashboard, Kubernetes, MLflow, W&B, Comet, OpenCost, SaaS backend,
-auth, billing, team management, runtime prediction, or real GPU training.
-
-Tasks:
-1. Keep demo PR #2 unmerged so main retains the cheap baseline config.
-2. Replace public installation placeholders with the intended release ref
-   Pig30nidaE/TrainCost@v0.1.0. Keep the repository's internal smoke workflow on uses: ./.
-3. Prepare concise v0.1.0 release notes covering config parsing, deterministic cost
-   estimation, risk warnings, Markdown report generation, and GitHub Action usage.
-4. Verify root action.yml and package-local action metadata paths.
-5. Run:
-   python3 -m unittest discover packages/core/tests
-   python3 -m unittest discover packages/github-action/tests
-6. Run the canonical dry run and confirm it still matches
-   examples/pytorch-demo/expected-report.md byte-for-byte.
-7. Report the proposed release commit SHA, changed files, test results, and known risks.
-8. Do not create or push a v0.1.0 tag and do not publish a GitHub release until PM approval.
-```
-
-No immediate CoreEngine, Integration, ProductArchitect, or QAReview task is assigned.
+1. Push `codex/prepare-v0.1.0-release` and open a pull request against `main`.
+2. Confirm the pull request contains only the approved release documentation, refs, and permission cleanup.
+3. Keep demo PR #2 unmerged so `main` retains the cheap baseline config.
+4. Merge the release pull request after its checks pass.
+5. Resolve the final `main` commit SHA after merge.
+6. Obtain explicit publication approval before creating or pushing the `v0.1.0` tag or publishing the GitHub Release.
+7. Create the tag from the approved `main` commit and use `docs/release_notes_v0.1.0.md` as the release notes.
 
 ## 7. Scope Control
 
@@ -118,20 +91,21 @@ No immediate CoreEngine, Integration, ProductArchitect, or QAReview task is assi
 
 ## 8. Release Readiness
 
-Release Candidate ready
+Release commit approved for merge
 
-Reason: unit tests pass, the deterministic fixture matches byte-for-byte, and the report-only GitHub Action path passed a live GitHub-hosted pull request run with the expected action outputs and risk report.
+Reason: the live report-only path passed, unit tests pass, the deterministic fixture matches byte-for-byte, metadata paths and interfaces are valid, public refs are prepared, and the release notes accurately state the known limitations.
 
-The project is not released yet. Tag creation, public action refs, and release notes remain release-preparation work.
+The project is not released yet. Approval in this document covers merging the release preparation commit, not creating the tag or publishing the GitHub Release.
 
 ## 9. Recommended Next Milestone
 
-Prepare the `v0.1.0` release commit.
+Publish `v0.1.0` from the approved release commit.
 
 The milestone is complete when:
 
-1. Public installation examples reference `Pig30nidaE/TrainCost@v0.1.0`.
-2. Root and package-local action metadata paths are revalidated.
-3. Core and GitHub Action tests pass.
-4. The canonical dry-run report still matches the expected fixture.
-5. Release notes and the proposed tag commit SHA are ready for PM approval.
+1. The release preparation pull request is merged into `main`.
+2. The final `main` commit SHA is recorded.
+3. Explicit publication approval is received.
+4. Annotated tag `v0.1.0` points to the approved `main` commit and is pushed.
+5. The GitHub Release is published using `docs/release_notes_v0.1.0.md`.
+6. The public action ref `Pig30nidaE/TrainCost@v0.1.0` resolves successfully.
