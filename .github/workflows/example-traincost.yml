@@ -3,28 +3,46 @@ name: TrainCost CI
 on:
   pull_request:
     paths:
-      - "**/*.yaml"
-      - "**/*.yml"
-      - "**/*.json"
-      - "**/*.py"
+      - "examples/pytorch-demo/config.yaml"
 
 jobs:
   traincost:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Run TrainCost CI
+        id: traincost
         # In an external demo repo, use OWNER/traincost-ci@v1 instead.
         uses: ./
         with:
-          config-path: "config.yaml"
+          config-path: "examples/pytorch-demo/config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
           budget-limit: "5"
           comment-mode: "false"
           report-path: "report.md"
+
+      - name: Verify demo report
+        shell: bash
+        env:
+          REPORT_PATH: ${{ steps.traincost.outputs.report-path }}
+          COMMENT_POSTED: ${{ steps.traincost.outputs.comment-posted }}
+        run: |
+          set -euo pipefail
+
+          test -n "$REPORT_PATH"
+          test -s "$REPORT_PATH"
+          test "$COMMENT_POSTED" = "false"
+
+          grep -F -- "Config: examples/pytorch-demo/config.yaml" "$REPORT_PATH"
+          grep -F -- 'Base branch: $0.04' "$REPORT_PATH"
+          grep -F -- 'This PR: $21.33' "$REPORT_PATH"
+          grep -F -- 'Increase: +48,662%' "$REPORT_PATH"
+
+          printf 'Verified report-path output: %s\n' "$REPORT_PATH"
+          printf 'Verified comment-posted output: %s\n' "$COMMENT_POSTED"
+          cat "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
