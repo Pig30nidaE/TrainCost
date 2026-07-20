@@ -27,6 +27,13 @@ Fix applied:
 - Malformed inline YAML scalars now raise `ValueError`.
 - PyYAML parse failures are normalized to `ValueError` so the action handles invalid YAML consistently.
 
+2. The first live GitHub-hosted run generated the correct report, but the workflow verification searched for a plain config heading while the report renders the config path with Markdown code formatting.
+
+Fix applied:
+
+- The root workflow assertion now matches the rendered Markdown config heading exactly.
+- No core engine or GitHub Action Python behavior changed.
+
 ## Tests Added
 
 Core tests added in `packages/core/tests/test_core_engine.py`:
@@ -125,23 +132,44 @@ Action metadata validation:
 
 - Root `action.yml` is valid for released usage when the action is published from the repository root because it runs `python3 "$GITHUB_ACTION_PATH/packages/github-action/traincost_action.py"`.
 - `packages/github-action/action.yml` remains valid for local package usage because it runs `python3 "$GITHUB_ACTION_PATH/traincost_action.py"`.
-- The demo workflow keeps `OWNER/traincost-ci@v1` as a documented placeholder because no real owner/ref is known in this repository.
+- Public examples keep `OWNER/traincost-ci@v1` as a documented placeholder because no release tag exists yet. The known repository is `Pig30nidaE/TrainCost`.
+
+## Live GitHub-Hosted Pull Request Validation
+
+Live demo PR [#2](https://github.com/Pig30nidaE/TrainCost/pull/2) changes only `examples/pytorch-demo/config.yaml` from the cheap baseline to the risky fixture. The PR remains intentionally unmerged.
+
+Observed live-run evidence:
+
+- The workflow ran from the `pull_request/synchronize` event on a GitHub-hosted runner.
+- The rerun head commit was `ae2791a`; the corrected workflow was present on base commit `9bd070f`.
+- The action detected `examples/pytorch-demo/config.yaml` and loaded distinct base and PR values.
+- The generated report path was `/home/runner/work/TrainCost/TrainCost/report.md`.
+- The workflow verified that `report-path` was non-empty, the report file existed and was non-empty, and `comment-posted=false`.
+- The GitHub Checks Summary contained `$0.04` base cost, `$21.33` PR cost, and a `+48,662%` increase.
+- Budget, cost increase, epoch, GPU type, GPU count, mixed precision, and small-batch warnings were present.
+- Recommendations and High confidence wording were present.
+- The supplied logs and summary did not contain a token, credential, secret value, or environment dump.
+- No checkout or GitHub permission issue was observed with `contents: read` and `comment-mode: false`.
+
+The Checks Summary is appended only after every workflow assertion passes, so its presence confirms the output, file, comment-mode, config heading, and expected cost checks completed successfully.
 
 ## Remaining Risks
 
 - Comment posting still needs a live pull request smoke test.
-- Changed-file detection passed in a temporary git pull-request-style smoke test, but the demo workflow should still be observed once in an actual GitHub-hosted pull request run with `comment-mode: false`.
 - The fallback YAML parser is intentionally limited to common config mappings and scalar values.
 - Base-unavailable analysis is graceful, but its low-confidence output should be reviewed in a real PR for readability.
+- Public examples still need the final `Pig30nidaE/TrainCost@v0.1.0` release ref before publication.
 
 ## Release Readiness Recommendation
 
-Demo ready.
+Release Candidate ready.
 
-The local demo is self-contained, unit tests pass, the dry-run report matches the expected fixture byte-for-byte, placeholder action refs are labeled, and docs avoid exact-cost overclaims. Do not tag v0.1.0 yet; the remaining blocker is a live GitHub-hosted pull request smoke test that confirms the workflow writes the report and action outputs in GitHub Actions.
+The local demo is self-contained, unit tests pass, the dry-run report matches the expected fixture byte-for-byte, docs avoid exact-cost overclaims, and a live GitHub-hosted pull request produced and verified the expected report with `comment-posted=false`.
+
+Do not tag `v0.1.0` until public action refs, release notes, and the final release commit are prepared and reviewed. Live comment posting remains a documented residual risk, not a blocker for the report-only MVP path.
 
 ## Recommended Next Fixes
 
-1. Run a live GitHub-hosted demo PR with `comment-mode: false`.
-2. Confirm `report-path` and `comment-posted=false` outputs in that workflow run.
-3. Decide whether invalid complex YAML should always skip analysis or whether PyYAML should become an explicit dependency for broader YAML support.
+1. Prepare public examples with `Pig30nidaE/TrainCost@v0.1.0`.
+2. Revalidate action metadata and the canonical dry run from the proposed release commit.
+3. Prepare release notes and obtain PM approval before creating the tag.
