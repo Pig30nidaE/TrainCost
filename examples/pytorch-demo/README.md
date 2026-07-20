@@ -8,7 +8,7 @@ Minimal PyTorch-like config scenario for TrainCost CI.
 - `.github/workflows/traincost-ci.yml` runs TrainCost CI with `comment-mode: "false"` and writes `report.md`.
 - `expected-report.md` is the expected local dry-run report.
 
-The workflow uses `OWNER/traincost-ci@v1` as a placeholder. Replace it with the published TrainCost CI action owner and ref before running the demo in a standalone repository.
+The standalone demo workflow uses the intended release ref, `Pig30nidaE/TrainCost@v0.1.0`.
 
 For a live PR demo, start with `config.yaml` on the base branch, then replace its contents with `configs/risky-config.yaml` on a branch named `expensive-training-config`.
 

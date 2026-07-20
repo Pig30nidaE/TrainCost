@@ -17,7 +17,7 @@ jobs:
 
       - name: Run TrainCost CI
         id: traincost
-        # In an external demo repo, use OWNER/traincost-ci@v1 instead.
+        # In an external demo repo, use Pig30nidaE/TrainCost@v0.1.0 instead.
         uses: ./
         with:
           config-path: "examples/pytorch-demo/config.yaml"

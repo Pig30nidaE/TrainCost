@@ -108,7 +108,7 @@ Final demo documentation QA:
 - `examples/pytorch-demo/config.yaml` is the canonical live PR path and matches `examples/pytorch-demo/configs/base-config.yaml`.
 - The risky PR fixture is `examples/pytorch-demo/configs/risky-config.yaml`.
 - `docs/demo_script.md`, `examples/pytorch-demo/README.md`, and the demo workflow consistently describe replacing `examples/pytorch-demo/config.yaml` with the risky config contents for a live PR demo.
-- `README.md`, `docs/github_action_usage.md`, `packages/github-action/README.md`, `examples/pytorch-demo/README.md`, and the demo workflow mark `OWNER/traincost-ci@v1` as a placeholder rather than an actual released ref.
+- `README.md`, `docs/github_action_usage.md`, `packages/github-action/README.md`, `examples/pytorch-demo/README.md`, and the standalone demo workflow use the intended release ref `Pig30nidaE/TrainCost@v0.1.0`.
 - README, demo docs, and expected report use estimated/risk/confidence language and do not claim exact GPU cost prediction.
 - No dashboard, Kubernetes, MLflow, W&B, Comet, OpenCost, SaaS backend, auth, billing, team management, runtime prediction, or real GPU training feature was added.
 
@@ -122,17 +122,20 @@ GitHub Action PR-path smoke test:
 - Confirmed action outputs were written as `report-path=<temporary report path>` and `comment-posted=false`.
 - Repeated the same PR-style check through the package-local action path used by `packages/github-action/action.yml`.
 
-Required validation on this pass:
+v0.1.0 release-preparation validation:
 
 - `python3 -m unittest discover packages/core/tests`: 15 tests passed.
 - `python3 -m unittest discover packages/github-action/tests`: 8 tests passed.
-- `python3 packages/github-action/traincost_action.py --base-config examples/pytorch-demo/configs/base-config.yaml --head-config examples/pytorch-demo/configs/risky-config.yaml --gpu-prices "T4=0.35,A10G=1.2,A100=3.20" --budget-limit "5" --comment-mode "false" --report-path /private/tmp/traincost-github-action-report.md`: completed and wrote the report.
+- `python3 packages/github-action/traincost_action.py --base-config examples/pytorch-demo/configs/base-config.yaml --head-config examples/pytorch-demo/configs/risky-config.yaml --gpu-prices "T4=0.35,A10G=1.2,A100=3.20" --budget-limit "5" --comment-mode "false" --report-path /private/tmp/traincost-v0.1.0-release-report.md`: completed and wrote the report.
+- The generated report matched `examples/pytorch-demo/expected-report.md` byte-for-byte; both files were 2588 bytes with SHA-256 `8bc3a3b454238d90afaca5dcb28bab0e14c2a72b274750ff9cded89e511327dc`.
 
 Action metadata validation:
 
-- Root `action.yml` is valid for released usage when the action is published from the repository root because it runs `python3 "$GITHUB_ACTION_PATH/packages/github-action/traincost_action.py"`.
-- `packages/github-action/action.yml` remains valid for local package usage because it runs `python3 "$GITHUB_ACTION_PATH/traincost_action.py"`.
-- Public examples keep `OWNER/traincost-ci@v1` as a documented placeholder because no release tag exists yet. The known repository is `Pig30nidaE/TrainCost`.
+- Root `action.yml` is valid for released usage because it runs `python3 "$GITHUB_ACTION_PATH/packages/github-action/traincost_action.py"`; that exact path loaded successfully.
+- `packages/github-action/action.yml` remains valid for local package usage because it runs `python3 "$GITHUB_ACTION_PATH/traincost_action.py"`; that exact path loaded successfully.
+- Both metadata files parse as YAML and expose the same five inputs and two outputs.
+- The repository's internal smoke workflow remains on `uses: ./`; public installation examples use `Pig30nidaE/TrainCost@v0.1.0`.
+- Report-only examples use only `contents: read`; documentation requires `pull-requests: write` only for `comment-mode: true`.
 
 ## Live GitHub-Hosted Pull Request Validation
 
@@ -158,18 +161,18 @@ The Checks Summary is appended only after every workflow assertion passes, so it
 - Comment posting still needs a live pull request smoke test.
 - The fallback YAML parser is intentionally limited to common config mappings and scalar values.
 - Base-unavailable analysis is graceful, but its low-confidence output should be reviewed in a real PR for readability.
-- Public examples still need the final `Pig30nidaE/TrainCost@v0.1.0` release ref before publication.
+- The `v0.1.0` tag and GitHub release do not exist yet, so the prepared public action ref will resolve only after PM approval and publication.
 
 ## Release Readiness Recommendation
 
-Release Candidate ready.
+Release commit ready for PM review.
 
-The local demo is self-contained, unit tests pass, the dry-run report matches the expected fixture byte-for-byte, docs avoid exact-cost overclaims, and a live GitHub-hosted pull request produced and verified the expected report with `comment-posted=false`.
+The local demo is self-contained, unit tests pass, the dry-run report matches the expected fixture byte-for-byte, action metadata paths are valid, public references and release notes are prepared, and a live GitHub-hosted pull request produced the expected report with `comment-posted=false`.
 
-Do not tag `v0.1.0` until public action refs, release notes, and the final release commit are prepared and reviewed. Live comment posting remains a documented residual risk, not a blocker for the report-only MVP path.
+Do not create or push the `v0.1.0` tag or publish a GitHub release until PM approval. Live comment posting remains a documented residual risk, not a blocker for the report-only MVP path.
 
 ## Recommended Next Fixes
 
-1. Prepare public examples with `Pig30nidaE/TrainCost@v0.1.0`.
-2. Revalidate action metadata and the canonical dry run from the proposed release commit.
-3. Prepare release notes and obtain PM approval before creating the tag.
+1. Review the proposed release commit and known risks.
+2. Obtain PM approval before creating or pushing the `v0.1.0` tag and publishing the GitHub release.
+3. Exercise `comment-mode: true` on a live pull request as a post-MVP follow-up.
