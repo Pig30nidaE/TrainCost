@@ -1,0 +1,9 @@
+model_name: resnet50-large
+epochs: 5
+batch_size: 64
+precision: bf16
+mixed_precision: true
+gpu_type: T4
+gpu_count: 1
+estimated_minutes_per_epoch: 1.5
+budget_limit_usd: 5.00

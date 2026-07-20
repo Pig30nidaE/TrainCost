@@ -1,0 +1,9 @@
+model_name: resnet50-large
+epochs: 50
+batch_size: 8
+precision: fp32
+mixed_precision: false
+gpu_type: A100
+gpu_count: 2
+estimated_minutes_per_epoch: 4
+budget_limit_usd: 5.00

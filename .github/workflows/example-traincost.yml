@@ -1,0 +1,30 @@
+name: TrainCost CI
+
+on:
+  pull_request:
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - "**/*.py"
+
+jobs:
+  traincost:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TrainCost CI
+        # In an external demo repo, use OWNER/traincost-ci@v1 instead.
+        uses: ./
+        with:
+          config-path: "config.yaml"
+          gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
+          budget-limit: "5"
+          comment-mode: "false"
+          report-path: "report.md"

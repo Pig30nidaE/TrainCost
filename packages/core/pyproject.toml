@@ -1,0 +1,14 @@
+[project]
+name = "traincost-ci-core"
+version = "0.0.0"
+description = "Core analysis package for TrainCost CI."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
