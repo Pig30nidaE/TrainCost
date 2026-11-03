@@ -17,8 +17,8 @@ jobs:
 
       - name: Run TrainCost CI
         id: traincost
-        # In an external demo repo, use Pig30nidaE/TrainCost@v0.1.0 instead.
-        uses: ./
+        # Release-ref smoke test branch only; do not merge this override.
+        uses: Pig30nidaE/TrainCost@v0.1.0
         with:
           config-path: "examples/pytorch-demo/config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
