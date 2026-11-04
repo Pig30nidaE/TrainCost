@@ -19,7 +19,7 @@ jobs:
       - name: Run TrainCost CI
         id: traincost
         # Test-only consumer of the exact beta code candidate. Do not merge this PR.
-        uses: Pig30nidaE/TrainCost@847629b43bb9570c741aa84ce1c8f3b87bcdef1d
+        uses: Pig30nidaE/TrainCost@e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c
         with:
           config-path: "examples/pytorch-demo/config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
