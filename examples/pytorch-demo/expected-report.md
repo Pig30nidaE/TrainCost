@@ -48,6 +48,7 @@ Cost risk detected.
 
 ### Inputs and assumptions
 
+- Base config file: examples/pytorch-demo/configs/base-config.yaml.
 - Base applied: epochs=5, minutes/epoch=1.5, GPU count=1.
 - Base model_name: resnet50-large; source: model\_name.
 - Base epochs: 5; source: epochs.
@@ -59,6 +60,7 @@ Cost risk detected.
 - Base estimated_minutes_per_epoch: 1.5; source: estimated\_minutes\_per\_epoch.
 - Base budget_limit_usd: 5; source: budget\_limit\_usd.
 - Base defaulted fields: none.
+- PR config file: examples/pytorch-demo/configs/risky-config.yaml.
 - PR applied: epochs=50, minutes/epoch=4, GPU count=2.
 - PR model_name: resnet50-large; source: model\_name.
 - PR epochs: 50; source: epochs.

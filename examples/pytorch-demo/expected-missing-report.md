@@ -38,6 +38,7 @@ Low-confidence estimate.
 
 ### Inputs and assumptions
 
+- Base config file: examples/pytorch-demo/configs/base-config.yaml.
 - Base applied: epochs=5, minutes/epoch=1.5, GPU count=1.
 - Base model_name: resnet50-large; source: model\_name.
 - Base epochs: 5; source: epochs.
@@ -49,6 +50,7 @@ Low-confidence estimate.
 - Base estimated_minutes_per_epoch: 1.5; source: estimated\_minutes\_per\_epoch.
 - Base budget_limit_usd: 5; source: budget\_limit\_usd.
 - Base defaulted fields: none.
+- PR config file: examples/pytorch-demo/configs/missing-config.yaml.
 - PR applied: epochs=5, minutes/epoch=30, GPU count=1.
 - PR model_name: resnet50; source: model\_name.
 - PR epochs: 5; source: epochs.
