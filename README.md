@@ -9,6 +9,9 @@ Think **Infracost for ML experiments**.
 
 **Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
+The [candidate CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/41780255071) and
+[SHA-pinned PR demo](https://github.com/Pig30nidaE/TrainCost/actions/runs/41780305127) passed.
+These links require repository access while the project remains private.
 
 ## See the three outcomes
 

@@ -73,6 +73,18 @@ def parse_yaml_text(text: str) -> dict[str, Any]:
         raise ConfigError("YAML requires PyYAML==6.0.3; install the core package dependencies.") from None
 
     class UniqueSafeLoader(yaml.SafeLoader):
+        def construct_object(self, node, deep=False):
+            try:
+                return super().construct_object(node, deep=deep)
+            except ConfigError:
+                raise
+            except (ValueError, TypeError, LookupError, AttributeError, OverflowError):
+                # Scalar constructors can expose raw values in non-YAMLError exceptions.
+                mark = node.start_mark
+                raise ConfigError(
+                    f"Invalid YAML value at line {mark.line + 1}, column {mark.column + 1}."
+                ) from None
+
         def compose_node(self, parent, index):
             self.config_depth = getattr(self, "config_depth", 0) + 1
             self.config_nodes = getattr(self, "config_nodes", 0) + 1

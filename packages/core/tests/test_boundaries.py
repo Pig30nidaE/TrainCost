@@ -3,12 +3,13 @@ from __future__ import annotations
 import json
 import math
 import sys
+import traceback
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from traincost_ci_core import analyze_config_dicts, normalize_training_config, parse_config_text
+from traincost_ci_core import analyze_config_dicts, normalize_training_config, parse_config_text, parse_yaml_text
 from traincost_ci_core.safety import ConfigError, MAX_CONFIG_BYTES
 
 BASE = dict(epochs=5, gpu_type="T4", gpu_count=1, estimated_minutes_per_epoch=1.5)
@@ -75,6 +76,46 @@ class BoundaryTests(unittest.TestCase):
             with self.subTest(fmt=fmt), self.assertRaises(ConfigError) as caught:
                 parse_config_text(text, fmt)
             self.assertNotIn(SECRET, str(caught.exception))
+
+    def test_yaml_constructor_errors_are_safe_for_both_parser_entrypoints(self):
+        secret = SECRET.lower()
+        for parser in (parse_yaml_text, lambda text: parse_config_text(text, "yaml")):
+            for tag in ("bool", "int", "float", "timestamp"):
+                for location in ("sensitive_value", "mapping_key"):
+                    with self.subTest(tag=tag, location=location):
+                        text = (f"credentials:\n  secret: !!{tag} {secret}\n" if location == "sensitive_value"
+                                else f"metadata:\n  ? !!{tag} {secret}\n  : value\n")
+                        error = None
+                        try:
+                            parser(text)
+                        except Exception as exc:
+                            error = exc
+                        # Avoid echoing a synthetic credential when the regression fails.
+                        self.assertTrue(isinstance(error, ConfigError), f"Expected ConfigError, got {type(error).__name__}")
+                        diagnostic = "".join(traceback.format_exception(type(error), error, error.__traceback__))
+                        self.assertFalse(secret in diagnostic, "Synthetic credential escaped the parser boundary")
+                        self.assertRegex(str(error), r"^Invalid YAML value at line 2, column \d+\.$")
+
+    def test_yaml_empty_and_invalid_date_scalars_are_config_errors(self):
+        for text in ("epochs: !!int ''", "mixed_precision: !!bool ''", "metadata: 2026-99-01",
+                     "metadata: !!timestamp invalid", "metadata: !!timestamp 99999999999999999999-01-01"):
+            with self.subTest(case=text.split(":", 1)[0]), self.assertRaises(ConfigError) as caught:
+                parse_yaml_text(text)
+            self.assertRegex(str(caught.exception), r"^Invalid YAML value at line 1, column \d+\.$")
+
+    def test_valid_yaml_explicit_tags_still_parse(self):
+        config = normalize_training_config(parse_yaml_text(
+            "epochs: !!float 2.9\ngpu_count: !!int 2\nmixed_precision: !!bool true\n"
+            "model_name: !!str demo\nmetadata: !!timestamp 2026-01-01\n"))
+        self.assertEqual(config.epochs, 2.9)
+        self.assertEqual(config.gpu_count, 2)
+        self.assertTrue(config.mixed_precision)
+
+    def test_yaml_existing_config_diagnostics_are_preserved(self):
+        for text, message in (("epochs: 1\nepochs: 2", "Duplicate YAML key"),
+                              ("x: &x {epochs: 1}\ny: {<<: *x}", "YAML merge keys are unsupported")):
+            with self.assertRaisesRegex(ConfigError, message):
+                parse_yaml_text(text)
 
     def test_duplicate_keys_all_formats(self):
         for fmt, text in (("yaml", "epochs: 1\nepochs: 2"), ("json", '{"epochs":1,"epochs":2}'), ("py", 'config={"epochs":1,"epochs":2}'), ("py", 'epochs=1\nepochs=2')):

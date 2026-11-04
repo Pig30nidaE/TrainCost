@@ -15,8 +15,9 @@
 
 ## Evidence required before publication
 
-- [ ] Python 3.11-3.14 GitHub-hosted CI verified for the candidate.
-- [ ] Consumer workflow pinned to the exact candidate SHA verified.
+- [x] Python 3.11-3.14 GitHub-hosted CI verified for e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c.
+- [x] Consumer workflow pinned to that candidate SHA verified, including Step Summary.
+- [ ] Human review of the hardening PR and confidential repository content.
 - [ ] Explicit approval to change repository visibility and publish the beta.
 
 Live comment posting is experimental and not a checked-off capability.

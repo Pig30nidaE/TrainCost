@@ -62,11 +62,12 @@ Create/update mocks are tested; live comment mode is not part of this release ga
 Pin the reviewed commit SHA from docs/qa_report.md:
 
 ~~~yaml
-- uses: Pig30nidaE/TrainCost@CANDIDATE_COMMIT_SHA
+- uses: Pig30nidaE/TrainCost@e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c
   with:
     config-path: "config.yaml"
     comment-mode: "false"
 ~~~
 
-CANDIDATE_COMMIT_SHA is a placeholder, not a valid ref. Repository access is required while the project remains private.
+This is the tested code candidate, not a published beta tag. Repository access is required while the project remains private.
+Private cross-repository action access requires GitHub repository settings and has not been validated by the same-repository smoke test.
 The v0.1.0 tag is historical and lacks the beta hardening.
