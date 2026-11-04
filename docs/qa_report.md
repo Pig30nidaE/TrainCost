@@ -2,19 +2,31 @@
 
 Updated: 2026-11-04. Technical beta gates: PASS. Publication: HOLD for review and explicit approval.
 
-Code candidate: e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c.
+Code candidate: 45f6652ebbff1a48162b58738e4ef1974c244232.
 Later evidence and installation-example edits do not change this tested code.
+
+## PR review follow-up
+
+Review of eb6f01c reproduced a remaining P1: malformed YAML scalar tags could bypass
+the safe error boundary, leak a synthetic credential to stderr, and discard otherwise valid files.
+Earlier successful runs at e21f1f4 did not cover this path and do not establish that the issue was fixed.
+
+The current candidate converts constructor failures into value-free ConfigError diagnostics with
+line and column numbers. Existing duplicate-key and resource-limit diagnostics remain intact.
+Six new test methods cover explicit bool/int/float/timestamp failures, mapping keys and sensitive subtrees,
+valid explicit tags, actual CLI outputs on base/head errors, and mixed-file PR analysis using real Git commits.
+The focused reproduction now returns exit 2 with error outputs and no secret leakage;
+the mixed-file case returns exit 0 with partial status and retains the valid estimate.
 
 ## Local evidence
 
 - Environment: macOS arm64, Python 3.14.0, PyYAML 6.0.3 in an isolated venv.
-- Core: 39 tests passed. Action and bootstrap: 28 tests passed, including real temporary-Git integration cases.
+- Core: 43 tests passed. Action and bootstrap: 30 tests passed, including real temporary-Git integration cases.
 - Coverage.py 7.17.1, branch measurement enabled: 88% combined coverage, excluding tests.
 - All three demo fixtures match byte-for-byte; metadata inputs and outputs match.
 - Python -I -S dependency check: missing PyYAML gives a safe, explicit diagnostic.
-- Built wheel installed and executed in a new venv outside the repository.
-- Actual disposable-venv bootstrap generated the risky report successfully.
-- Local known-pattern scan after the code candidate: 139 reachable Git blobs and 67 worktree entries, no findings.
+- Wheel installation and the disposable-venv bootstrap were rechecked by the hosted runs below.
+- Local known-pattern scan after the code candidate: 127 reachable Git blobs and 67 worktree entries, no findings.
   This scan is not a guarantee that arbitrary credentials or confidential content are absent.
 
 Commands are maintained in docs/testing_strategy.md and scripts/verify_release.py.
@@ -32,21 +44,21 @@ Comment create/update has mocked API tests only; no live-comment claim is made.
 ## GitHub evidence
 
 - Implementation: [PR #7](https://github.com/Pig30nidaE/TrainCost/pull/7), kept draft for review.
-- Candidate CI: [run 41780255071](https://github.com/Pig30nidaE/TrainCost/actions/runs/41780255071).
+- Candidate CI: [run 41782284598](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782284598).
   Python 3.11, 3.12, 3.13, and 3.14 plus the isolated composite job all passed.
   Each matrix job ran both suites, checked all fixtures and metadata, tested the missing dependency,
   built the wheel, installed/imported it outside the repository, and scanned known credential patterns.
   The Python 3.14 job measured 88% branch-enabled coverage; fixture sizes were 4101, 2583, and 247 bytes.
 - SHA-pinned consumer: [PR #8](https://github.com/Pig30nidaE/TrainCost/pull/8), intentionally unmerged.
-- Consumer report: [run 41780305127](https://github.com/Pig30nidaE/TrainCost/actions/runs/41780305127),
-  [verification job](https://github.com/Pig30nidaE/TrainCost/actions/runs/41780305127/job/126410080839), passed.
-- Consumer CI: [run 41780305103](https://github.com/Pig30nidaE/TrainCost/actions/runs/41780305103), all five jobs passed.
+- Consumer report: [run 41782394357](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782394357),
+  [verification job](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782394357/job/126416714565), passed.
+- Consumer CI: [run 41782394335](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782394335), all five jobs passed.
 
 | Consumer evidence | Observed value |
 | --- | --- |
 | Event | pull_request |
-| Action ref and base SHA | e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c |
-| Head SHA | ef2281071303b76bef1c9e036cbd1360e7846b64 |
+| Action ref and base SHA | 45f6652ebbff1a48162b58738e4ef1974c244232 |
+| Head SHA | c3c1315a1fe9511e0e429f37998594972e9986e4 |
 | Runner | GitHub-hosted Ubuntu 26.04.1, ubuntu-26.04 image |
 | Dependency | PyYAML==6.0.3 in the disposable venv |
 | report-path | /home/runner/work/TrainCost/TrainCost/report.md |

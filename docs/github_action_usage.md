@@ -62,7 +62,7 @@ Create/update mocks are tested; live comment mode is not part of this release ga
 Pin the reviewed commit SHA from docs/qa_report.md:
 
 ~~~yaml
-- uses: Pig30nidaE/TrainCost@e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c
+- uses: Pig30nidaE/TrainCost@45f6652ebbff1a48162b58738e4ef1974c244232
   with:
     config-path: "config.yaml"
     comment-mode: "false"

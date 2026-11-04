@@ -15,7 +15,8 @@
 
 ## Evidence required before publication
 
-- [x] Python 3.11-3.14 GitHub-hosted CI verified for e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c.
+- [x] Python 3.11-3.14 GitHub-hosted CI verified for 45f6652ebbff1a48162b58738e4ef1974c244232.
+- [x] YAML constructor-error review finding fixed and covered by safe CLI and partial-result regressions.
 - [x] Consumer workflow pinned to that candidate SHA verified, including Step Summary.
 - [ ] Human review of the hardening PR and confidential repository content.
 - [ ] Explicit approval to change repository visibility and publish the beta.

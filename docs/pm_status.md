@@ -7,7 +7,12 @@ Updated: 2026-11-04.
 Technical validation passed for the report-only beta candidate. Publication remains on hold for human review and explicit approval.
 The historical v0.1.0 tag exists at 107ddebce40cec45e932c875dafa1b8b46ba05fb and will not be moved.
 The target is a report-only v0.2.0-beta.1 candidate. The repository remains private.
-The tested code SHA is e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c.
+The tested code SHA is 45f6652ebbff1a48162b58738e4ef1974c244232.
+
+PR #7 review found an additional YAML constructor error path that exposed input values.
+That P1 is fixed at the parser boundary and covered by new CLI and real-Git regression tests.
+The updated four-version CI and SHA-pinned consumer run passed; evidence is in docs/qa_report.md.
+This resolves the reproduced finding, not a blanket guarantee that no other defects exist.
 
 The previous release approval was limited to the canonical v0.1.0 demo.
 A broader review reproduced secret disclosure, invalid numerical estimates, and deleted-file analysis.

@@ -18,7 +18,7 @@ jobs:
 
       - name: Review ML training cost
         # Tested report-only candidate; repository access is required while private.
-        uses: Pig30nidaE/TrainCost@e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c
+        uses: Pig30nidaE/TrainCost@45f6652ebbff1a48162b58738e4ef1974c244232
         with:
           config-path: "config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
