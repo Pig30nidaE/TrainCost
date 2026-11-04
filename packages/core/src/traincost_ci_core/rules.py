@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import re
+import math
 from typing import Mapping
 
 from .estimation import lookup_gpu_hourly_price
 from .models import Confidence, CostEstimate, FieldChange, RiskWarning, TrainingConfig
+from .safety import ConfigError
+
+
+DEFAULT_COST_INCREASE_THRESHOLD_PERCENT = 50.0
 
 
 def calculate_increase_percent(base_cost: float, pr_cost: float) -> float | None:
@@ -13,7 +19,10 @@ def calculate_increase_percent(base_cost: float, pr_cost: float) -> float | None
 
     if base_cost <= 0:
         return None
-    return ((pr_cost - base_cost) / base_cost) * 100
+    increase = ((pr_cost - base_cost) / base_cost) * 100
+    if not math.isfinite(increase):
+        raise ConfigError("Cost increase arithmetic overflow.")
+    return increase
 
 
 def detect_warnings(
@@ -26,6 +35,7 @@ def detect_warnings(
     *,
     default_budget_limit_usd: float | None = None,
     gpu_hourly_prices: Mapping[str, float] | None = None,
+    cost_increase_threshold_percent: float = DEFAULT_COST_INCREASE_THRESHOLD_PERCENT,
 ) -> tuple[RiskWarning, ...]:
     """Run all MVP risk rules."""
 
@@ -54,11 +64,11 @@ def detect_warnings(
             )
         )
 
-    if increase_percent is not None and increase_percent > 50:
+    if increase_percent is not None and increase_percent > cost_increase_threshold_percent:
         warnings.append(
             RiskWarning(
                 code="cost_increase",
-                title="Estimated cost increased by more than 50%",
+                title=f"Estimated cost increased by more than {cost_increase_threshold_percent:g}%",
                 what_changed=(
                     f"Estimated cost changed from {_format_money(base_estimate.estimated_cost_usd)} "
                     f"to {_format_money(pr_estimate.estimated_cost_usd)} "
@@ -82,7 +92,7 @@ def detect_warnings(
             RiskWarning(
                 code="epochs_increased",
                 title="Epoch count increased significantly",
-                what_changed=f"Epoch count changed from {base_epochs} to {pr_epochs}.",
+                what_changed=f"Epoch count changed from {base_epochs:g} to {pr_epochs:g}.",
                 why_it_matters="Training cost usually scales linearly with epochs.",
                 how_to_reduce_risk="Use fewer epochs, early stopping, or a staged run before full training.",
                 recommendation="Confirm the higher epoch count is needed or run a smaller validation job first.",
@@ -178,18 +188,19 @@ def detect_warnings(
                 code="low_confidence_missing_fields",
                 title="Missing fields reduce estimate confidence",
                 what_changed="Missing fields: " + ", ".join(confidence.missing_fields) + ".",
-                why_it_matters="The estimate had to use conservative defaults instead of project-specific values.",
+                why_it_matters="The estimate uses illustrative defaults that may understate or overstate actual cost.",
                 how_to_reduce_risk="Add epochs, gpu_type, gpu_count, and estimated_minutes_per_epoch to the config.",
                 recommendation="Add missing cost fields so future TrainCost CI reports are more useful.",
             )
         )
 
-    if pr_config.sensitive_keys:
+    sensitive_keys = sorted(set(base_config.sensitive_keys) | set(pr_config.sensitive_keys))
+    if sensitive_keys:
         warnings.append(
             RiskWarning(
                 code="sensitive_config_value",
                 title="Sensitive-looking config key detected",
-                what_changed="Sensitive-looking keys were found: " + ", ".join(pr_config.sensitive_keys) + ".",
+                what_changed="Sensitive-looking values were excluded at: " + ", ".join(sensitive_keys) + ".",
                 why_it_matters="Training configs can be printed in CI logs and reviewed in pull requests.",
                 how_to_reduce_risk="Move secrets to GitHub Actions secrets or another secret manager.",
                 recommendation="Remove sensitive values from training config files.",
@@ -224,19 +235,12 @@ def _uses_fp32(precision: str | None) -> bool:
 
 def _is_large_model(config: TrainingConfig) -> bool:
     model_name = (config.display_model_name or "").lower()
-    large_markers = (
-        "large",
-        "xl",
-        "xxl",
-        "gpt",
-        "llama",
-        "13b",
-        "30b",
-        "70b",
-        "bert-large",
-        "t5-large",
-    )
+    large_markers = ("large", "xl", "huge", "giant", "gpt", "llama", "mixtral")
     if any(marker in model_name for marker in large_markers):
+        return True
+    # Parameter counts in the name, such as 7b, 13b, 1.5b, or 70B.
+    param_match = re.search(r"(\d+(?:\.\d+)?)\s*b\b", model_name)
+    if param_match and float(param_match.group(1)) >= 7:
         return True
     return config.dataset_size is not None and config.dataset_size >= 1_000_000
 

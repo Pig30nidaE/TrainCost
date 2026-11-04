@@ -29,8 +29,8 @@ class TrainingConfig:
 
     model: str | None = None
     model_name: str | None = None
-    epochs: int | None = None
-    max_epochs: int | None = None
+    epochs: float | None = None
+    max_epochs: float | None = None
     batch_size: int | None = None
     global_batch_size: int | None = None
     precision: str | None = None
@@ -43,9 +43,10 @@ class TrainingConfig:
     raw_fields: Mapping[str, Any] = field(default_factory=dict)
     source_path: str | None = None
     sensitive_keys: tuple[str, ...] = ()
+    field_sources: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
     @property
-    def effective_epochs(self) -> int | None:
+    def effective_epochs(self) -> float | None:
         """Return the epoch count used for cost estimation."""
 
         return self.epochs if self.epochs is not None else self.max_epochs
@@ -74,7 +75,7 @@ class TrainingConfig:
 class CostEstimate:
     """Estimated GPU training cost from normalized config values."""
 
-    epochs: int
+    epochs: float
     estimated_minutes_per_epoch: float
     gpu_count: int
     gpu_type: str | None

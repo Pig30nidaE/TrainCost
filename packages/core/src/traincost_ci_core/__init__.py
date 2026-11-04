@@ -1,6 +1,6 @@
 """Core engine for TrainCost CI's deterministic ML training cost review."""
 
-__version__ = "0.0.0"
+__version__ = "0.2.0b1"
 
 from .analysis import analyze_config_dicts, analyze_config_files, analyze_configs
 from .diff import compare_configs
@@ -26,12 +26,18 @@ from .parsing import (
     parse_yaml_text,
 )
 from .report import generate_markdown_report
-from .rules import build_recommendations, calculate_increase_percent, detect_warnings
+from .rules import (
+    DEFAULT_COST_INCREASE_THRESHOLD_PERCENT,
+    build_recommendations,
+    calculate_increase_percent,
+    detect_warnings,
+)
 
 __all__ = [
     "AnalysisResult",
     "Confidence",
     "CostEstimate",
+    "DEFAULT_COST_INCREASE_THRESHOLD_PERCENT",
     "DEFAULT_GPU_HOURLY_PRICES",
     "FieldChange",
     "RiskWarning",

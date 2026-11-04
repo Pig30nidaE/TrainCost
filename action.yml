@@ -1,5 +1,10 @@
 name: TrainCost CI
 description: PR-level ML training cost review for GitHub Actions.
+author: Pig30nidaE
+
+branding:
+  icon: dollar-sign
+  color: green
 
 inputs:
   config-path:
@@ -14,6 +19,10 @@ inputs:
     description: Optional default budget limit in USD when the config does not define budget_limit_usd.
     required: false
     default: ""
+  warn-increase-percent:
+    description: Cost increase percentage that triggers the cost-increase warning.
+    required: false
+    default: "50"
   comment-mode:
     description: Set to true to post or update a pull request comment. False only writes the report.
     required: false
@@ -24,6 +33,9 @@ inputs:
     default: "report.md"
 
 outputs:
+  analysis-status:
+    description: Analysis outcome (complete, partial, skipped, error).
+    value: ${{ steps.traincost.outputs.analysis-status }}
   report-path:
     description: Path to the generated Markdown report.
     value: ${{ steps.traincost.outputs.report-path }}
@@ -35,14 +47,14 @@ runs:
   using: composite
   steps:
     - id: traincost
-      name: Run TrainCost CI
+      name: Run isolated TrainCost CI
       shell: bash
       env:
         INPUT_CONFIG_PATH: ${{ inputs.config-path }}
         INPUT_GPU_PRICES: ${{ inputs.gpu-prices }}
         INPUT_BUDGET_LIMIT: ${{ inputs.budget-limit }}
+        INPUT_WARN_INCREASE_PERCENT: ${{ inputs.warn-increase-percent }}
         INPUT_COMMENT_MODE: ${{ inputs.comment-mode }}
         INPUT_REPORT_PATH: ${{ inputs.report-path }}
-        GITHUB_TOKEN: ${{ github.token }}
-      run: |
-        python3 "$GITHUB_ACTION_PATH/packages/github-action/traincost_action.py"
+        GITHUB_TOKEN: ${{ inputs.comment-mode == 'true' && github.token || '' }}
+      run: python3 -I "$GITHUB_ACTION_PATH/packages/github-action/bootstrap.py"

@@ -1,0 +1,5 @@
+PyYAML==6.0.3
+coverage==7.17.1
+build==1.6.1
+setuptools==80.9.0
+wheel==0.45.1

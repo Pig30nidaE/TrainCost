@@ -11,13 +11,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Run TrainCost CI
         id: traincost
-        # In an external demo repo, use Pig30nidaE/TrainCost@v0.1.0 instead.
+        # External consumers pin the reviewed SHA from docs/qa_report.md.
         uses: ./
         with:
           config-path: "examples/pytorch-demo/config.yaml"
@@ -31,12 +32,14 @@ jobs:
         env:
           REPORT_PATH: ${{ steps.traincost.outputs.report-path }}
           COMMENT_POSTED: ${{ steps.traincost.outputs.comment-posted }}
+          ANALYSIS_STATUS: ${{ steps.traincost.outputs.analysis-status }}
         run: |
           set -euo pipefail
 
           test -n "$REPORT_PATH"
           test -s "$REPORT_PATH"
           test "$COMMENT_POSTED" = "false"
+          test "$ANALYSIS_STATUS" = "complete"
 
           grep -F -- 'Config: `examples/pytorch-demo/config.yaml`.' "$REPORT_PATH"
           grep -F -- 'Base branch: $0.04' "$REPORT_PATH"
@@ -45,4 +48,3 @@ jobs:
 
           printf 'Verified report-path output: %s\n' "$REPORT_PATH"
           printf 'Verified comment-posted output: %s\n' "$COMMENT_POSTED"
-          cat "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"

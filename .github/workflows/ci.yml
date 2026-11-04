@@ -1,0 +1,68 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: Verify Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5, verified upstream
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install verification dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Core and Action regression coverage
+        run: |
+          python -m coverage run --branch --source=packages/core/src/traincost_ci_core,packages/github-action -m unittest discover -s packages/core/tests
+          python -m coverage run --append --branch --source=packages/core/src/traincost_ci_core,packages/github-action -m unittest discover -s packages/github-action/tests
+          python -m coverage report --omit='*/tests/*'
+      - name: Metadata and all demo fixtures
+        run: python scripts/verify_release.py
+      - name: Verify missing YAML dependency diagnostic
+        run: python -I -S scripts/verify_no_yaml.py
+      - name: Build wheel and verify outside repository
+        run: |
+          python -m build packages/core --no-isolation --outdir "$RUNNER_TEMP/traincost-dist"
+          python scripts/verify_wheel.py "$RUNNER_TEMP/traincost-dist"
+      - name: Scan known credential patterns in local history
+        run: python scripts/audit_secrets.py
+  composite-smoke:
+    name: Isolated composite action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - id: smoke
+        uses: ./
+        with:
+          config-path: "examples/pytorch-demo/config.yaml"
+          comment-mode: "false"
+      - name: Verify outputs
+        env:
+          REPORT: ${{ steps.smoke.outputs.report-path }}
+          STATUS: ${{ steps.smoke.outputs.analysis-status }}
+          COMMENT: ${{ steps.smoke.outputs.comment-posted }}
+        run: |
+          test -s "$REPORT"
+          test "$COMMENT" = "false"
+          case "$STATUS" in complete|partial|skipped) ;; *) exit 1;; esac

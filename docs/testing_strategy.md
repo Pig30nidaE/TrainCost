@@ -1,72 +1,38 @@
-# TrainCost CI Testing Strategy
+# Verify a beta candidate
 
-## Goals
+Run from the repository root after installing requirements-dev.txt into a venv.
 
-The MVP test suite should prove that TrainCost CI can parse common ML config files, compare base and PR values, estimate GPU cost with transparent rules, generate a useful Markdown report, and fail gracefully when PR context or config data is incomplete.
+~~~bash
+.venv/bin/python -m coverage run --branch --source=packages/core/src/traincost_ci_core,packages/github-action -m unittest discover -s packages/core/tests
+.venv/bin/python -m coverage run --append --branch --source=packages/core/src/traincost_ci_core,packages/github-action -m unittest discover -s packages/github-action/tests
+.venv/bin/python -m coverage report --omit='*/tests/*'
+.venv/bin/python scripts/verify_release.py
+python3 -I -S scripts/verify_no_yaml.py
+.venv/bin/python -m build packages/core --no-isolation --outdir /tmp/traincost-dist
+.venv/bin/python scripts/verify_wheel.py /tmp/traincost-dist
+.venv/bin/python scripts/audit_secrets.py
+~~~
 
-The suite should also protect the product boundary: reports must use estimate/risk language, must not claim exact GPU cost prediction, and must not print secret values.
+## Release gates
 
-## Test Layers
+- Core validation: negative and non-finite inputs, count fractions, fractional epochs, overflow, threshold and budget boundaries.
+- Parser consistency: equivalent formats, duplicate keys, cycles, resource bounds, list ambiguity, and non-execution of Python expressions.
+- Security: synthetic credentials in labels, sensitive subtrees, invalid syntax, report output, stdout, stderr, and dependency errors.
+- Git: modifications, additions, deletions, renames, no changes, globs, braces, Unicode paths, unavailable commits, and ignored worktree changes.
+- Distribution: four Python versions in CI, root/package metadata, actual isolated bootstrap, wheel installation outside the repository.
+- Evidence: three deterministic fixtures and a GitHub-hosted consumer run pinned to the candidate commit SHA.
 
-### Core Unit Tests
+Coverage is reported as measured, including branches. It does not replace scenario acceptance.
+No coverage percentage alone approves publication.
 
-Location: `packages/core/tests/test_core_engine.py`
+## Fixture and image updates
 
-Coverage areas:
+After reviewing an intentional report change:
 
-- YAML, JSON, and simple Python config parsing.
-- Invalid YAML handling.
-- Supported field normalization and coercion.
-- Missing fields and low-confidence estimates.
-- Cost estimation formula.
-- Budget exceeded warnings.
-- Cost increase warnings.
-- GPU type upgrade warnings.
-- GPU count increase warnings.
-- Precision regression warnings.
-- Small batch size warnings.
-- Sensitive-looking config key detection without rendering sensitive values.
-- Markdown report structure and estimate-only wording.
+~~~bash
+.venv/bin/python scripts/verify_release.py --update-fixtures
+python3 scripts/render_reports.py
+~~~
 
-Run:
-
-```bash
-python3 -m unittest discover packages/core/tests
-```
-
-### GitHub Action Unit Tests
-
-Location: `packages/github-action/tests/test_traincost_action.py`
-
-Coverage areas:
-
-- Action input parsing.
-- Local dry-run report output.
-- No changed config file behavior.
-- Missing config behavior.
-- Base config unavailable behavior.
-- Invalid YAML behavior.
-- Multiple changed config file aggregation.
-- PR comment failure handling without printing GitHub tokens.
-
-Run:
-
-```bash
-python3 -m unittest discover packages/github-action/tests
-```
-
-## Manual QA Checklist
-
-Before calling an MVP change complete:
-
-- Run both unit test commands above.
-- Review generated report wording for estimate/risk language.
-- Confirm README and docs avoid exact-cost claims.
-- Confirm logs do not print environment variables, GitHub tokens, cloud credentials, or config secret values.
-- Confirm no dashboard, Kubernetes, MLflow, W&B, Comet, OpenCost, or Kubecost scope was added.
-
-## Current Known Gaps
-
-- Comment posting has unit coverage for failure/token safety, but still needs a live pull request smoke test before release.
-- Changed-file detection relies on local `git diff` behavior and should be exercised in a real GitHub Actions workflow.
-- The dependency-free YAML parser intentionally supports only common mappings and scalar values; complex YAML should be treated as unsupported rather than expanded in the MVP.
+Image rendering requires Pillow. Images are local renderings of fixture excerpts, not screenshots of a GitHub run.
+The original v0.1.0 PR evidence does not validate changes in this branch.

@@ -1,21 +1,12 @@
-# TrainCost CI Core
+# TrainCost CI core
 
-Python package for TrainCost CI's deterministic analysis logic.
+Deterministic parsing, normalization, comparison, estimation, risk rules, and Markdown generation.
+Install the package with pip install ./packages/core. Python 3.11+ and PyYAML==6.0.3 are required.
 
-This package owns:
+Entry points: analyze_config_files, analyze_config_dicts, analyze_configs, load_config_file, estimate_cost.
+TrainingConfig stores normalized canonical fields, safe sensitive-key paths, and field_sources.
+Invalid configs raise value-free ConfigError, a ValueError subclass.
+Fractional epochs are preserved; counts are positive integers.
 
-- YAML and JSON training config parsing.
-- Supported field normalization.
-- Base vs PR config comparison.
-- GPU cost estimation.
-- Rule-based risk warning detection.
-- Markdown report generation.
-
-Primary entry points:
-
-- `analyze_config_files(base_path, pr_path)`
-- `analyze_config_dicts(base_config, pr_config)`
-- `load_config_file(path)`
-- `estimate_cost(config)`
-
-The MVP intentionally does not depend on GitHub APIs, a backend server, or model-specific runtime prediction. YAML support is dependency-free and scoped to common config mappings.
+No GitHub API, network call, backend, or training-code execution occurs in core.
+See ../../docs/config_reference.md and ../../docs/architecture.md for contracts and decisions.

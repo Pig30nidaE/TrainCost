@@ -1,89 +1,116 @@
 #!/usr/bin/env python3
-"""GitHub Action entrypoint for TrainCost CI."""
+"""GitHub and CLI boundaries for deterministic TrainCost reports."""
 
 from __future__ import annotations
 
 import argparse
 import fnmatch
 import json
+import math
 import os
+import re
 import subprocess
 import sys
 import urllib.error
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
-
+from typing import Mapping
 
 ACTION_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = ACTION_DIR.parents[1]
-CORE_SRC = PROJECT_ROOT / "packages" / "core" / "src"
+CORE_SRC = ACTION_DIR.parents[1] / "packages" / "core" / "src"
 if CORE_SRC.exists():
     sys.path.insert(0, str(CORE_SRC))
 
-from traincost_ci_core import analyze_configs, normalize_training_config, parse_config_text  # noqa: E402
-
+from traincost_ci_core import analyze_configs, normalize_training_config, parse_config_text
+from traincost_ci_core.models import AnalysisResult
+from traincost_ci_core.safety import ConfigError, MAX_CONFIG_BYTES, looks_sensitive, markdown, number, safe_text
 
 SUPPORTED_SUFFIXES = {".yaml", ".yml", ".json", ".py"}
 COMMENT_MARKER = "<!-- traincost-ci-report -->"
 
 
-def main(argv: list[str] | None = None) -> int:
+@dataclass(frozen=True)
+class ChangedFile:
+    path: str
+    base_path: str | None
+    deleted: bool = False
+
+
+@dataclass(frozen=True)
+class ConfigReport:
+    path: str
+    report: str
+    result: AnalysisResult
+
+
+@dataclass(frozen=True)
+class AnalysisRun:
+    report: str
+    status: str
+
+
+def main(argv=None):
     args = parse_args(argv)
     repo_root = Path(args.repo_root).resolve()
-
-    try:
-        gpu_prices = parse_gpu_prices(args.gpu_prices)
-        budget_limit = parse_budget_limit(args.budget_limit)
-    except ValueError as exc:
-        print(f"TrainCost CI input error: {exc}", file=sys.stderr)
-        return 2
-
     report_path = Path(args.report_path)
     if not report_path.is_absolute():
         report_path = repo_root / report_path
-
-    if args.base_config and args.head_config:
-        report = run_local_pair(
-            Path(args.base_config),
-            Path(args.head_config),
-            default_budget_limit_usd=budget_limit,
-            gpu_hourly_prices=gpu_prices,
-        )
-    else:
-        event = load_event(args.event_path)
-        report = run_pull_request_analysis(
-            repo_root=repo_root,
-            event=event,
-            event_name=args.event_name,
-            config_path_input=args.config_path,
-            default_budget_limit_usd=budget_limit,
-            gpu_hourly_prices=gpu_prices,
-        )
-
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(report, encoding="utf-8")
-    print(f"TrainCost CI wrote report to {report_path}")
-
+    try:
+        if any(c in str(report_path) for c in "\r\n") or looks_sensitive(str(report_path)):
+            report_path = repo_root / "report.md"
+            raise ConfigError("Invalid report-path; diagnostics were written to report.md.")
+        prices = parse_gpu_prices(args.gpu_prices)
+        budget = parse_budget_limit(args.budget_limit)
+        threshold = parse_warn_increase_percent(args.warn_increase_percent)
+        if args.comment_mode.lower() not in {"true", "false"}:
+            raise ConfigError("comment-mode must be true or false.")
+        if bool(args.base_config) != bool(args.head_config):
+            raise ConfigError("Provide both base-config and head-config.")
+        if args.base_config:
+            outcome = run_local_pair(Path(args.base_config), Path(args.head_config),
+                default_budget_limit_usd=budget, gpu_hourly_prices=prices,
+                cost_increase_threshold_percent=threshold)
+        else:
+            outcome = run_pull_request_analysis(repo_root=repo_root, event=load_event(args.event_path),
+                event_name=args.event_name, config_path_input=args.config_path,
+                default_budget_limit_usd=budget, gpu_hourly_prices=prices,
+                cost_increase_threshold_percent=threshold)
+    except ConfigError as exc:
+        outcome = AnalysisRun(render_no_config_report([], [str(exc)]), "error")
+    except (OSError, UnicodeError, ValueError, RecursionError):
+        outcome = AnalysisRun(render_no_config_report([], ["Analysis failed: unreadable or invalid input."]), "error")
     comment_posted = False
-    if parse_bool(args.comment_mode):
-        event = load_event(args.event_path)
-        comment_posted = post_or_update_pr_comment(event, report)
-        if not comment_posted:
-            print("TrainCost CI saved the report but did not post a PR comment.")
+    try:
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(outcome.report, encoding="utf-8")
+        if args.comment_mode.lower() == "true" and outcome.status != "error":
+            comment_posted = post_or_update_pr_comment(load_event(args.event_path), outcome.report)
+        publish_report(outcome, report_path, comment_posted=comment_posted)
+    except (OSError, ValueError):
+        print("TrainCost CI could not write its report or runner outputs.", file=sys.stderr)
+        return 2
+    print(f"TrainCost CI analysis-status: {outcome.status}")
+    return 2 if outcome.status == "error" else 0
 
+
+def publish_report(outcome, report_path, *, comment_posted=False):
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(outcome.report, encoding="utf-8")
     write_output("report-path", str(report_path))
     write_output("comment-posted", "true" if comment_posted else "false")
-    return 0
+    write_output("analysis-status", outcome.status)
+    summary = os.getenv("GITHUB_STEP_SUMMARY")
+    if summary:
+        with Path(summary).open("a", encoding="utf-8") as stream:
+            stream.write(outcome.report)
 
 
-def parse_args(argv: list[str] | None) -> argparse.Namespace:
+def parse_args(argv):
     parser = argparse.ArgumentParser(description="Run TrainCost CI cost analysis.")
-    parser.add_argument("--config-path", default=os.getenv("INPUT_CONFIG_PATH", "config.yaml"))
-    parser.add_argument("--gpu-prices", default=os.getenv("INPUT_GPU_PRICES", ""))
-    parser.add_argument("--budget-limit", default=os.getenv("INPUT_BUDGET_LIMIT", ""))
-    parser.add_argument("--comment-mode", default=os.getenv("INPUT_COMMENT_MODE", "false"))
-    parser.add_argument("--report-path", default=os.getenv("INPUT_REPORT_PATH", "report.md"))
+    for name, default in (("config-path", "config.yaml"), ("gpu-prices", ""), ("budget-limit", ""),
+        ("warn-increase-percent", "50"), ("comment-mode", "false"), ("report-path", "report.md")):
+        parser.add_argument("--" + name, default=os.getenv("INPUT_" + name.upper().replace("-", "_"), default))
     parser.add_argument("--event-path", default=os.getenv("GITHUB_EVENT_PATH", ""))
     parser.add_argument("--event-name", default=os.getenv("GITHUB_EVENT_NAME", ""))
     parser.add_argument("--repo-root", default=os.getenv("GITHUB_WORKSPACE", os.getcwd()))
@@ -92,140 +119,77 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def parse_gpu_prices(value: str | None) -> dict[str, float]:
-    """Parse T4=0.5,A100=3.5 style GPU hourly prices."""
-
-    prices: dict[str, float] = {}
-    if not value or not value.strip():
-        return prices
-
-    for raw_part in value.split(","):
-        part = raw_part.strip()
-        if not part:
+def parse_gpu_prices(value):
+    prices, names = {}, set()
+    for part in (value or "").split(","):
+        if not part.strip():
             continue
-        if "=" not in part:
-            raise ValueError(f"invalid gpu-prices entry {part!r}; expected NAME=PRICE")
-        gpu_type, price_text = part.split("=", 1)
-        gpu_type = gpu_type.strip()
-        if not gpu_type:
-            raise ValueError("gpu-prices contains an empty GPU type")
-        try:
-            price = float(price_text.strip())
-        except ValueError as exc:
-            raise ValueError(f"invalid hourly price for {gpu_type!r}") from exc
-        if price < 0:
-            raise ValueError(f"invalid negative hourly price for {gpu_type!r}")
-        prices[gpu_type] = price
+        name, separator, price = part.partition("=")
+        name = name.strip()
+        normalized = re.sub(r"[^a-z0-9]", "", name.lower())
+        if not separator or not normalized:
+            raise ConfigError("Invalid gpu-prices: expected NAME=PRICE entries.")
+        if normalized in names:
+            raise ConfigError("Duplicate GPU price entry.")
+        names.add(normalized)
+        prices[name] = number(price, "gpu price", allow_zero=True)
     return prices
 
 
-def parse_budget_limit(value: str | None) -> float | None:
-    if value is None or value.strip() == "":
-        return None
-    try:
-        budget = float(value.strip())
-    except ValueError as exc:
-        raise ValueError("budget-limit must be a number") from exc
-    if budget < 0:
-        raise ValueError("budget-limit must not be negative")
-    return budget
+def parse_budget_limit(value):
+    return None if value is None or not value.strip() else number(value, "budget-limit", allow_zero=True)
 
 
-def parse_bool(value: str | None) -> bool:
-    return str(value or "").strip().lower() in {"1", "true", "yes", "y", "on"}
+def parse_warn_increase_percent(value):
+    return 50.0 if value is None or not value.strip() else number(value, "warn-increase-percent", allow_zero=True)
 
 
-def load_event(event_path: str | None) -> dict[str, Any]:
+def load_event(event_path):
     if not event_path:
         return {}
-    path = Path(event_path)
-    if not path.exists():
-        return {}
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return {}
+        with Path(event_path).open("rb") as stream:
+            data = stream.read(10_000_001)
+        if len(data) > 10_000_000:
+            raise ConfigError("GitHub event payload exceeds size limit.")
+        event = json.loads(data)
+        if not isinstance(event, dict):
+            raise ValueError
+        return event
+    except (OSError, ValueError):
+        raise ConfigError("Cannot read a valid GitHub event payload.") from None
 
 
-def run_local_pair(
-    base_path: Path,
-    head_path: Path,
-    *,
-    default_budget_limit_usd: float | None,
-    gpu_hourly_prices: Mapping[str, float],
-) -> str:
-    base_text = base_path.read_text(encoding="utf-8")
-    head_text = head_path.read_text(encoding="utf-8")
-    item = analyze_config_texts(
-        display_path=str(head_path),
-        base_text=base_text,
-        head_text=head_text,
-        file_suffix=head_path.suffix,
-        default_budget_limit_usd=default_budget_limit_usd,
-        gpu_hourly_prices=gpu_hourly_prices,
-    )
-    if item["report"]:
-        return item["report"]
-    return render_no_config_report([str(head_path)], item["notes"])
+def _decode_config(data):
+    if len(data) > MAX_CONFIG_BYTES:
+        raise ConfigError("Config exceeds the 1MB byte limit.")
+    try:
+        return data.decode("utf-8")
+    except UnicodeError:
+        raise ConfigError("Config must be UTF-8.") from None
 
 
-def run_pull_request_analysis(
-    *,
-    repo_root: Path,
-    event: Mapping[str, Any],
-    event_name: str,
-    config_path_input: str,
-    default_budget_limit_usd: float | None,
-    gpu_hourly_prices: Mapping[str, float],
-) -> str:
-    pull_request = event.get("pull_request") if isinstance(event, Mapping) else None
-    if event_name and event_name != "pull_request":
-        return render_no_config_report(
-            [config_path_input],
-            [f"Skipped analysis because this action is intended for pull_request events, not {event_name}."],
-        )
-
-    base_sha = get_nested(pull_request, "base", "sha")
-    head_sha = get_nested(pull_request, "head", "sha")
-    candidate_paths = resolve_candidate_paths(repo_root, config_path_input, base_sha, head_sha)
-    if not candidate_paths:
-        checked = split_config_paths(config_path_input)
-        notes = ["No changed supported config files matched the configured path."]
-        return render_no_config_report(checked, notes)
-
-    reports: list[tuple[str, str]] = []
-    notes: list[str] = []
-    for config_path in candidate_paths:
-        suffix = Path(config_path).suffix.lower()
-        if suffix not in SUPPORTED_SUFFIXES:
-            notes.append(f"Skipped {config_path}: unsupported config extension.")
-            continue
-
-        base_text = read_git_file(repo_root, base_sha, config_path)
-        head_text = read_git_file(repo_root, head_sha, config_path)
-        if head_text is None:
-            head_text = read_worktree_file(repo_root, config_path)
-
-        if base_text is None and head_text is None:
-            notes.append(f"Skipped {config_path}: file was not found in the base or PR branch.")
-            continue
-
-        item = analyze_config_texts(
-            display_path=config_path,
-            base_text=base_text,
-            head_text=head_text,
-            file_suffix=suffix,
-            default_budget_limit_usd=default_budget_limit_usd,
-            gpu_hourly_prices=gpu_hourly_prices,
-        )
-        if item["report"]:
-            reports.append((config_path, item["report"]))
-        notes.extend(item["notes"])
-
-    return render_action_report(reports, notes, candidate_paths)
+def _read_local(path):
+    try:
+        with path.open("rb") as stream:
+            return _decode_config(stream.read(MAX_CONFIG_BYTES + 1))
+    except OSError:
+        raise ConfigError("Config file is unreadable.") from None
 
 
-def get_nested(value: Any, *keys: str) -> str | None:
+def run_local_pair(base_path, head_path, *, default_budget_limit_usd, gpu_hourly_prices,
+                   cost_increase_threshold_percent=50.0):
+    try:
+        base = normalize_training_config(parse_config_text(_read_local(base_path), base_path.suffix))
+        head = normalize_training_config(parse_config_text(_read_local(head_path), head_path.suffix))
+        result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
+            gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
+        return AnalysisRun(result.markdown_report, "complete")
+    except ConfigError as exc:
+        return AnalysisRun(render_no_config_report([str(head_path)], [str(exc)]), "error")
+
+
+def get_nested(value, *keys):
     current = value
     for key in keys:
         if not isinstance(current, Mapping):
@@ -234,285 +198,255 @@ def get_nested(value: Any, *keys: str) -> str | None:
     return current if isinstance(current, str) and current else None
 
 
-def resolve_candidate_paths(
-    repo_root: Path,
-    config_path_input: str,
-    base_sha: str | None,
-    head_sha: str | None,
-) -> list[str]:
-    configured = split_config_paths(config_path_input)
-    changed_paths = changed_supported_files(repo_root, base_sha, head_sha)
-
-    if not configured:
-        return changed_paths
-
-    candidates: list[str] = []
-    for pattern in configured:
-        expanded_patterns = expand_brace_pattern(pattern)
-        pattern_matches: list[str] = []
-        for expanded in expanded_patterns:
-            if has_glob_chars(expanded):
-                pattern_matches.extend(match_known_paths(expanded, changed_paths))
-                pattern_matches.extend(glob_worktree(repo_root, expanded))
-            else:
-                pattern_matches.append(expanded)
-        candidates.extend(pattern_matches)
-
-    return unique_preserving_order(normalize_repo_path(path) for path in candidates if path)
-
-
-def split_config_paths(value: str) -> list[str]:
-    return [part.strip() for part in value.split(",") if part.strip()]
-
-
-def expand_brace_pattern(pattern: str) -> list[str]:
-    start = pattern.find("{")
-    end = pattern.find("}", start + 1)
-    if start == -1 or end == -1:
-        return [pattern]
-    prefix = pattern[:start]
-    suffix = pattern[end + 1 :]
-    options = [option.strip() for option in pattern[start + 1 : end].split(",") if option.strip()]
-    if not options:
-        return [pattern]
-    return [prefix + option + suffix for option in options]
-
-
-def has_glob_chars(pattern: str) -> bool:
-    return any(char in pattern for char in "*?[")
-
-
-def match_known_paths(pattern: str, paths: list[str]) -> list[str]:
-    return [path for path in paths if fnmatch.fnmatch(path, pattern)]
-
-
-def glob_worktree(repo_root: Path, pattern: str) -> list[str]:
-    matches: list[str] = []
-    for path in repo_root.glob(pattern):
-        if path.is_file():
-            matches.append(path.relative_to(repo_root).as_posix())
-    return matches
-
-
-def normalize_repo_path(path: str) -> str:
-    normalized = Path(path).as_posix()
-    if normalized.startswith("./"):
-        return normalized[2:]
-    return normalized
-
-
-def unique_preserving_order(values: Any) -> list[str]:
-    seen: set[str] = set()
-    result: list[str] = []
-    for value in values:
-        if value not in seen:
-            seen.add(value)
-            result.append(value)
-    return result
-
-
-def changed_supported_files(repo_root: Path, base_sha: str | None, head_sha: str | None) -> list[str]:
-    if not base_sha or not head_sha:
-        return []
-    completed = run_git(repo_root, ["diff", "--name-only", base_sha, head_sha, "--"])
-    if completed.returncode != 0:
-        return []
-    paths = [
-        normalize_repo_path(line)
-        for line in completed.stdout.splitlines()
-        if Path(line).suffix.lower() in SUPPORTED_SUFFIXES
-    ]
-    return unique_preserving_order(paths)
-
-
-def read_git_file(repo_root: Path, sha: str | None, path: str) -> str | None:
-    if not sha:
-        return None
-    completed = run_git(repo_root, ["show", f"{sha}:{path}"])
-    if completed.returncode != 0:
-        return None
-    return completed.stdout
-
-
-def read_worktree_file(repo_root: Path, path: str) -> str | None:
-    worktree_path = repo_root / path
-    if not worktree_path.exists() or not worktree_path.is_file():
-        return None
-    return worktree_path.read_text(encoding="utf-8")
-
-
-def run_git(repo_root: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", *args],
-        cwd=repo_root,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-
-
-def analyze_config_texts(
-    *,
-    display_path: str,
-    base_text: str | None,
-    head_text: str | None,
-    file_suffix: str,
-    default_budget_limit_usd: float | None,
-    gpu_hourly_prices: Mapping[str, float],
-) -> dict[str, Any]:
-    notes: list[str] = []
+def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input,
+                              default_budget_limit_usd, gpu_hourly_prices,
+                              cost_increase_threshold_percent=50.0):
+    if event_name != "pull_request":
+        return AnalysisRun(render_no_config_report([], ["Skipped: this action requires a pull_request event."]), "skipped")
+    pr = event.get("pull_request")
+    base_sha, head_sha = get_nested(pr, "base", "sha"), get_nested(pr, "head", "sha")
     try:
-        base_config = parse_config_side(base_text, file_suffix, display_path)
-        head_config = parse_config_side(head_text, file_suffix, display_path)
-    except (ValueError, SyntaxError, json.JSONDecodeError) as exc:
-        return {"report": "", "notes": [f"Skipped {display_path}: {exc}"]}
+        changes = changed_supported_files(repo_root, base_sha, head_sha)
+        selected = resolve_candidate_paths(config_path_input, changes)
+    except ConfigError as exc:
+        return AnalysisRun(render_no_config_report([], [str(exc)]), "error")
+    reports, notes = [], []
+    failed = deleted = 0
+    for change in selected:
+        if change.deleted:
+            deleted += 1
+            notes.append(f"Deleted config excluded: {safe_text(change.path)}.")
+            continue
+        try:
+            base_text = read_git_file(repo_root, base_sha, change.base_path) if change.base_path else None
+            head_text = read_git_file(repo_root, head_sha, change.path)
+            base = normalize_training_config({}) if base_text is None else normalize_training_config(
+                parse_config_text(base_text, Path(change.base_path).suffix))
+            head = normalize_training_config(parse_config_text(head_text, Path(change.path).suffix))
+            result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
+                gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
+            if change.base_path is None:
+                notes.append(f"Added config: {safe_text(change.path)}; no base file exists, so base defaults are illustrative.")
+            elif change.base_path != change.path:
+                notes.append(f"Detected rename: {safe_text(change.base_path)} -> {safe_text(change.path)}.")
+            reports.append(ConfigReport(change.path, result.markdown_report, result))
+        except ConfigError as exc:
+            failed += 1
+            notes.append(f"Skipped {safe_text(change.path)}: {exc}")
+    status = ("partial" if reports else "error") if failed else ("complete" if reports else "skipped")
+    if not selected:
+        notes.append("No changed supported config files matched the configured path.")
+    try:
+        report = render_action_report(reports, notes, [c.path for c in selected], excluded=failed + deleted)
+    except ConfigError as exc:
+        return AnalysisRun(render_no_config_report([], [str(exc)]), "error")
+    return AnalysisRun(report, status)
 
-    result = analyze_configs(
-        base_config,
-        head_config,
-        default_budget_limit_usd=default_budget_limit_usd,
-        gpu_hourly_prices=gpu_hourly_prices,
-    )
-    return {"report": result.markdown_report, "notes": notes}
+
+def split_config_paths(value):
+    parts, current, depth = [], [], 0
+    for char in value:
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+        if depth not in (0, 1):
+            raise ConfigError("Invalid config-path brace pattern.")
+        if char == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    if depth:
+        raise ConfigError("Invalid config-path brace pattern.")
+    parts.append("".join(current).strip())
+    return [p for p in parts if p]
 
 
-def parse_config_side(text: str | None, file_suffix: str, source_path: str):
-    if text is None:
-        return normalize_training_config({}, source_path=source_path)
-    raw_config = parse_config_text(text, file_suffix)
-    return normalize_training_config(raw_config, source_path=source_path)
+def expand_brace_pattern(pattern):
+    if "{" not in pattern:
+        return [pattern]
+    start, end = pattern.index("{"), pattern.index("}")
+    options = pattern[start + 1:end].split(",")
+    if any(not option for option in options):
+        raise ConfigError("Empty config-path brace option.")
+    return [expanded for option in options for expanded in
+            expand_brace_pattern(pattern[:start] + option + pattern[end + 1:])]
 
 
-def render_action_report(
-    reports: list[tuple[str, str]],
-    notes: list[str],
-    checked_paths: list[str],
-) -> str:
+def resolve_candidate_paths(config_path_input, changes):
+    patterns = [expanded.removeprefix("./") for p in split_config_paths(config_path_input)
+                for expanded in expand_brace_pattern(p)]
+    for pattern in patterns:
+        if Path(pattern).is_absolute() or ".." in Path(pattern).parts:
+            raise ConfigError("config-path must stay inside the repository.")
+    def matches(pattern, path):
+        return fnmatch.fnmatchcase(path, pattern) or (pattern.startswith("**/") and fnmatch.fnmatchcase(path, pattern[3:]))
+    return [c for c in changes if not patterns or any(matches(p, c.path) for p in patterns)]
+
+
+def run_git(repo_root, args):
+    try:
+        return subprocess.run(["git", *args], cwd=repo_root, capture_output=True, check=False, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        raise ConfigError("Git operation unavailable or timed out.") from None
+
+
+def _valid_commit(repo_root, sha):
+    if not sha or not re.fullmatch(r"[0-9a-fA-F]{40,64}", sha):
+        raise ConfigError("Missing or invalid base/head SHA.")
+    result = run_git(repo_root, ["cat-file", "-t", sha])
+    if result.returncode or result.stdout.strip() != b"commit":
+        raise ConfigError("Base/head commit unavailable; use checkout with fetch-depth: 0.")
+
+
+def changed_supported_files(repo_root, base_sha, head_sha):
+    _valid_commit(repo_root, base_sha)
+    _valid_commit(repo_root, head_sha)
+    result = run_git(repo_root, ["diff", "--name-status", "-z", "--find-renames", base_sha, head_sha, "--"])
+    if result.returncode:
+        raise ConfigError("Git diff failed; use checkout with fetch-depth: 0.")
+    parts = result.stdout.split(b"\0")
+    changes, i = [], 0
+    try:
+        while i < len(parts) and parts[i]:
+            status = parts[i].decode("ascii")
+            old_path = parts[i + 1].decode("utf-8")
+            i += 2
+            path = old_path
+            if status.startswith("R"):
+                path = parts[i].decode("utf-8")
+                i += 1
+            if Path(path).suffix.lower() not in SUPPORTED_SUFFIXES:
+                continue
+            changes.append(ChangedFile(path, None if status.startswith("A") else old_path, status.startswith("D")))
+    except (UnicodeError, IndexError):
+        raise ConfigError("Git returned an unsupported file path or diff record.") from None
+    return changes
+
+
+def read_git_file(repo_root, sha, path):
+    spec = f"{sha}:{path}"
+    size = run_git(repo_root, ["cat-file", "-s", spec])
+    if size.returncode:
+        raise ConfigError("Config could not be read from the requested commit.")
+    try:
+        if int(size.stdout) > MAX_CONFIG_BYTES:
+            raise ConfigError("Config exceeds the 1MB byte limit.")
+    except ValueError:
+        raise ConfigError("Config is unavailable or exceeds the 1MB byte limit.") from None
+    content = run_git(repo_root, ["cat-file", "blob", spec])
+    if content.returncode:
+        raise ConfigError("Config is not a readable Git blob.")
+    return _decode_config(content.stdout)
+
+
+def analyze_config_texts(*, display_path, base_text, head_text, file_suffix,
+                         default_budget_limit_usd, gpu_hourly_prices, cost_increase_threshold_percent=50.0):
+    try:
+        base = normalize_training_config(parse_config_text(base_text, file_suffix) if base_text is not None else {})
+        head = normalize_training_config(parse_config_text(head_text, file_suffix) if head_text is not None else {})
+        result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
+            gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
+        return {"report": result.markdown_report, "result": result, "notes": []}
+    except ConfigError as exc:
+        return {"report": "", "result": None, "notes": [f"Skipped {safe_text(display_path)}: {exc}"]}
+
+
+def render_action_report(reports, notes, checked_paths, *, excluded=0):
     if not reports:
         return render_no_config_report(checked_paths, notes)
-
     if len(reports) == 1:
-        config_path, report = reports[0]
-        rendered = insert_config_path(report, config_path)
-        if notes:
-            rendered += "\n### Action notes\n\n" + "\n".join(f"- {note}" for note in notes) + "\n"
-        return rendered
-
-    lines = ["## TrainCost CI Report", "", f"Analyzed {len(reports)} config files.", ""]
-    for config_path, report in reports:
-        lines.extend([f"### `{config_path}`", ""])
-        lines.append(strip_report_title(report).strip())
-        lines.append("")
+        report = insert_config_path(reports[0].report, reports[0].path)
+    else:
+        lines = ["## TrainCost CI Report", "", f"Analyzed {len(reports)} config files.", ""]
+        lines.extend(render_combined_totals(reports))
+        for item in reports:
+            lines.extend([f"### {markdown(item.path)}", "", "\n".join(item.report.splitlines()[1:]).strip(), ""])
+        report = "\n".join(lines) + "\n"
+    if excluded:
+        notes = [*notes, f"Excluded configs: {excluded}. Costs cover analyzed configs only."]
     if notes:
-        lines.extend(["### Action notes", ""])
-        lines.extend(f"- {note}" for note in notes)
-        lines.append("")
-    return "\n".join(lines)
-
-
-def insert_config_path(report: str, config_path: str) -> str:
-    lines = report.splitlines()
-    if not lines:
-        return report
-    return "\n".join([lines[0], "", f"Config: `{config_path}`.", *lines[1:]]) + "\n"
-
-
-def strip_report_title(report: str) -> str:
-    lines = report.splitlines()
-    if lines and lines[0].strip() == "## TrainCost CI Report":
-        return "\n".join(lines[1:]).lstrip()
+        report += "\n### Action notes\n\n" + "\n".join("- " + markdown(n) for n in notes) + "\n"
     return report
 
 
-def render_no_config_report(checked_paths: list[str], notes: list[str]) -> str:
-    lines = [
-        "## TrainCost CI Report",
-        "",
-        "No supported training config file found.",
-        "",
-        "TrainCost CI skipped cost analysis because no readable YAML, JSON, or simple Python config was found.",
-    ]
+def render_combined_totals(reports):
+    base = sum(r.result.base_estimate.estimated_cost_usd for r in reports)
+    head = sum(r.result.pr_estimate.estimated_cost_usd for r in reports)
+    if not math.isfinite(base) or not math.isfinite(head):
+        raise ConfigError("Combined estimate arithmetic overflow.")
+    return ["### Combined estimated cost", "", "- Sum of analyzed configs only; this is not a scheduled workload forecast.",
+            f"- Base branch total: {chr(36)}{base:,.2f}", f"- This PR total: {chr(36)}{head:,.2f}", ""]
+
+
+def insert_config_path(report, path):
+    display = safe_text(path).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace(chr(96), "&#96;")
+    lines = report.splitlines()
+    return "\n".join([lines[0], "", f"Config: {chr(96)}{display}{chr(96)}.", *lines[1:]]) + "\n"
+
+
+def render_no_config_report(checked_paths, notes):
+    lines = ["## TrainCost CI Report", "", "No supported training config file found or analyzed.",
+             "", "No cost estimate was produced."]
     if checked_paths:
         lines.extend(["", "### Checked", ""])
-        lines.extend(f"- `{path}`" for path in checked_paths)
+        lines.extend("- " + markdown(p) for p in checked_paths)
     if notes:
         lines.extend(["", "### Action notes", ""])
-        lines.extend(f"- {note}" for note in notes)
+        lines.extend("- " + markdown(note) for note in notes)
     return "\n".join(lines) + "\n"
 
 
-def post_or_update_pr_comment(event: Mapping[str, Any], report: str) -> bool:
-    pull_request = event.get("pull_request") if isinstance(event, Mapping) else None
-    comments_url = get_nested(pull_request, "comments_url")
-    if not comments_url:
-        print("Comment mode requested, but no pull request comment URL was available.")
-        return False
-
+def post_or_update_pr_comment(event, report):
+    comments_url = get_nested(event.get("pull_request"), "comments_url")
     token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
-    if not token:
-        print("Comment mode requested, but no GitHub token was available.")
+    if not comments_url or not token:
+        print("Experimental comment mode unavailable: missing PR URL or token.")
         return False
-
-    body = f"{COMMENT_MARKER}\n{report}"
     try:
         existing = find_existing_comment(comments_url, token)
-        if existing:
-            github_json_request("PATCH", existing["url"], token, {"body": body})
-            print("TrainCost CI updated an existing PR comment.")
-        else:
-            github_json_request("POST", comments_url, token, {"body": body})
-            print("TrainCost CI posted a PR comment.")
-    except urllib.error.HTTPError as exc:
-        print(f"Comment mode requested, but GitHub returned HTTP {exc.code}.")
+        github_json_request("PATCH" if existing else "POST", existing["url"] if existing else comments_url,
+                            token, {"body": COMMENT_MARKER + "\n" + report})
+        return True
+    except (urllib.error.URLError, ValueError, OSError):
+        print("Experimental comment request failed; the local report remains available.")
         return False
-    except urllib.error.URLError as exc:
-        print(f"Comment mode requested, but GitHub comment request failed: {exc.reason}.")
-        return False
-    return True
 
 
-def find_existing_comment(comments_url: str, token: str) -> dict[str, Any] | None:
-    separator = "&" if "?" in comments_url else "?"
-    comments = github_json_request("GET", f"{comments_url}{separator}per_page=100", token)
-    if not isinstance(comments, list):
-        return None
-    for comment in comments:
-        if isinstance(comment, Mapping) and COMMENT_MARKER in str(comment.get("body", "")):
-            url = comment.get("url")
-            if isinstance(url, str):
-                return {"url": url}
+def find_existing_comment(comments_url, token):
+    comments = github_json_request("GET", comments_url + "?per_page=100", token)
+    if isinstance(comments, list):
+        for comment in comments:
+            if isinstance(comment, dict) and comment.get("user", {}).get("type") == "Bot" and COMMENT_MARKER in str(comment.get("body", "")):
+                if isinstance(comment.get("url"), str):
+                    return {"url": comment["url"]}
     return None
 
 
-def github_json_request(
-    method: str,
-    url: str,
-    token: str,
-    payload: Mapping[str, Any] | None = None,
-) -> Any:
-    data = None
-    if payload is not None:
-        data = json.dumps(payload).encode("utf-8")
-
-    request = urllib.request.Request(url, data=data, method=method)
-    request.add_header("Accept", "application/vnd.github+json")
-    request.add_header("Authorization", f"Bearer {token}")
-    request.add_header("Content-Type", "application/json")
-    request.add_header("X-GitHub-Api-Version", "2022-11-28")
-
-    with urllib.request.urlopen(request, timeout=20) as response:
+def github_json_request(method, url, token, payload=None):
+    api_url = os.getenv("GITHUB_API_URL", "https://api.github.com").rstrip("/")
+    if not url.startswith(api_url + "/"):
+        raise ValueError("Untrusted GitHub API URL.")
+    data = json.dumps(payload).encode() if payload is not None else None
+    request = urllib.request.Request(url, data=data, method=method,
+        headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}",
+                 "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28"})
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *args, **kwargs):
+            return None
+    with urllib.request.build_opener(NoRedirect).open(request, timeout=20) as response:
         body = response.read()
-    if not body:
-        return None
-    return json.loads(body.decode("utf-8"))
+    return json.loads(body) if body else None
 
 
-def write_output(name: str, value: str) -> None:
-    output_path = os.getenv("GITHUB_OUTPUT")
-    if not output_path:
-        return
-    with Path(output_path).open("a", encoding="utf-8") as output_file:
-        output_file.write(f"{name}={value}\n")
+def write_output(name, value):
+    if "\n" in value or "\r" in value:
+        raise ValueError("Runner output must be a single line.")
+    path = os.getenv("GITHUB_OUTPUT")
+    if path:
+        with Path(path).open("a", encoding="utf-8") as stream:
+            stream.write(f"{name}={value}\n")
 
 
 if __name__ == "__main__":

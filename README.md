@@ -1,179 +1,108 @@
 # TrainCost CI
 
-TrainCost CI is a lightweight GitHub Action that reviews ML training config changes in pull requests and reports estimated GPU cost risk.
+[![CI](https://github.com/Pig30nidaE/TrainCost/actions/workflows/ci.yml/badge.svg)](https://github.com/Pig30nidaE/TrainCost/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-It is positioned as **Infracost for ML experiments**: a PR-level cost review bot for training configuration changes, not a GPU scheduler or experiment tracking platform.
+Review ML training cost risk before a pull request is merged.
+TrainCost CI compares training configs, estimates GPU-hours and cost, and explains its inputs and assumptions.
+Think **Infracost for ML experiments**.
 
-## Problem
+**Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
+This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
 
-Small changes to ML training config can turn a cheap experiment into an expensive run:
+## See the three outcomes
 
-- `epochs` increases from 5 to 50.
-- `gpu_type` changes from `T4` to `A100`.
-- `gpu_count` doubles.
-- mixed precision is disabled.
-- batch size drops enough to reduce GPU utilization.
+| Scenario | Result | Evidence |
+| --- | --- | --- |
+| More epochs, larger GPUs, less efficient settings | $0.04 to $21.33, +48,662%, risk warnings | [Full report](examples/pytorch-demo/expected-report.md) |
+| GPU and runtime information missing | Low confidence, explicit assumed inputs | [Full report](examples/pytorch-demo/expected-missing-report.md) |
+| Invalid epoch count | No estimated cost, error status, exit 2 | [Full report](examples/pytorch-demo/expected-invalid-report.md) |
 
-Teams often discover the cost only after the job has already run. TrainCost CI is meant to catch those changes during code review and provide a clear risk signal before merge.
+![Risk report excerpt rendered from the actual fixture](docs/assets/risk-report.png)
 
-## Example PR Comment
+These are deterministic config examples, not measured training runs.
+[All report images and reproduction steps](docs/demo_script.md) cover the three scenarios.
 
-```markdown
-## TrainCost CI Report
+## Run locally
 
-Cost risk detected.
+Python 3.11 or later is required. From the repository root:
 
-### Changed
+~~~bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python scripts/verify_release.py
+.venv/bin/python packages/github-action/traincost_action.py \
+  --base-config examples/pytorch-demo/configs/base-config.yaml \
+  --head-config examples/pytorch-demo/configs/risky-config.yaml \
+  --gpu-prices "T4=0.35,A10G=1.2,A100=3.20" \
+  --budget-limit 5 --comment-mode false --report-path report.md
+~~~
 
-- epochs: 5 -> 50
-- batch_size: 64 -> 8
-- precision: bf16 -> fp32
-- gpu_type: T4 -> A100
-- gpu_count: 1 -> 2
+Analysis runs locally. It does not execute training code or send config contents to an external service.
+Dependency installation downloads PyYAML; experimental comment mode sends the sanitized report to GitHub.
 
-### Estimated cost
+## Use in GitHub Actions
 
-- Base branch: $0.04
-- This PR: $21.33
-- Increase: +48,662%
+This example runs the action from this repository. External consumers must pin the reviewed candidate SHA listed in the [QA report](docs/qa_report.md).
+The candidate tag does not exist until publication is approved.
 
-### Warnings
-
-- Budget limit exceeded: estimated $21.33 > $5.00.
-- Estimated cost increased by more than 50% compared with the base branch.
-- GPU type changed to a more expensive option.
-- GPU count increased from 1 to 2.
-- Mixed precision appears disabled; fp32 may increase runtime and memory use.
-- Batch size is small and may reduce GPU utilization.
-
-### Recommendations
-
-- Run a short dry run before launching the full training job.
-- Confirm that the larger GPU and higher epoch count are required.
-- Re-enable mixed precision if the model supports it.
-- Set or lower `budget_limit_usd` for this experiment.
-
-### Confidence
-
-Medium.
-
-Reason: `estimated_minutes_per_epoch` was provided, but actual runtime and GPU utilization are unknown.
-```
-
-The report is an estimate, not an exact bill. It uses config values and simple rules to highlight risk.
-
-## Quick Start
-
-Add a workflow such as:
-
-
-```yaml
-name: TrainCost CI
-
-on:
-  pull_request:
-    paths:
-      - "**/*.yaml"
-      - "**/*.yml"
-      - "**/*.json"
-      - "**/*.py"
-
+~~~yaml
+name: Review training cost
+on: pull_request
+permissions:
+  contents: read
 jobs:
   traincost:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
-
-      - name: Review ML training cost
-        uses: Pig30nidaE/TrainCost@v0.1.0
+          persist-credentials: false
+      - uses: ./
+        id: cost
         with:
-          config-path: "config.yaml"
-          gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
-          budget-limit: "5.00"
+          config-path: "examples/pytorch-demo/config.yaml"
+          gpu-prices: "T4=0.35,A100=3.20"
+          budget-limit: "5"
           comment-mode: "false"
-          report-path: "report.md"
-```
+~~~
 
-This example uses report-only mode and therefore needs only `contents: read`. Add `pull-requests: write` when enabling `comment-mode: "true"`.
+The action writes report-path, comment-posted, and analysis-status outputs, and appends the report to Step Summary.
+Cost risk does not fail the job. Invalid inputs or an entirely failed analysis return exit 2.
+[Full input, output, and status reference](docs/github_action_usage.md).
 
-Add cost-related fields to a training config:
+## What is detected
 
-```yaml
-model_name: resnet50
-epochs: 5
-batch_size: 64
-precision: bf16
-mixed_precision: true
-gpu_type: T4
-gpu_count: 1
-estimated_minutes_per_epoch: 1.5
-budget_limit_usd: 5.00
-```
+TrainCost reads these exact keys from YAML, JSON, and literal Python assignments:
 
-When a pull request changes the config, TrainCost CI compares the base branch and PR values, estimates the cost impact, and generates a Markdown report for review.
+model, model_name, epochs, max_epochs, batch_size, global_batch_size, precision, mixed_precision,
+gpu_type, gpu_count, estimated_minutes_per_epoch, dataset_size, budget_limit_usd.
 
-See [docs/github_action_usage.md](docs/github_action_usage.md) for the full input reference and comment-mode behavior.
+Nested canonical keys are supported with source paths. Conflicting values and training fields inside lists are rejected.
+It does not infer GPU hardware from the runner, execute Python expressions, resolve Hydra, or translate framework-specific aliases.
+[Supported formats and validation rules](docs/config_reference.md).
 
-## Supported Config Fields
+## What the estimate means
 
-The MVP should extract these fields when present:
+~~~text
+GPU-hours = epochs * estimated_minutes_per_epoch / 60 * gpu_count
+cost = GPU-hours * hourly_price
+~~~
 
-- `model`
-- `model_name`
-- `epochs`
-- `max_epochs`
-- `batch_size`
-- `global_batch_size`
-- `precision`
-- `mixed_precision`
-- `gpu_type`
-- `gpu_count`
-- `estimated_minutes_per_epoch`
-- `dataset_size`
-- `budget_limit_usd`
+Use your provider's rate per GPU-hour through gpu-prices. Built-in prices are illustrative examples, not current market rates.
+Missing fields use visible defaults and Low confidence. An unknown GPU price uses $1/GPU-hour and Medium confidence.
+Confidence describes input completeness, not actual billing accuracy.
+Runtime is held fixed when GPU count changes; multi-GPU speedups, utilization, storage, and network charges are not modeled.
+Combined totals cover analyzed configs, not a forecast that every config will be run.
 
-The first version will focus on YAML, JSON, and simple Python config files. It should prefer reliable parsing of common config shapes over broad but fragile framework support.
+## Engineering evidence
 
-## MVP Scope
+- [Architecture and trust boundaries](docs/architecture.md)
+- [Regression tests and release gates](docs/testing_strategy.md)
+- [Current QA evidence](docs/qa_report.md)
+- [Portfolio walkthrough](docs/portfolio.md)
+- [PM status and remaining publication steps](docs/pm_status.md)
+- [Beta release notes](docs/release_notes_v0.2.0.md)
 
-The first usable version is limited to:
-
-- Running as a GitHub Action on pull requests.
-- Detecting changed ML training config files.
-- Comparing base branch config and PR branch config.
-- Estimating GPU runtime and cost with simple formulas.
-- Detecting budget and efficiency risks.
-- Generating a concise Markdown PR report.
-
-Cost estimation uses this basic model:
-
-```text
-estimated_total_minutes = epochs * estimated_minutes_per_epoch
-estimated_gpu_hours = estimated_total_minutes / 60 * gpu_count
-estimated_cost_usd = estimated_gpu_hours * gpu_hourly_price
-```
-
-If required fields are missing, the report should still be useful and mark confidence as low.
-
-## Limitations
-
-- Estimates are approximate and based on config values.
-- TrainCost CI does not measure real GPU utilization.
-- TrainCost CI does not know the exact cloud bill for a run.
-- Missing or stale `estimated_minutes_per_epoch` values reduce confidence.
-- The MVP is rule-based and deterministic; it does not use AI to predict runtime.
-- The MVP is not a scheduler, optimizer, dashboard, or experiment tracker.
-- The MVP does not integrate with Kubernetes, MLflow, W&B, Comet, OpenCost, or Kubecost.
-
-## Roadmap
-
-1. Define the MVP product scope, demo, and acceptance checklist.
-2. Implement the Python core package for parsing, comparison, estimation, risk rules, and Markdown report generation.
-3. Add focused tests for YAML, JSON, simple Python config parsing, estimation, risk rules, confidence, and report output.
-4. Implement the GitHub Action wrapper for pull request diffs and report output.
-5. Build the PyTorch demo scenario showing an expensive config change caught in a PR.
-6. Polish installation docs, example output, and GitHub Marketplace readiness after the PR workflow works.
+MIT licensed. No dashboard, backend, cloud account, or paid GPU is required.

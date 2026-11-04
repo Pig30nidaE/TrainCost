@@ -1,50 +1,11 @@
 # TrainCost CI GitHub Action
 
-This package contains the composite GitHub Action wrapper for the TrainCost CI core engine.
+The package-local composite action supports uses: ./packages/github-action inside this repository.
+The root action is the external distribution entrypoint.
 
-The action:
+Both entrypoints run bootstrap.py with Python isolation, install PyYAML==6.0.3 in a disposable venv,
+and invoke the same traincost_action.py. Report-only mode receives no GitHub token.
 
-- reads the base and PR versions of a training config,
-- runs deterministic cost analysis from `packages/core`,
-- writes a Markdown report,
-- optionally posts or updates a pull request comment.
-
-## Inputs
-
-| Input | Default | Description |
-| --- | --- | --- |
-| `config-path` | `config.yaml` | Config path or glob to compare. |
-| `gpu-prices` | empty | Comma-separated hourly GPU prices, such as `T4=0.5,A10G=1.2,A100=3.5`. |
-| `budget-limit` | empty | Default budget limit in USD when the config does not include `budget_limit_usd`. |
-| `comment-mode` | `false` | Set to `true` to post or update a PR comment. |
-| `report-path` | `report.md` | Markdown report output path. |
-
-## Local Repository Usage
-
-```yaml
-- name: Run TrainCost CI
-  uses: ./packages/github-action
-  with:
-    config-path: "config.yaml"
-    gpu-prices: "T4=0.5,A10G=1.2,A100=3.5"
-    budget-limit: "10"
-    comment-mode: "false"
-    report-path: "report.md"
-```
-
-For released usage from another repository, use the root action:
-
-```yaml
-- name: Run TrainCost CI
-  uses: Pig30nidaE/TrainCost@v0.1.0
-  with:
-    config-path: "config.yaml"
-    gpu-prices: "T4=0.5,A10G=1.2,A100=3.5"
-    budget-limit: "10"
-    comment-mode: "false"
-    report-path: "report.md"
-```
-
-`comment-mode: "false"` is the dry-run mode. It only writes the report file.
-
-`comment-mode: "true"` uses the GitHub-provided token to create or update a PR comment when the workflow has `pull-requests: write`.
+Inputs and outputs are documented in ../../docs/github_action_usage.md.
+Root/package interface and bootstrap path parity are checked by scripts/verify_release.py.
+Experimental comments are not a beta release gate.

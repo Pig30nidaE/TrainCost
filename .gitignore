@@ -2,3 +2,12 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
+
+# Generated report from local dry runs.
+/report.md
+/.venv/
+/.coverage*
+/coverage.xml
+**/build/
+**/dist/
+**/*.egg-info/
