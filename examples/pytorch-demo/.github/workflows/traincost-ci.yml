@@ -17,8 +17,8 @@ jobs:
           persist-credentials: false
 
       - name: Review ML training cost
-        # Replace with the reviewed SHA from docs/qa_report.md before use.
-        uses: Pig30nidaE/TrainCost@CANDIDATE_COMMIT_SHA
+        # Tested report-only candidate; repository access is required while private.
+        uses: Pig30nidaE/TrainCost@e21f1f4fd445e64e24f7596ec7ff1cf2f2c5b54c
         with:
           config-path: "config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
