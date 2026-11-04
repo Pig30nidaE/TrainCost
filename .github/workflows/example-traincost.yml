@@ -18,8 +18,8 @@ jobs:
 
       - name: Run TrainCost CI
         id: traincost
-        # External consumers pin the reviewed SHA from docs/qa_report.md.
-        uses: ./
+        # Test-only consumer of the exact beta code candidate. Do not merge this PR.
+        uses: Pig30nidaE/TrainCost@45f6652ebbff1a48162b58738e4ef1974c244232
         with:
           config-path: "examples/pytorch-demo/config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"
@@ -33,6 +33,9 @@ jobs:
           REPORT_PATH: ${{ steps.traincost.outputs.report-path }}
           COMMENT_POSTED: ${{ steps.traincost.outputs.comment-posted }}
           ANALYSIS_STATUS: ${{ steps.traincost.outputs.analysis-status }}
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
 
@@ -40,11 +43,26 @@ jobs:
           test -s "$REPORT_PATH"
           test "$COMMENT_POSTED" = "false"
           test "$ANALYSIS_STATUS" = "complete"
+          test "$EVENT_NAME" = "pull_request"
 
           grep -F -- 'Config: `examples/pytorch-demo/config.yaml`.' "$REPORT_PATH"
           grep -F -- 'Base branch: $0.04' "$REPORT_PATH"
           grep -F -- 'This PR: $21.33' "$REPORT_PATH"
           grep -F -- 'Increase: +48,662%' "$REPORT_PATH"
+          for warning in 'Budget limit exceeded' 'Estimated cost increased by more than 50%' 'Epoch count increased significantly' 'GPU type changed to a more expensive option' 'GPU count increased' 'Mixed precision appears disabled' 'Batch size is unusually small'; do
+            grep -F -- "$warning" "$REPORT_PATH" > /dev/null
+          done
+
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          report = Path(os.environ['REPORT_PATH']).read_bytes()
+          summary_dir = Path(os.environ['RUNNER_TEMP']) / '_runner_file_commands'
+          assert any(report in path.read_bytes() for path in summary_dir.glob('step_summary_*')), 'Generated report missing from Step Summary'
+          print('Step Summary contains the generated report.')
+          PY
 
           printf 'Verified report-path output: %s\n' "$REPORT_PATH"
           printf 'Verified comment-posted output: %s\n' "$COMMENT_POSTED"
+          printf 'Verified analysis-status output: %s\n' "$ANALYSIS_STATUS"
+          printf 'Verified event: %s\nBase SHA: %s\nHead SHA: %s\n' "$EVENT_NAME" "$BASE_SHA" "$HEAD_SHA"
