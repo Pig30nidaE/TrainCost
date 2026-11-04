@@ -24,6 +24,18 @@ RISKY = "epochs: 50\ngpu_type: A100\ngpu_count: 2\nestimated_minutes_per_epoch: 
 SECRET = "ghp_" + "A" * 36
 
 
+def invoke_cli(repo_root, *extra):
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        report, outputs, summary = (root / name for name in ("report.md", "outputs", "summary"))
+        env = {**os.environ, "GITHUB_OUTPUT": str(outputs), "GITHUB_STEP_SUMMARY": str(summary)}
+        run = subprocess.run([sys.executable, "-I", str(ACTION_FILE), "--repo-root", str(repo_root),
+                              "--report-path", str(report), "--comment-mode", "false", *extra],
+                             env=env, capture_output=True, text=True, timeout=30)
+        artifacts = tuple(p.read_text() if p.exists() else "" for p in (report, outputs, summary))
+        return run.returncode, run.stdout, run.stderr, *artifacts
+
+
 class ActionEntrypointTests(unittest.TestCase):
     def invoke(self, root, *extra):
         report, outputs, summary = (root / name for name in ("report.md", "outputs", "summary"))
@@ -71,6 +83,28 @@ class ActionEntrypointTests(unittest.TestCase):
                 self.assertIn(code, (0, 2))
                 if code == 2:
                     self.assertIn("analysis-status=error", outputs)
+
+    def test_yaml_constructor_errors_emit_safe_cli_artifacts(self):
+        secret = SECRET.lower()
+        for tag in ("bool", "int", "float", "timestamp"):
+            for invalid_side in ("base", "head"):
+                with self.subTest(tag=tag, side=invalid_side), tempfile.TemporaryDirectory() as temp:
+                    root = Path(temp)
+                    (root / "base.yaml").write_text(BASE)
+                    (root / "head.yaml").write_text(RISKY)
+                    (root / f"{invalid_side}.yaml").write_text(f"credentials:\n  secret: !!{tag} {secret}\n")
+                    code, stdout, stderr, report, outputs, summary = invoke_cli(
+                        root, "--base-config", str(root / "base.yaml"), "--head-config", str(root / "head.yaml"))
+                    self.assertFalse(any(secret in text for text in (stdout, stderr, report, outputs, summary)),
+                                     "Synthetic credential escaped into CLI output")
+                    self.assertEqual(code, 2)
+                    self.assertEqual(stderr, "")
+                    self.assertIn("Invalid YAML value at line 2", report)
+                    self.assertIn("report-path=", outputs)
+                    self.assertIn("analysis-status=error", outputs)
+                    self.assertIn("comment-posted=false", outputs)
+                    self.assertNotIn("- This PR:", report)
+                    self.assertEqual(summary, report)
 
     def test_parses_inputs_and_zero_prices(self):
         self.assertEqual(action.parse_gpu_prices("T4=0.5,A10G=1.2"), {"T4": .5, "A10G": 1.2})
@@ -223,6 +257,35 @@ class GitIntegrationTests(unittest.TestCase):
         self.assertEqual(partial.status, "partial")
         self.assertIn("Excluded configs: 1", partial.report)
         self.assertEqual(self.analyze("config.yaml").status, "error")
+
+    def test_yaml_constructor_errors_preserve_partial_cli_results(self):
+        secret = SECRET.lower()
+        for tag in ("bool", "int", "float", "timestamp"):
+            for invalid_side in ("base", "head"):
+                with self.subTest(tag=tag, side=invalid_side):
+                    malformed = f"credentials:\n  secret: !!{tag} {secret}\n"
+                    self.write("config.yaml", BASE)
+                    self.write("a-invalid.yaml", malformed if invalid_side == "base" else BASE)
+                    base = self.commit()
+                    self.write("config.yaml", RISKY)
+                    self.write("a-invalid.yaml", malformed if invalid_side == "head" else BASE)
+                    head = self.commit()
+                    event = {"pull_request": {"base": {"sha": base}, "head": {"sha": head}}}
+                    self.write("event.json", json.dumps(event))
+                    code, stdout, stderr, report, outputs, summary = invoke_cli(
+                        self.root, "--event-name", "pull_request", "--event-path", str(self.root / "event.json"),
+                        "--config-path", "config.yaml,a-invalid.yaml", "--gpu-prices", "T4=0.35,A100=3.20")
+                    self.assertFalse(any(secret in text for text in (stdout, stderr, report, outputs, summary)),
+                                     "Synthetic credential escaped into PR output")
+                    self.assertEqual(code, 0)
+                    self.assertEqual(stderr, "")
+                    self.assertIn("analysis-status=partial", outputs)
+                    self.assertIn("comment-posted=false", outputs)
+                    self.assertIn("This PR: $21.33", report)
+                    self.assertIn("Excluded configs: 1", report)
+                    self.assertIn("Costs cover analyzed configs only", report)
+                    self.assertIn("Invalid YAML value at line 2", report)
+                    self.assertEqual(summary, report)
 
     def test_missing_sha_is_error_not_added_config(self):
         outcome = self.analyze(base="0" * 40)
