@@ -30,6 +30,10 @@ SUPPORTED_SUFFIXES = {".yaml", ".yml", ".json", ".py"}
 COMMENT_MARKER = "<!-- traincost-ci-report -->"
 
 
+class GitError(ConfigError):
+    """A failed Git operation invalidates the whole PR comparison."""
+
+
 @dataclass(frozen=True)
 class ChangedFile:
     path: str
@@ -53,13 +57,10 @@ class AnalysisRun:
 def main(argv=None):
     args = parse_args(argv)
     repo_root = Path(args.repo_root).resolve()
-    report_path = Path(args.report_path)
-    if not report_path.is_absolute():
-        report_path = repo_root / report_path
+    report_path, path_error = resolve_report_path(repo_root, args.report_path)
     try:
-        if any(c in str(report_path) for c in "\r\n") or looks_sensitive(str(report_path)):
-            report_path = repo_root / "report.md"
-            raise ConfigError("Invalid report-path; diagnostics were written to report.md.")
+        if path_error:
+            raise ConfigError(path_error)
         prices = parse_gpu_prices(args.gpu_prices)
         budget = parse_budget_limit(args.budget_limit)
         threshold = parse_warn_increase_percent(args.warn_increase_percent)
@@ -92,6 +93,15 @@ def main(argv=None):
         return 2
     print(f"TrainCost CI analysis-status: {outcome.status}")
     return 2 if outcome.status == "error" else 0
+
+
+def resolve_report_path(repo_root, value):
+    path = Path(value)
+    if not path.is_absolute():
+        path = Path(repo_root) / path
+    if any(c in str(path) for c in "\r\n\0") or looks_sensitive(str(path)):
+        return Path(repo_root) / "report.md", "Invalid report-path; diagnostics were written to report.md."
+    return path, None
 
 
 def publish_report(outcome, report_path, *, comment_posted=False):
@@ -180,8 +190,8 @@ def _read_local(path):
 def run_local_pair(base_path, head_path, *, default_budget_limit_usd, gpu_hourly_prices,
                    cost_increase_threshold_percent=50.0):
     try:
-        base = normalize_training_config(parse_config_text(_read_local(base_path), base_path.suffix))
-        head = normalize_training_config(parse_config_text(_read_local(head_path), head_path.suffix))
+        base = normalize_training_config(parse_config_text(_read_local(base_path), base_path.suffix), source_path=str(base_path))
+        head = normalize_training_config(parse_config_text(_read_local(head_path), head_path.suffix), source_path=str(head_path))
         result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
             gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
         return AnalysisRun(result.markdown_report, "complete")
@@ -221,8 +231,8 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
             base_text = read_git_file(repo_root, base_sha, change.base_path) if change.base_path else None
             head_text = read_git_file(repo_root, head_sha, change.path)
             base = normalize_training_config({}) if base_text is None else normalize_training_config(
-                parse_config_text(base_text, Path(change.base_path).suffix))
-            head = normalize_training_config(parse_config_text(head_text, Path(change.path).suffix))
+                parse_config_text(base_text, Path(change.base_path).suffix), source_path=change.base_path)
+            head = normalize_training_config(parse_config_text(head_text, Path(change.path).suffix), source_path=change.path)
             result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
                 gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
             if change.base_path is None:
@@ -230,6 +240,8 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
             elif change.base_path != change.path:
                 notes.append(f"Detected rename: {safe_text(change.base_path)} -> {safe_text(change.path)}.")
             reports.append(ConfigReport(change.path, result.markdown_report, result))
+        except GitError as exc:
+            return AnalysisRun(render_no_config_report([c.path for c in selected], [str(exc)]), "error")
         except ConfigError as exc:
             failed += 1
             notes.append(f"Skipped {safe_text(change.path)}: {exc}")
@@ -289,15 +301,15 @@ def run_git(repo_root, args):
     try:
         return subprocess.run(["git", *args], cwd=repo_root, capture_output=True, check=False, timeout=30)
     except (OSError, subprocess.TimeoutExpired):
-        raise ConfigError("Git operation unavailable or timed out.") from None
+        raise GitError("Git operation unavailable or timed out.") from None
 
 
 def _valid_commit(repo_root, sha):
     if not sha or not re.fullmatch(r"[0-9a-fA-F]{40,64}", sha):
-        raise ConfigError("Missing or invalid base/head SHA.")
+        raise GitError("Missing or invalid base/head SHA.")
     result = run_git(repo_root, ["cat-file", "-t", sha])
     if result.returncode or result.stdout.strip() != b"commit":
-        raise ConfigError("Base/head commit unavailable; use checkout with fetch-depth: 0.")
+        raise GitError("Base/head commit unavailable; use checkout with fetch-depth: 0.")
 
 
 def changed_supported_files(repo_root, base_sha, head_sha):
@@ -305,7 +317,7 @@ def changed_supported_files(repo_root, base_sha, head_sha):
     _valid_commit(repo_root, head_sha)
     result = run_git(repo_root, ["diff", "--name-status", "-z", "--find-renames", base_sha, head_sha, "--"])
     if result.returncode:
-        raise ConfigError("Git diff failed; use checkout with fetch-depth: 0.")
+        raise GitError("Git diff failed; use checkout with fetch-depth: 0.")
     parts = result.stdout.split(b"\0")
     changes, i = [], 0
     try:
@@ -321,7 +333,7 @@ def changed_supported_files(repo_root, base_sha, head_sha):
                 continue
             changes.append(ChangedFile(path, None if status.startswith("A") else old_path, status.startswith("D")))
     except (UnicodeError, IndexError):
-        raise ConfigError("Git returned an unsupported file path or diff record.") from None
+        raise GitError("Git returned an unsupported file path or diff record.") from None
     return changes
 
 
@@ -329,7 +341,7 @@ def read_git_file(repo_root, sha, path):
     spec = f"{sha}:{path}"
     size = run_git(repo_root, ["cat-file", "-s", spec])
     if size.returncode:
-        raise ConfigError("Config could not be read from the requested commit.")
+        raise GitError("Config could not be read from the requested commit.")
     try:
         if int(size.stdout) > MAX_CONFIG_BYTES:
             raise ConfigError("Config exceeds the 1MB byte limit.")
@@ -337,7 +349,7 @@ def read_git_file(repo_root, sha, path):
         raise ConfigError("Config is unavailable or exceeds the 1MB byte limit.") from None
     content = run_git(repo_root, ["cat-file", "blob", spec])
     if content.returncode:
-        raise ConfigError("Config is not a readable Git blob.")
+        raise GitError("Config is not a readable Git blob.")
     return _decode_config(content.stdout)
 
 

@@ -15,6 +15,20 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_unsafe_output_path_is_rejected_before_install(self):
+        secret = "ghp_" + "A" * 36
+        for value in (secret, "report\nunsafe.md", "report\0unsafe.md"):
+            with self.subTest(value=value[:6]), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                env = {"GITHUB_OUTPUT": str(root / "output"), "GITHUB_STEP_SUMMARY": str(root / "summary")}
+                argv = [str(FILE), "--repo-root", temp, "--report-path", value]
+                with patch.dict(os.environ, env), patch.object(sys, "argv", argv), patch.object(bootstrap.subprocess, "run") as run:
+                    self.assertEqual(bootstrap.main(), 2)
+                run.assert_not_called()
+                for name in ("report.md", "output", "summary"):
+                    self.assertNotIn(secret, (root / name).read_text())
+                self.assertIn("analysis-status=error", (root / "output").read_text())
+
     def test_failed_install_is_error_with_outputs(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

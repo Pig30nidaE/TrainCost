@@ -48,6 +48,8 @@ class ActionEntrypointTests(unittest.TestCase):
             self.assertIn("analysis-status=complete", outputs)
             self.assertIn("comment-posted=false", outputs)
             self.assertEqual(summary, report)
+            self.assertIn("Base config file:", report)
+            self.assertIn("PR config file:", report)
             comment.assert_not_called()
 
     def test_bad_inputs_still_write_diagnostics_outputs_summary(self):
@@ -247,6 +249,24 @@ class GitIntegrationTests(unittest.TestCase):
             outcome = self.analyze()
         self.assertEqual(outcome.status, "error")
         self.assertNotIn("- This PR:", outcome.report)
+
+    def test_git_failure_does_not_become_partial_success(self):
+        self.write("config.yaml", RISKY)
+        self.write("new.yaml", BASE)
+        self.commit()
+        read = action.read_git_file
+        def fail_one(repo_root, sha, path):
+            if path == "new.yaml":
+                raise action.GitError("Config could not be read from the requested commit.")
+            return read(repo_root, sha, path)
+        with patch.object(action, "read_git_file", side_effect=fail_one):
+            outcome = self.analyze("*.yaml")
+        self.assertEqual(outcome.status, "error")
+        self.assertNotIn("- This PR:", outcome.report)
+
+    def test_missing_blob_raises_git_error(self):
+        with self.assertRaises(action.GitError):
+            action.read_git_file(self.root, self.base, "absent.yaml")
 
 
 if __name__ == "__main__":

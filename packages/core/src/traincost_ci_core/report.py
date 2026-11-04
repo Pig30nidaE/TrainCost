@@ -61,6 +61,8 @@ def generate_markdown_report(result: AnalysisResult) -> str:
     lines.append("- Confidence describes input completeness, not billing accuracy or measured runtime.")
     lines.extend(["", "### Inputs and assumptions", ""])
     for label, config, estimate in (("Base", result.base_config, result.base_estimate), ("PR", result.pr_config, result.pr_estimate)):
+        if config.source_path:
+            lines.append(f"- {label} config file: {markdown(config.source_path)}.")
         lines.append(f"- {label} applied: epochs={estimate.epochs:g}, minutes/epoch={estimate.estimated_minutes_per_epoch:g}, GPU count={estimate.gpu_count}.")
         for field, paths in config.field_sources.items():
             value = config.field_values().get(field)

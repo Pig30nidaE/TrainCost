@@ -10,7 +10,7 @@ import tempfile
 
 ACTION_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ACTION_DIR))
-from traincost_action import AnalysisRun, parse_args, publish_report, render_no_config_report
+from traincost_action import AnalysisRun, parse_args, publish_report, render_no_config_report, resolve_report_path
 
 
 def main():
@@ -19,10 +19,11 @@ def main():
     if args.comment_mode.lower() != "true":
         env.pop("GITHUB_TOKEN", None)
         env.pop("GH_TOKEN", None)
-    report_path = Path(args.report_path)
-    if not report_path.is_absolute():
-        report_path = Path(args.repo_root) / report_path
+    report_path, path_error = resolve_report_path(Path(args.repo_root).resolve(), args.report_path)
     try:
+        if path_error:
+            publish_report(AnalysisRun(render_no_config_report([], [path_error]), "error"), report_path)
+            return 2
         with tempfile.TemporaryDirectory(prefix="traincost-", dir=os.getenv("RUNNER_TEMP")) as temp:
             venv = Path(temp) / "venv"
             subprocess.run([sys.executable, "-I", "-m", "venv", str(venv)], check=True,
