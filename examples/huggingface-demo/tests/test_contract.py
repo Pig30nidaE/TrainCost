@@ -45,6 +45,17 @@ class ContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             common.validate_config({"model_type": "distilbert", "architectures": ["DistilBertModel"]})
 
+    def test_live_config_rejects_equal_values_with_invalid_types(self):
+        original_read = common.read_json
+        for key, value in (("epochs", True), ("epochs", 1.0), ("batch_size", 8.0),
+                           ("gpu_count", True), ("mixed_precision", 0)):
+            live = {**self.base, key: value}
+            def read(path):
+                return live if Path(path) == DEMO / "config.json" else original_read(path)
+            with self.subTest(key=key, value=value), patch.object(common, "read_json", side_effect=read):
+                with self.assertRaises(ValueError):
+                    common.input_contract()
+
     def test_invalid_or_inconsistent_values_are_rejected(self):
         for key, value in (("epochs", True), ("epochs", 2), ("batch_size", 4),
                            ("gpu_count", 2), ("precision", "bf16"),

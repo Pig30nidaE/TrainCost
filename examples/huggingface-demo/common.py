@@ -63,7 +63,8 @@ def validate_config(config, epochs=None):
 def input_contract():
     base = validate_config(read_json(HERE / "fixtures/base.json"), 1)
     risky = validate_config(read_json(HERE / "fixtures/risky.json"), 3)
-    if read_json(HERE / "config.json") not in (base, risky) or {**base, "epochs": 3} != risky:
+    live = validate_config(read_json(HERE / "config.json"))
+    if live not in (base, risky) or {**base, "epochs": 3} != risky:
         raise ValueError("fixture/config mismatch")
     if base["estimated_minutes_per_epoch"] != 6 or base["budget_limit_usd"] != .2:
         raise ValueError("unexpected static fixture")
