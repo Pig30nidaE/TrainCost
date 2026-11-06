@@ -5,7 +5,7 @@ Updated: 2026-11-07. GPU validation: **NOT RUN**. Publication: **HOLD**.
 This record is separate from the canonical beta evidence in `qa_report.md`.
 The validation tooling is based on cb86e5df199927410e0063768e137845a6811409.
 No core cost formula, parser, Action input, or Action output is changed.
-Tooling candidate: `c29e6dc30894ff18a17a0486f4ef37125a0fd0d9`. The consumer workflow
+Tooling candidate: `243ed0889473180b50fdbc704ede5fd116d3527a`. The consumer workflow
 pins this commit; later evidence/workflow-only commits do not alter the experiment.
 
 ## Scope and interpretation
@@ -35,7 +35,7 @@ by one GPU are not GPU utilization, electricity consumption, or billed cloud hou
 | Gate | State |
 | --- | --- |
 | Core and Action regression tests on the implementation | PASS locally: 43 core, 30 Action |
-| Independent Decimal oracle and validation tooling tests | 37 PASS, 1 Linux-only test skipped on macOS; hosted result pending |
+| Independent Decimal oracle and validation tooling tests | 38 PASS, 1 Linux-only test skipped on macOS; final hosted result pending |
 | Static six-minute report fixture and known-limitations checks | PASS, including byte-identical expected report and CLI Summary |
 | SHA-pinned GitHub-hosted consumer PR, report-only | Pending |
 | User WSL2 environment and locked dependencies | NOT RUN |
