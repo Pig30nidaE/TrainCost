@@ -61,3 +61,12 @@ Integration owns the runner and reproducible inputs, QAReview owns an independen
 and tooling tests, and GithubAction owns the report-only consumer workflow.
 See [the separate validation record](hf_validation_status.md) for actual evidence and pending gates.
 PR #7 and consumer PR #8 remain unmerged. No publication approval follows from this work.
+
+Implementation [PR #9](https://github.com/Pig30nidaE/TrainCost/pull/9) and report-only
+consumer [PR #10](https://github.com/Pig30nidaE/TrainCost/pull/10) are draft and unmerged.
+The final validation tooling candidate is `243ed0889473180b50fdbc704ede5fd116d3527a`.
+Hosted Python 3.11-3.14 CI passed with 43 core, 30 Action, and 39 demo tests.
+The SHA-pinned consumer reported complete / false and $0.10 -> $0.30 (+200%).
+Next owner: the user, for WSL2 dependency installation and preflight, followed by
+explicit local GPU stages. PM must review the returned evidence before judging the
+experiment; rendered hosted Summary inspection and every GPU measurement remain pending.

@@ -86,3 +86,22 @@ GitHub's normal runner metadata and the intentionally verified non-sensitive pat
 
 Historical PR #6 validated v0.1.0 at head 913bcfe715d72b408ae3a252cc986133eab3f3d9.
 It is not evidence for this beta's code.
+
+## DistilBERT tooling follow-up (2026-11-07)
+
+This is separate from the beta release assessment above. The experiment is not yet run.
+Candidate `243ed0889473180b50fdbc704ede5fd116d3527a` leaves core and Action code unchanged.
+Its final hosted CI passed 43 core, 30 Action, and 39 demo tests on Python 3.11-3.14,
+including actual Linux parent-SIGKILL cleanup. The SHA-pinned config-only consumer
+also passed. Local macOS skipped that one Linux-specific test and passed the other 38.
+
+Tests cover the independent oracle, mocked Trainer mapping and finite-value guards,
+balanced subsets, frozen calibration, strict live config types, safe failure bundles,
+evidence immutability, watchdog process groups, CLI report/status/Summary, and static
+cost fixture. They do not establish actual Transformers/CUDA installation or timing accuracy.
+The dependency install dry run resolved 63 hashed distributions; no GPU stack was
+installed on the user PC by these checks.
+
+See [the validation evidence record](hf_validation_status.md) for exact run links,
+SHAs, outputs, remaining Summary inspection, and all GPU gates marked NOT RUN.
+No PR merge, release, tag push, or repository visibility change was performed.

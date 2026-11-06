@@ -34,10 +34,11 @@ by one GPU are not GPU utilization, electricity consumption, or billed cloud hou
 
 | Gate | State |
 | --- | --- |
-| Core and Action regression tests on the implementation | PASS locally: 43 core, 30 Action |
-| Independent Decimal oracle and validation tooling tests | 38 PASS, 1 Linux-only test skipped on macOS; final hosted result pending |
+| Core and Action regression tests on the implementation | PASS: 43 core, 30 Action, Python 3.11-3.14 hosted CI |
+| Independent Decimal oracle and validation tooling tests | PASS: 39 hosted Linux tests; locally 38 passed and 1 Linux-only test skipped |
 | Static six-minute report fixture and known-limitations checks | PASS, including byte-identical expected report and CLI Summary |
-| SHA-pinned GitHub-hosted consumer PR, report-only | Pending |
+| SHA-pinned GitHub-hosted consumer PR, report-only | PASS: report assertions and outputs; see run evidence below |
+| Rendered GitHub Step Summary compared to report | Pending operator inspection; local CLI Summary byte comparison passed |
 | User WSL2 environment and locked dependencies | NOT RUN |
 | Actual model download and 64-example training smoke | NOT RUN |
 | Three calibration and six validation GPU executions | NOT RUN |
@@ -54,7 +55,39 @@ history/worktree scan reported no findings; it is not a complete confidentiality
 The new tests cover fixed Trainer arguments with mocks, actual CLI output, frozen
 calibration, independent arithmetic, balanced subsets, evidence preservation, failed
 bundles, subprocess timeout, and SIGTERM cleanup. Actual Linux parent-SIGKILL cleanup
-is a hosted CI gate, not a macOS pass. Mock Trainer tests do not prove CUDA compatibility.
+passed in hosted Linux CI, not on macOS. Mock Trainer tests do not prove CUDA compatibility.
+
+## Hosted evidence
+
+- Implementation: [draft PR #9](https://github.com/Pig30nidaE/TrainCost/pull/9), stacked on unmerged PR #7.
+- Implementation CI: [run 42266617122](https://github.com/Pig30nidaE/TrainCost/actions/runs/42266617122), five jobs passed.
+- Consumer: [draft PR #10](https://github.com/Pig30nidaE/TrainCost/pull/10), only the canonical epoch changes from 1 to 3 relative to its base.
+- Consumer report: [run 42266667741](https://github.com/Pig30nidaE/TrainCost/actions/runs/42266667741), [verification job](https://github.com/Pig30nidaE/TrainCost/actions/runs/42266667741/job/128060278282), passed.
+- Consumer CI: [run 42266667714](https://github.com/Pig30nidaE/TrainCost/actions/runs/42266667714), passed.
+
+| Observed field | Value |
+| --- | --- |
+| Event | `pull_request` |
+| Base SHA at execution | `002dadc1e60a73254d79800afaabd1de80761a6f` |
+| Consumer head SHA | `b8fe979d0964d519c73f78265fe3361de715ff99` |
+| Downloaded Action SHA | `243ed0889473180b50fdbc704ede5fd116d3527a` |
+| Runner | GitHub-hosted Ubuntu, `ubuntu26/20261101.64` image |
+| `report-path` | `/home/runner/work/TrainCost/TrainCost/report.md` |
+| `analysis-status` | `complete` |
+| `comment-posted` | `false` |
+| Cost display | `$0.10` to `$0.30`, `+200%` |
+| Warnings asserted | Budget exceeded, cost increase, epoch increase, mixed precision disabled |
+| Permissions and checkout | `contents: read`, full history, no persisted checkout credentials; no failures |
+
+No credential-shaped values were found in the reviewed consumer log. GitHub runner
+metadata, paths, and the deliberately verified outputs are visible; this is not a
+claim that logs contain no environment-derived values or arbitrary confidential text.
+The rendered Step Summary is not exposed by the job-log API used here. Inspect it
+in GitHub as described in [the consumer guide](hf_consumer_verification.md).
+
+The code candidate is ready for operator preflight, not a successful GPU experiment
+or a release approval. Later documentation-only commits may record these results
+without changing the candidate or retroactively changing the recorded base SHA.
 
 ## User handoff
 
