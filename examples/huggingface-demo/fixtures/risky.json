@@ -1,0 +1,12 @@
+{
+  "model_name": "distilbert/distilbert-base-uncased",
+  "epochs": 3,
+  "batch_size": 8,
+  "precision": "fp32",
+  "mixed_precision": false,
+  "gpu_type": "RTX3060",
+  "gpu_count": 1,
+  "dataset_size": 1024,
+  "estimated_minutes_per_epoch": 6,
+  "budget_limit_usd": 0.2
+}

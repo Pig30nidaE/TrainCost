@@ -33,6 +33,10 @@ jobs:
           python -m coverage report --omit='*/tests/*'
       - name: Metadata and all demo fixtures
         run: python scripts/verify_release.py
+      - name: Hugging Face validation tooling (no model downloads)
+        run: |
+          python -m unittest discover -s examples/huggingface-demo/tests
+          python scripts/verify_hf_demo.py
       - name: Verify missing YAML dependency diagnostic
         run: python -I -S scripts/verify_no_yaml.py
       - name: Build wheel and verify outside repository
