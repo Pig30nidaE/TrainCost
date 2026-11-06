@@ -26,6 +26,15 @@ These links require repository access while the project remains private.
 These are deterministic config examples, not measured training runs.
 [All report images and reproduction steps](docs/demo_script.md) cover the three scenarios.
 
+## Opt-in model validation
+
+The [DistilBERT validation example](examples/huggingface-demo/README.md) connects one canonical
+config to a real text-classification training run on a user-operated RTX 3060 12GB under WSL2.
+Its separate runner measures calibration and held-out executions; the GitHub Action still only
+reviews config changes and never trains models. It is not a general Hugging Face config adapter.
+USD values use an explicit hypothetical rate, not an electricity bill or cloud invoice.
+[Validation status](docs/hf_validation_status.md) distinguishes tooling checks from GPU evidence.
+
 ## Run locally
 
 Python 3.11 or later is required. From the repository root:

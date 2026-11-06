@@ -1,6 +1,6 @@
 # TrainCost CI PM status
 
-Updated: 2026-11-04.
+Updated: 2026-11-07.
 
 ## Decision
 
@@ -51,3 +51,13 @@ No dashboard, backend, framework inference, or GPU training is included.
 4. Integration: add user-provided measured runtime with provenance; no autonomous runtime prediction.
 
 These are future tasks, not additions to this beta or permission to publish.
+
+## User-approved validation follow-up
+
+A separate `codex/hf-distilbert-validation` branch adds an opt-in DistilBERT/IMDb experiment,
+not a Hugging Face parser or a change to the core/Action contract. The user will operate an
+RTX 3060 12GB under WSL2. No GPU run is authorized on this Mac or on a PR runner.
+Integration owns the runner and reproducible inputs, QAReview owns an independent oracle
+and tooling tests, and GithubAction owns the report-only consumer workflow.
+See [the separate validation record](hf_validation_status.md) for actual evidence and pending gates.
+PR #7 and consumer PR #8 remain unmerged. No publication approval follows from this work.
