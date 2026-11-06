@@ -5,6 +5,8 @@ Updated: 2026-11-07. GPU validation: **NOT RUN**. Publication: **HOLD**.
 This record is separate from the canonical beta evidence in `qa_report.md`.
 The validation tooling is based on cb86e5df199927410e0063768e137845a6811409.
 No core cost formula, parser, Action input, or Action output is changed.
+Tooling candidate: `c29e6dc30894ff18a17a0486f4ef37125a0fd0d9`. The consumer workflow
+pins this commit; later evidence/workflow-only commits do not alter the experiment.
 
 ## Scope and interpretation
 
