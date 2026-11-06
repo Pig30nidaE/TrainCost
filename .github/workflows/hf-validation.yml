@@ -23,7 +23,7 @@ jobs:
 
       - name: Run TrainCost CI
         id: cost
-        uses: Pig30nidaE/TrainCost@c29e6dc30894ff18a17a0486f4ef37125a0fd0d9
+        uses: Pig30nidaE/TrainCost@243ed0889473180b50fdbc704ede5fd116d3527a
         with:
           config-path: "examples/huggingface-demo/config.json"
           gpu-prices: "RTX3060=1.00"
