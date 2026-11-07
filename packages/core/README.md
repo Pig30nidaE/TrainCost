@@ -35,8 +35,10 @@ Invalid configs raise value-free ConfigError, a ValueError subclass.
 Fractional epochs are preserved; counts are positive integers.
 
 No GitHub API, network call, backend, or training-code execution occurs in core.
-Candidate documentation is available on the implementation branch:
-[config reference](https://github.com/Pig30nidaE/TrainCost/blob/codex/hf-model-matrix/docs/config_reference.md),
-[JSON contract](https://github.com/Pig30nidaE/TrainCost/blob/codex/hf-model-matrix/docs/json_report.md),
-and [architecture](https://github.com/Pig30nidaE/TrainCost/blob/codex/hf-model-matrix/docs/architecture.md).
-These branch links describe the unpublished candidate, not the existing v0.1.0 tag.
+Versioned beta documentation:
+[config reference](https://github.com/Pig30nidaE/TrainCost/blob/v0.2.0-beta.1/docs/config_reference.md),
+[JSON contract](https://github.com/Pig30nidaE/TrainCost/blob/v0.2.0-beta.1/docs/json_report.md),
+and [architecture](https://github.com/Pig30nidaE/TrainCost/blob/v0.2.0-beta.1/docs/architecture.md).
+Download packages and check the publication status on the
+[GitHub prerelease page](https://github.com/Pig30nidaE/TrainCost/releases/tag/v0.2.0-beta.1).
+The existing v0.1.0 tag does not contain this beta's interfaces or safeguards.

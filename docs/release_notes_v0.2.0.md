@@ -1,6 +1,8 @@
 # TrainCost CI v0.2.0-beta.1
 
-Unpublished report-only beta candidate.
+Report-only beta. Publication status, the tagged commit, and downloadable assets
+are recorded on the [GitHub prerelease page](https://github.com/Pig30nidaE/TrainCost/releases/tag/v0.2.0-beta.1).
+Python packages are distributed there, not on PyPI.
 
 ## Changes
 
@@ -33,7 +35,7 @@ PyYAML is required; the permissive fallback parser is removed.
 Report layout includes provenance and assumptions. Do not parse Markdown as a stable data API.
 Use the [versioned JSON contract](json_report.md) for automation.
 CostEstimate.price_source values are gpu_prices_input, builtin_price_table, and default_hourly_price.
-The Python package version is 0.2.0b1, the PEP 440 form of the planned beta.
+The Python package version is 0.2.0b1, the PEP 440 form of this beta.
 
 ## Limits
 
@@ -49,6 +51,8 @@ Report-only mode is the beta target. Comment mode remains experimental and is no
 Real-model evidence covers small IMDb sequence-classification runs on MPS, not general HF tasks or runtime prediction. See the [final review and study](final_review.md).
 The user made the source public. Corrected runtime candidate `a907b78` passed CI and a separate
 [external consumer](external_consumer_validation.md) using both Action entrypoints.
-The real fork report-only test also passed against that same SHA. Candidate PR #13 is unmerged, and tag push
-and release publication require separate approval. See [PM status](pm_status.md).
+The real fork report-only test also passed against that same SHA. The owner approved
+PR #13 merge, an annotated beta tag, and GitHub prerelease publication on 2026-11-08.
+The release commit must retain the tested execution files. See [PM status](pm_status.md)
+and the prerelease page for the approval record and final publication identity.
 The v0.1.0 tag remains unchanged.

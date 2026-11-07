@@ -7,15 +7,18 @@ Review ML training cost risk before a pull request is merged.
 TrainCost CI compares training configs, estimates GPU-hours and cost, and explains its inputs and assumptions.
 Think **Infracost for ML experiments**.
 
-**Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
+**Release channel: v0.2.0-beta.1, report-only beta.** See the
+[GitHub prerelease](https://github.com/Pig30nidaE/TrainCost/releases/tag/v0.2.0-beta.1)
+for publication status, the release commit, and downloadable packages. This package
+is not published on PyPI. The existing v0.1.0 tag does not include these safeguards.
 The old measured ML lock has known advisories. Its replacement passes the complete
 dependency audit and a fresh 27-run real-model study. Historical records remain
 available and are not recommended installation environments. See the
 [dependency security record](docs/ml_dependency_security.md).
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
-The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
+The beta adds an explicit Hugging Face adapter, stale-runtime warnings,
 subcent amounts, an installed CLI, and versioned JSON.
-[Candidate PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) includes the
+[Implementation PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) includes the
 multi-model upgrade. Corrected runtime candidate `a907b78` passed all eight
 [Python 3.11-3.14 and dependency CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42406869566).
 The source is now public. The same candidate passed an
@@ -24,8 +27,7 @@ using SHA-pinned root and package Actions. See the
 [external validation record](docs/external_consumer_validation.md).
 A [real fork PR](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/2)
 also passed the same report contracts with read-only permissions.
-Candidate PR #13 is not merged, and release publication is not approved.
-See [PM status](docs/pm_status.md) for remaining gates.
+See the [release notes](docs/release_notes_v0.2.0.md) for compatibility changes and limits.
 The [final candidate study](docs/final_review.md) completed 27 new real runs
 with all training, report, and timing checks passing. Prior timing failures remain
 recorded across 108 observations in four studies; these do not establish general runtime accuracy.
@@ -88,8 +90,9 @@ The [external consumer template](examples/external-consumer/README.md) uses a
 separate consumer repository and requires a reviewed upgrade commit SHA. The source
 is public. Full SHA `a907b78423cd18b5e7a8f53f5d092fcba6df77e9` passed the
 [hosted external consumer test](docs/external_consumer_validation.md).
-No existing tag contains the upgrade. Replace the template's placeholder with a
-reviewed full SHA before use.
+Replace the template's placeholder with that reviewed full SHA before use.
+The versioned beta reference is `Pig30nidaE/TrainCost@v0.2.0-beta.1`; pin a full
+reviewed commit SHA when you require an immutable reference.
 
 The following example is for testing inside this repository, not external installation:
 

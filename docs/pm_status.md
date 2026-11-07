@@ -4,6 +4,21 @@ Updated: 2026-11-08.
 
 ## Current decision
 
+The owner explicitly approved PR #13 merge, an annotated `v0.2.0-beta.1` tag push,
+and GitHub prerelease publication on 2026-11-08. No PyPI upload is authorized.
+Keep the existing `v0.1.0` tag and consumer PRs unchanged. The approved publication
+sequence verifies final CI, merges PR #13, checks the merge commit's execution
+files against the measured runtime, then creates the tag and prerelease.
+
+This source file records the approved pre-publication state. The final release
+commit, assets, hashes, and publication time belong to the
+[GitHub prerelease record](https://github.com/Pig30nidaE/TrainCost/releases/tag/v0.2.0-beta.1).
+Do not infer completed publication from approval alone. The scope is a report-only
+beta with three bounded HF sequence-classification profiles; CUDA/WSL2, live
+comments, general HF task coverage, and billing accuracy remain unverified.
+
+## Final assessment before publication approval
+
 The corrected runtime candidate `a907b78423cd18b5e7a8f53f5d092fcba6df77e9`
 has passed all eight [hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42406869566),
 new ordinary and actual fork consumer runs, and 27 fresh real-model measurements.

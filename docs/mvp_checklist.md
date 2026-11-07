@@ -26,9 +26,13 @@ behind these marks. Historical candidates do not substitute for this source.
 ## Before publication
 
 - [x] Evidence-registration CI at `59ceb45`: all eight jobs passed.
-- [ ] Human review and explicit approval to merge PR #13.
+- [x] Owner approval to merge PR #13, received 2026-11-08 after the final review.
 - [ ] Select and verify the release commit without changing tested runtime files.
-- [ ] Explicit approval for the annotated beta tag push and GitHub prerelease.
+- [x] Owner approval for the annotated beta tag push and GitHub prerelease, received 2026-11-08.
+
+This checklist is the approved pre-publication snapshot. Check the
+[prerelease record](https://github.com/Pig30nidaE/TrainCost/releases/tag/v0.2.0-beta.1)
+for the final tagged merge commit, verified assets, and completed publication.
 
 Keep consumer PRs unmerged and the existing `v0.1.0` tag unchanged. No PyPI upload
 is included. Live comments, CUDA/WSL2 execution, and general HF task coverage are
