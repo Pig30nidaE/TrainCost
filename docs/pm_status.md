@@ -7,15 +7,22 @@ Updated: 2026-11-07.
 The latest [release-readiness record](release_readiness.md) supersedes the upgrade
 snapshot below. Both reproduced P1 paths and the follow-up glob diagnostic overwrite
 are fixed and covered by independent acceptance tests. Runtime/build dependencies
-were updated after an advisory scan. Candidate GitHub verification is being recorded
-separately; do not reuse an earlier SHA's results.
+were updated after an advisory scan. Candidate
+`20af5724ed292066d79c8e47557baf5dd3e14a43` passed four-version local and hosted
+CI, wheel installation, dependency audit, and a same-repository SHA-pinned
+consumer PR covering complete, partial, error, and unsafe-output rejection.
+
+Implementation [PR #11](https://github.com/Pig30nidaE/TrainCost/pull/11) is ready
+for human review. Keep consumer [PR #12](https://github.com/Pig30nidaE/TrainCost/pull/12)
+unmerged. The baseline config remains unchanged on the implementation branch.
+Evidence-only commits after the candidate do not change its code/config fingerprint.
 
 The user explicitly retained private Action access `none` on 2026-11-07. No separate
 consumer repository, permission expansion, public transition, release, or tag push
 is permitted. Public-distribution approval remains HOLD until the outstanding
 external consumer/fork gate and separate publication approval are satisfied.
 
-## Earlier upgrade snapshot
+## Earlier upgrade snapshot, superseded
 
 Current upgrade: local regression validation passed; release readiness remains on hold.
 The P1 false-safe and stale-runtime findings, subcent display, bounded HF adapter,

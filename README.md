@@ -10,11 +10,14 @@ Think **Infracost for ML experiments**.
 **Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
 The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
-subcent amounts, an installed CLI, and versioned JSON. The
-[earlier candidate CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782284598) and
-[earlier SHA-pinned PR demo](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782394357)
-do not verify this upgrade. The links require repository access. Cross-repository hosted
-verification and selection of a reviewed upgrade SHA remain release gates.
+subcent amounts, an installed CLI, and versioned JSON.
+[Candidate PR #11](https://github.com/Pig30nidaE/TrainCost/pull/11) passed
+[Python 3.11-3.14 CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42350182764).
+[Consumer PR #12](https://github.com/Pig30nidaE/TrainCost/pull/12) tests the full
+candidate SHA in this same private repository. These links require repository access.
+Independent cross-repository and real fork validation remain release gates because
+the user retained the current Action access restriction. See the
+[release-readiness record](docs/release_readiness.md) for evidence and limits.
 
 ## See the three outcomes
 

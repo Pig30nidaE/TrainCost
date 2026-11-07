@@ -1,0 +1,219 @@
+{
+  "schema_version": "1.0",
+  "analysis_status": "partial",
+  "analyses": [
+    {
+      "path": "examples/release-consumer/added.json",
+      "base": {
+        "adapter": "canonical",
+        "config": {
+          "model": null,
+          "model_name": null,
+          "epochs": null,
+          "max_epochs": null,
+          "batch_size": null,
+          "global_batch_size": null,
+          "precision": null,
+          "mixed_precision": null,
+          "gpu_type": null,
+          "gpu_count": null,
+          "estimated_minutes_per_epoch": null,
+          "dataset_size": null,
+          "budget_limit_usd": null
+        },
+        "source_path": null,
+        "field_sources": {},
+        "estimate": {
+          "epochs": 1.0,
+          "estimated_minutes_per_epoch": 30.0,
+          "gpu_count": 1,
+          "gpu_type": null,
+          "gpu_hourly_price": 1.0,
+          "estimated_total_minutes": 30.0,
+          "estimated_gpu_hours": 0.5,
+          "estimated_cost_usd": 0.5,
+          "missing_fields": [
+            "epochs",
+            "estimated_minutes_per_epoch",
+            "gpu_count",
+            "gpu_type"
+          ],
+          "defaulted_fields": [
+            "epochs",
+            "estimated_minutes_per_epoch",
+            "gpu_count",
+            "gpu_hourly_price"
+          ],
+          "price_source": "default_hourly_price"
+        }
+      },
+      "pr": {
+        "adapter": "huggingface",
+        "config": {
+          "model": null,
+          "model_name": "distilbert/distilbert-base-uncased",
+          "epochs": 3.0,
+          "max_epochs": null,
+          "batch_size": 8,
+          "global_batch_size": 8,
+          "precision": "bf16",
+          "mixed_precision": true,
+          "gpu_type": "RTX3060",
+          "gpu_count": 1,
+          "estimated_minutes_per_epoch": 6.0,
+          "dataset_size": null,
+          "budget_limit_usd": 0.2
+        },
+        "source_path": "examples/release-consumer/added.json",
+        "field_sources": {
+          "model_name": [
+            "model_name"
+          ],
+          "epochs": [
+            "num_train_epochs"
+          ],
+          "batch_size": [
+            "per_device_train_batch_size"
+          ],
+          "global_batch_size": [
+            "derived from micro batch, accumulation, and gpu_count"
+          ],
+          "precision": [
+            "bf16"
+          ],
+          "mixed_precision": [
+            "bf16"
+          ],
+          "gpu_type": [
+            "gpu_type"
+          ],
+          "gpu_count": [
+            "gpu_count"
+          ],
+          "estimated_minutes_per_epoch": [
+            "estimated_minutes_per_epoch"
+          ],
+          "budget_limit_usd": [
+            "budget_limit_usd"
+          ]
+        },
+        "estimate": {
+          "epochs": 3.0,
+          "estimated_minutes_per_epoch": 6.0,
+          "gpu_count": 1,
+          "gpu_type": "RTX3060",
+          "gpu_hourly_price": 1.0,
+          "estimated_total_minutes": 18.0,
+          "estimated_gpu_hours": 0.3,
+          "estimated_cost_usd": 0.3,
+          "missing_fields": [],
+          "defaulted_fields": [],
+          "price_source": "gpu_prices_input"
+        }
+      },
+      "changes": [
+        {
+          "field": "model_name",
+          "before": null,
+          "after": "distilbert/distilbert-base-uncased"
+        },
+        {
+          "field": "epochs",
+          "before": null,
+          "after": 3.0
+        },
+        {
+          "field": "batch_size",
+          "before": null,
+          "after": 8
+        },
+        {
+          "field": "global_batch_size",
+          "before": null,
+          "after": 8
+        },
+        {
+          "field": "precision",
+          "before": null,
+          "after": "bf16"
+        },
+        {
+          "field": "mixed_precision",
+          "before": null,
+          "after": true
+        },
+        {
+          "field": "gpu_type",
+          "before": null,
+          "after": "RTX3060"
+        },
+        {
+          "field": "gpu_count",
+          "before": null,
+          "after": 1
+        },
+        {
+          "field": "estimated_minutes_per_epoch",
+          "before": null,
+          "after": 6.0
+        },
+        {
+          "field": "budget_limit_usd",
+          "before": null,
+          "after": 0.2
+        }
+      ],
+      "increase_percent": -40.0,
+      "warnings": [
+        {
+          "code": "budget_exceeded",
+          "title": "Budget limit exceeded",
+          "what_changed": "Estimated PR cost is $0.30, above the $0.20 budget.",
+          "why_it_matters": "The run may spend more than the configured experiment budget.",
+          "how_to_reduce_risk": "Reduce epochs, GPU count, runtime per epoch, or choose a lower-cost GPU.",
+          "recommendation": "Reduce the planned run or raise `budget_limit_usd` only if the spend is intentional."
+        },
+        {
+          "code": "low_confidence_missing_fields",
+          "title": "Missing fields reduce estimate confidence",
+          "what_changed": "Missing fields: epochs, estimated_minutes_per_epoch, gpu_count, gpu_type.",
+          "why_it_matters": "The estimate uses illustrative defaults that may understate or overstate actual cost.",
+          "how_to_reduce_risk": "Add epochs, gpu_type, gpu_count, and estimated_minutes_per_epoch to the config.",
+          "recommendation": "Add missing cost fields so future TrainCost CI reports are more useful."
+        }
+      ],
+      "recommendations": [
+        "Run a short dry run before launching the full training job.",
+        "Reduce the planned run or raise `budget_limit_usd` only if the spend is intentional.",
+        "Add missing cost fields so future TrainCost CI reports are more useful."
+      ],
+      "confidence": {
+        "level": "Low",
+        "reason": "Important cost fields are missing, so illustrative defaults were used: epochs, estimated_minutes_per_epoch, gpu_count, gpu_type.",
+        "missing_fields": [
+          "epochs",
+          "estimated_minutes_per_epoch",
+          "gpu_count",
+          "gpu_type"
+        ],
+        "defaulted_fields": [
+          "epochs",
+          "estimated_minutes_per_epoch",
+          "gpu_count",
+          "gpu_hourly_price"
+        ]
+      }
+    }
+  ],
+  "diagnostics": [
+    "Added config: examples/release-consumer/added.json; no base file exists, so base defaults are illustrative.",
+    "Skipped examples/release-consumer/invalid.json: Positive max_steps overrides epochs; step-based runtime is unsupported."
+  ],
+  "summary": {
+    "analyzed_count": 1,
+    "excluded_count": 1,
+    "base_cost_usd": 0.5,
+    "pr_cost_usd": 0.3,
+    "scope": "analyzed_configs_only"
+  }
+}

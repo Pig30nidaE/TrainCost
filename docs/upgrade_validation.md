@@ -1,4 +1,9 @@
-# Review-driven upgrade validation
+# Review-driven upgrade validation, historical
+
+The [release-readiness record](release_readiness.md) supersedes this snapshot.
+The work below is now committed with additional fixes in candidate
+`20af5724ed292066d79c8e47557baf5dd3e14a43`; its new hosted evidence is recorded there.
+The following text preserves the scope and state at the time of the earlier checks.
 
 Recorded: 2026-11-07. Local regression result: PASS. Release decision: HOLD.
 

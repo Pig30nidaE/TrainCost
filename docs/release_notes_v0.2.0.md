@@ -41,5 +41,7 @@ Prices are illustrative unless overridden, runtime is supplied or assumed, and G
 An added file uses illustrative absent-base assumptions; it is not compared with a measured earlier run.
 `complete` means the selected configs were analyzed, not that every training setting was modeled.
 Report-only mode is the beta target. Comment mode remains experimental and is not a release gate.
-Publication and public repository visibility require approval. Prior hosted runs do not verify this upgrade.
+Publication and public repository visibility require approval. The current candidate's
+CI and same-repository consumer passed; independent external/fork installation remains
+unverified. See [release readiness](release_readiness.md) for the tested SHA and evidence.
 The v0.1.0 tag remains unchanged.

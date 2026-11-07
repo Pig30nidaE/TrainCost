@@ -1,6 +1,7 @@
 # Beta QA evidence
 
-Updated: 2026-11-07. Current upgrade: local checks PASS; hosted gates NOT RUN. Publication: HOLD.
+Updated: 2026-11-07. Current candidate: local and same-repository hosted checks PASS.
+Independent external/fork gates NOT RUN. Publication: HOLD.
 
 ## Release-readiness follow-up
 
@@ -15,10 +16,25 @@ descriptors; actual empty/model-only HF files remain invalid. Broad globs cannot
 overwrite a matching existing output path before file discovery succeeds.
 See [release readiness](release_readiness.md) for current evidence and limits.
 
+Code candidate: `20af5724ed292066d79c8e47557baf5dd3e14a43`.
+Each local Python 3.11-3.14 run has 234 unittest methods: 233 pass and one
+Linux-only skip. Hosted Linux has 230 pass and four macOS-only skips. Core has
+110 methods, Action 71, demo tooling 47, and corpus evaluator 6. All 50 labeled
+corpus cases pass. These are the same tests repeated across versions.
+Hosted combined branch-enabled coverage is 89%, excluding tests and untraced
+subprocess code. It is not an accuracy or release-approval metric.
+
+Candidate [CI run](https://github.com/Pig30nidaE/TrainCost/actions/runs/42350182764)
+passed all six jobs, including the isolated composite action and strict dependency
+audit. The final wheel installed and ran outside the checkout. The runtime/build
+audit found zero known advisories in 12 resolved packages; optional ML dependencies
+are not included in that audit. See the release-readiness record for consumer
+outputs, exact SHAs, report artifacts, and the remaining browser inspection limit.
+
 The user retained private Action access `none`; true external-consumer/fork hosting
 is not silently replaced by local simulations or a same-repository PR.
 
-## Current review-driven upgrade
+## Earlier review-driven upgrade, superseded
 
 The uncommitted worktree based on `fa687ad297b8a9b488255bc4e304297494f76fa9`
 fixes unsupported-setting false-safe reports, stale runtime assumptions, and subcent
