@@ -1,0 +1,189 @@
+{
+  "architecture": "arm64",
+  "base_git_commit": "fa687ad297b8a9b488255bc4e304297494f76fa9",
+  "checks": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "packages/core/tests"
+      ],
+      "exit_code": 0,
+      "name": "core",
+      "skipped": 0,
+      "tests_run": 89
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "packages/github-action/tests"
+      ],
+      "exit_code": 0,
+      "name": "action",
+      "skipped": 0,
+      "tests_run": 48
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "examples/huggingface-demo/tests"
+      ],
+      "exit_code": 0,
+      "name": "hf_demo",
+      "skipped": 1,
+      "tests_run": 47
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "examples/hf-config-corpus/tests"
+      ],
+      "exit_code": 0,
+      "name": "corpus_evaluator",
+      "skipped": 0,
+      "tests_run": 6
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_release.py"
+      ],
+      "exit_code": 0,
+      "name": "release_fixtures"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_hf_demo.py"
+      ],
+      "exit_code": 0,
+      "name": "hf_static_demo"
+    },
+    {
+      "cases_passed": 50,
+      "cases_total": 50,
+      "command": [
+        "python",
+        "scripts/verify_hf_corpus.py"
+      ],
+      "exit_code": 0,
+      "name": "hf_corpus"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_external_consumer.py",
+        "--direct-only"
+      ],
+      "exit_code": 0,
+      "name": "independent_consumer"
+    },
+    {
+      "command": [
+        "python",
+        "-I",
+        "-S",
+        "scripts/verify_no_yaml.py"
+      ],
+      "exit_code": 0,
+      "name": "missing_yaml"
+    }
+  ],
+  "code_fixture_sha256": "a90117ea44833de005025b3bb1785c579fef1cfbc61d5bb68a3062738f68a0ae",
+  "files_sha256": {
+    ".github/ISSUE_TEMPLATE/bug_report.yml": "eff984d3725cdd1db36a4d63ed51c2eb91ed0de7e6761f1b368d00b0e1bb4ee7",
+    ".github/ISSUE_TEMPLATE/feature_request.yml": "b7be1934bc5f9cb1cb66d85674ce9bf05d14cbd4ce55878d707c20f9713df0d6",
+    ".github/workflows/ci.yml": "97ed1babdf4e0dd92dcaa8e06dad5c9adb1a0d365b64cf78af1f01e438aa33da",
+    ".github/workflows/example-traincost.yml": "5a942b102c0a2d0abbc317efff36a621bea1c34ea2c518574021025765b21ad6",
+    ".github/workflows/hf-validation.yml": "4e379491d6a64e531dbc0b92d420185afb98673c2b7c5aa44a0a2ce8a99bb184",
+    "action.yml": "bac5342a9197dfbbbce9e2a51d28749405d1e62798fc5dfb4e05516f31606cf2",
+    "docs/schemas/report-v1.schema.json": "734f2e43a25e604ad752a0b2673b7c4e40962963328b1948393c9dfdbec2e83b",
+    "examples/external-consumer/.github/workflows/traincost.yml": "6e36f85f04ff6811608ce15bfae24e65d52a8fc67675589678a927f016db8bf5",
+    "examples/hf-config-corpus/corpus.json": "4c0e045baec68e9ff694841796e0d86882644db58da94e2971642364e97be6db",
+    "examples/hf-config-corpus/tests/test_evaluator.py": "ca9d0f9dbb2d8d06e4425aa9907440bb67ff93f06b9849552f231edafcc2268a",
+    "examples/huggingface-demo/common.py": "3873a709098ee8a32374c661dfe2fb192a655cdd54970fcd6fcfb64d5b18d2c1",
+    "examples/huggingface-demo/config.json": "deca90997ceece8dd2c1a35476de599522bdcbb69b566a5534ace3806d2b1e2e",
+    "examples/huggingface-demo/fixtures/base.json": "deca90997ceece8dd2c1a35476de599522bdcbb69b566a5534ace3806d2b1e2e",
+    "examples/huggingface-demo/fixtures/risky.json": "4d571a627372e83faaf9722f6923379348a1625ee1dc25881c120766390f795d",
+    "examples/huggingface-demo/macos-requirements.lock": "818183f690b55833021b565136a78260c614ef77ab815b036a456efe624054d3",
+    "examples/huggingface-demo/manifest.json": "cf2c84b8adeb20e7c0731cb59a4a6a4d96721a97fe2d63d1c7896743e96b0d54",
+    "examples/huggingface-demo/oracle.py": "29cbbb991018a55b11c2d83c32de8743ece0d83b28618ca12d9f4a90d82f0476",
+    "examples/huggingface-demo/requirements.lock": "1c17ee9b9d22edae7e3cbd601c27b80d97f30a676fe452d622fbde42131e34c4",
+    "examples/huggingface-demo/run_validation.py": "3b5a084afbfe473ed639d7ce4a631b9a8ff675b4bfaeab599a10d8963a44172e",
+    "examples/huggingface-demo/tests/test_balanced.py": "aaad99946958b3404da5b7e4e16fdc401377672097f52b6612aaf8074d5faca3",
+    "examples/huggingface-demo/tests/test_contract.py": "1e9191684b02b67afa5569b9bb5f037aa4d5c277c3957ed9ae5d9c87ef9f8354",
+    "examples/huggingface-demo/tests/test_lock.py": "24e91bfae40e82a12d35e9d7b6fe61a42ff4f9b5aba79cc9a51c6f3ecee8253b",
+    "examples/huggingface-demo/tests/test_macos_smoke.py": "4568fff2ea9793b936d50f749a7c60c4b4a6e5243b108eb08e90b7f2561d7e1e",
+    "examples/huggingface-demo/tests/test_main_outcomes.py": "15d58089370bfb111c18ab0b603ea47509c474791fe23c97976ce55c17474bcc",
+    "examples/huggingface-demo/tests/test_oracle.py": "ad32bb01ddf9643e224c2c99143d24798fceece05ba3222553ab7da98dd9d81b",
+    "examples/huggingface-demo/tests/test_runner.py": "43fbdcf45926243ca2bcdd18ac32ae5545d866c0a20e10267d0ff68f9f592e1e",
+    "examples/huggingface-demo/tests/test_static_cli.py": "71087157ce2c6a6c039ea6f0afe84620fa5ea213b880726c0ba5c6ddaab361ab",
+    "examples/huggingface-demo/tests/test_worker_mock.py": "ab7a2a7754e8bcd7631ad36f31fb7b7a7dc6be4897085e13e358068f35dd047d",
+    "examples/huggingface-demo/worker.py": "a261e7f1fabc03b024908ee6067d152db5228155bb0e43d8d005b052bedc8320",
+    "examples/pytorch-demo/.github/workflows/traincost-ci.yml": "250172a199f998bf878223cb817836ed2577f3c0506b10a312dc9ae0532c340e",
+    "examples/pytorch-demo/config.yaml": "56b2c83351675293e280b2c7811cb01420b0c4ca73dc99285be30ea085f74586",
+    "examples/pytorch-demo/configs/base-config.yaml": "56b2c83351675293e280b2c7811cb01420b0c4ca73dc99285be30ea085f74586",
+    "examples/pytorch-demo/configs/invalid-config.yaml": "0fc7f8b26f420f7e8a91481c8e6001c7e125aed6bcca1a722498af3fa0f132e9",
+    "examples/pytorch-demo/configs/missing-config.yaml": "e44645efeb494b739dcde2b4f4e0b2fe7cd8609485d28df4aa2651b01671ecf5",
+    "examples/pytorch-demo/configs/risky-config.yaml": "66a441bfe604efdda86da7e7e20851181e5ca0da5ae935bfe3fed5a184e2d13b",
+    "packages/core/pyproject.toml": "94b5b5845c6ca8ea51355d509bac97fb69836ec7270564f5835d093a0151c1c2",
+    "packages/core/src/traincost_ci_core/__init__.py": "af090538f76d68039d5c55e538e76422013655d1f316e1153d1241bb5b2a3794",
+    "packages/core/src/traincost_ci_core/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "packages/core/src/traincost_ci_core/analysis.py": "e2ece17835e71a35bbaf9e551b6e464f6fa9f657e0f54b04a719ffd6b09d84dd",
+    "packages/core/src/traincost_ci_core/cli.py": "6005a53f3eb8b02e6a57973e75611da2de77036a5bd3d1d94a928d4055e021df",
+    "packages/core/src/traincost_ci_core/diff.py": "e8c5b6c5ccb15ed5a441a5a004bf519d36856bcae99aed374dceef252df91ad5",
+    "packages/core/src/traincost_ci_core/estimation.py": "d248c31e9a3296b152e5768f4ac20959c91acf1cfd85ca4003ecf2a85f13db2a",
+    "packages/core/src/traincost_ci_core/formatting.py": "4252518d866c26da4434f73247bb779cef2ff9200c6a87fe41a7c2097368570b",
+    "packages/core/src/traincost_ci_core/huggingface.py": "bc84523fc40bcd196a56a0acf29089520eb4ac9ef65a40f2c9d74bc647b8eb86",
+    "packages/core/src/traincost_ci_core/models.py": "2b63b0baaa94b3d94fee85350b05fe382a80bef7a45c2cf1bdc3da28bce680e0",
+    "packages/core/src/traincost_ci_core/parsing.py": "d1c816584d77eef077389e7bf47777a45a0118610d55f8317d25390f47adb7ba",
+    "packages/core/src/traincost_ci_core/report.py": "fcb98510f43ee7447a701e757544e4f62ccd968b634cdb8f925ba55956f6b8db",
+    "packages/core/src/traincost_ci_core/rules.py": "abd74fe835937e288c5424412c1b6c00de07ca54c73043a0161eea89b99820e8",
+    "packages/core/src/traincost_ci_core/safety.py": "c98c6b84949ff8a2fbe4f2482872e8c14747cf35dd056ddacd81df53c11d02d7",
+    "packages/core/src/traincost_ci_core/serialization.py": "a91a49dfa8abd0332944542156848defa9a8fc0354ce209e38c46eb284a23f06",
+    "packages/core/tests/test_boundaries.py": "81033f7e68a7d4dda72e8705d74ddd014d3967077a1eef0cfc312c34d79ac26b",
+    "packages/core/tests/test_cli_json.py": "e1e0657a34dca35c9a39c929cf7d3c1114876c3f3606648f2581b2a289edce81",
+    "packages/core/tests/test_core_engine.py": "fa3fcc4de4b62db1c98ba227563e52774ae94a4f7c36be2af792584f979933b4",
+    "packages/core/tests/test_huggingface_adapter.py": "81b982d020f60b5beefde2ea94bf678010d77a83ce51f328a57eeb866923c7d5",
+    "packages/core/tests/test_review_fixes.py": "1a0a6154d6861706d8e94c149e3d7fd63108a6169b6414ef1d33e1c707669fda",
+    "packages/core/tests/test_upgrade_acceptance.py": "017e900ae7d91617c062027eebb1c2aef47e6815a3e1f769623d66f542e210d7",
+    "packages/github-action/action.yml": "abd9ce931cae7ac3b5a51efc3ba1fc69f9b8c7b1457785ae07e2f264087fc50a",
+    "packages/github-action/bootstrap.py": "d854107a828065a9830c06a3c07494ca48db985239cd7283d6efbe50cdfa164e",
+    "packages/github-action/requirements.txt": "0969da99a0bc2a1b71ed50584560f4588a37567ac63af3ddbaf3c4617ca5621a",
+    "packages/github-action/tests/test_bootstrap.py": "f0599fcd1f6d7ac388792227c333c6f2ca7cd397befc2d77ec61db86e53e753d",
+    "packages/github-action/tests/test_json_outputs.py": "22a14785be6e0290c03b0f351b7ca4b2b885c3d767f03df6a623fd9370bcfc7e",
+    "packages/github-action/tests/test_traincost_action.py": "894c9c6913cfc3535fdbd69dc5696d550d44bc0bdcf876fe346c57a6e2080d1e",
+    "packages/github-action/tests/test_upgrade_acceptance.py": "d558c39ef39ba352c5824dd597de48e701fea74667d53c5f22a1df8d87e5a0d0",
+    "packages/github-action/traincost_action.py": "bffcf49be39054a5707f3625782f3d37e8c3557cce2cd3454dfb57a65aa65230",
+    "requirements-dev.txt": "3962e666262470e71b1a2526d5edeb8b60dcbd283e366dbedf915253a1921591",
+    "scripts/audit_secrets.py": "b613e344908bf1fdbd054c8ed8f89bf81bb032dfac3fdb19fe7072a68e044343",
+    "scripts/render_reports.py": "d5a04d41ce22be2d004d15d475ee6fa9f0cec60d631cafe99290b7e3e4bf18a6",
+    "scripts/verify_external_consumer.py": "8e664fbecde523112bfbac615bc39ddcc557d45fd2c6e45931413ef57ccd32cd",
+    "scripts/verify_hf_corpus.py": "e574f4f6ad34970f19e218d6b986f42ec7986e99ae621c8128aa756e0e653d09",
+    "scripts/verify_hf_demo.py": "7f70c7759526147dfb74a627f302f8b77e0acda649109a7a6aa44ef9393cc64d",
+    "scripts/verify_hf_macos.py": "e1c2b5bcc360101cb3324981730a501493a643d829a286b2057016037ed065ef",
+    "scripts/verify_no_yaml.py": "2639a973698678eb2a71988a3fc94ebe0a21de40f383a7d87f1c670ebe6b63b1",
+    "scripts/verify_release.py": "b738dd3509383b4296cd9ac9a15b159301d3d51c185fe9fd45bd1d4895b335b3",
+    "scripts/verify_upgrade.py": "74ea73669b8021f9fb8f24a79307964ceb934a60d5a9abd9792a29f3177061fa",
+    "scripts/verify_wheel.py": "9cbba09e9c4023fdc5cf560ff4d36d3d5c8c885ef55130e8f86ce88376082863"
+  },
+  "os": "Darwin",
+  "os_release": "25.6.0",
+  "passed": true,
+  "python_version": "3.14.0",
+  "recorded_at_utc": "2026-11-06T19:52:19.296856+00:00",
+  "scope": "Local offline checks; no hosted PR permissions, model training, or release validation.",
+  "source_unchanged_during_checks": true,
+  "working_tree_included": true
+}

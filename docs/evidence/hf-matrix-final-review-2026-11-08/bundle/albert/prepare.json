@@ -1,0 +1,29 @@
+{
+  "environment": {
+    "device": "mps",
+    "lock_sha256": "27044543db224acfeda45a52e1794133d1a4a57e284402ee6d5ea43cae8d10a6",
+    "machine": "arm64",
+    "os": [
+      "26.6.2",
+      [
+        "",
+        "",
+        ""
+      ],
+      "arm64"
+    ],
+    "packages": {
+      "accelerate": "1.15.0",
+      "datasets": "5.1.0",
+      "huggingface-hub": "1.31.0",
+      "numpy": "2.5.4",
+      "safetensors": "0.8.0",
+      "torch": "2.14.1",
+      "transformers": "5.22.2"
+    },
+    "python": "3.12.8"
+  },
+  "profile_sha256": "6e11697b99729961ab6317f0e3517c0ddbfb93727ec773efc417bdcce9f14e84",
+  "source_sha256": "4703409d434d365efc4fe24289c9c9eaa1a72e9c799f27f7f64734d84e54e107",
+  "status": "PASS"
+}

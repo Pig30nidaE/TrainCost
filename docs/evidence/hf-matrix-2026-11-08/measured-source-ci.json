@@ -1,0 +1,21 @@
+{
+  "repository": "Pig30nidaE/TrainCost",
+  "pull_request": 13,
+  "run_id": 42396945740,
+  "url": "https://github.com/Pig30nidaE/TrainCost/actions/runs/42396945740",
+  "event": "pull_request",
+  "head_sha": "01ddafcda9a2545460f067dbb7c154f9661c2b97",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-11-07T17:34:01Z",
+  "updated_at": "2026-11-07T17:34:41Z",
+  "jobs": [
+    {"id": 128476240106, "name": "Audit runtime and build dependencies", "conclusion": "success"},
+    {"id": 128476240262, "name": "Verify Python 3.12", "conclusion": "success"},
+    {"id": 128476240284, "name": "Isolated composite action", "conclusion": "success"},
+    {"id": 128476240295, "name": "Verify Python 3.14", "conclusion": "success"},
+    {"id": 128476240340, "name": "Verify Python 3.13", "conclusion": "success"},
+    {"id": 128476240366, "name": "Verify Python 3.11", "conclusion": "success"}
+  ],
+  "scope": "Measured-source CI; predates evidence registration, not an external-consumer run"
+}

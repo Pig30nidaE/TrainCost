@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import re
+import math
 from typing import Mapping
 
 from .models import Confidence, CostEstimate, TrainingConfig
+from .safety import ConfigError, number
 
 
+# Illustrative USD/GPU-hour values, not provider quotes or market averages.
 DEFAULT_GPU_HOURLY_PRICES: dict[str, float] = {
     "t4": 0.35,
     "l4": 0.80,
@@ -30,7 +33,7 @@ def estimate_cost(
     config: TrainingConfig,
     *,
     gpu_hourly_prices: Mapping[str, float] | None = None,
-    default_epochs: int = DEFAULT_EPOCHS,
+    default_epochs: float = DEFAULT_EPOCHS,
     default_gpu_count: int = DEFAULT_GPU_COUNT,
     default_estimated_minutes_per_epoch: float = DEFAULT_ESTIMATED_MINUTES_PER_EPOCH,
     default_gpu_hourly_price: float = DEFAULT_GPU_HOURLY_PRICE,
@@ -58,18 +61,23 @@ def estimate_cost(
         missing_fields.append("gpu_count")
         defaulted_fields.append("gpu_count")
 
-    price = lookup_gpu_hourly_price(config.gpu_type, gpu_hourly_prices)
-    price_source = "known_gpu_type"
+    price, price_source = _lookup_price_and_source(config.gpu_type, gpu_hourly_prices)
     if price is None:
         price = default_gpu_hourly_price
-        price_source = "default_gpu_hourly_price"
+        price_source = "default_hourly_price"
         defaulted_fields.append("gpu_hourly_price")
         if config.gpu_type is None:
             missing_fields.append("gpu_type")
 
+    epochs = number(epochs, "epochs")
+    minutes_per_epoch = number(minutes_per_epoch, "estimated_minutes_per_epoch")
+    gpu_count = number(gpu_count, "gpu_count", integer=True)
+    price = number(price, "gpu_hourly_price", allow_zero=True)
     estimated_total_minutes = epochs * minutes_per_epoch
     estimated_gpu_hours = estimated_total_minutes / 60 * gpu_count
     estimated_cost_usd = estimated_gpu_hours * price
+    if not all(math.isfinite(v) for v in (estimated_total_minutes, estimated_gpu_hours, estimated_cost_usd)):
+        raise ConfigError("Estimated cost arithmetic overflow; reduce numeric inputs.")
 
     return CostEstimate(
         epochs=epochs,
@@ -92,12 +100,25 @@ def lookup_gpu_hourly_price(
 ) -> float | None:
     """Return a configured hourly price for a GPU type when known."""
 
+    return _lookup_price_and_source(gpu_type, gpu_hourly_prices)[0]
+
+
+def _lookup_price_and_source(
+    gpu_type: str | None,
+    gpu_hourly_prices: Mapping[str, float] | None,
+) -> tuple[float | None, str]:
+    """Return (price, source) where source records where the price came from."""
+
     if not gpu_type:
-        return None
-    prices = dict(DEFAULT_GPU_HOURLY_PRICES)
+        return None, "default_hourly_price"
+    key = _normalize_gpu_key(gpu_type)
     if gpu_hourly_prices:
-        prices.update({_normalize_gpu_key(key): value for key, value in gpu_hourly_prices.items()})
-    return prices.get(_normalize_gpu_key(gpu_type))
+        overrides = {_normalize_gpu_key(name): number(value, "gpu price", allow_zero=True) for name, value in gpu_hourly_prices.items()}
+        if key in overrides:
+            return overrides[key], "gpu_prices_input"
+    if key in DEFAULT_GPU_HOURLY_PRICES:
+        return DEFAULT_GPU_HOURLY_PRICES[key], "builtin_price_table"
+    return None, "default_hourly_price"
 
 
 def determine_confidence(base_estimate: CostEstimate, pr_estimate: CostEstimate) -> Confidence:
@@ -114,7 +135,7 @@ def determine_confidence(base_estimate: CostEstimate, pr_estimate: CostEstimate)
         return Confidence(
             level="Low",
             reason=(
-                "Important cost fields are missing, so conservative defaults were used: "
+                "Important cost fields are missing, so illustrative defaults were used: "
                 + ", ".join(missing_fields)
                 + "."
             ),

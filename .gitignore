@@ -2,3 +2,20 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
+
+# Generated report from local dry runs.
+/report.md
+/report.json
+/.venv/
+/.coverage*
+/coverage.xml
+**/build/
+**/dist/
+**/*.egg-info/
+
+# Local, opt-in GPU validation artifacts must not be committed.
+/.venv-hf/
+/.venv-hf-matrix/
+/.venv-hf-matrix-v2/
+/.hf-validation*/
+/hf-validation-output/

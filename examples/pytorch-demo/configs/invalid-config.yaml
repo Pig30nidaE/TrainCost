@@ -1,0 +1,4 @@
+epochs: -2
+gpu_type: T4
+gpu_count: 1
+estimated_minutes_per_epoch: 1.5

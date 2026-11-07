@@ -1,0 +1,12 @@
+{
+  "record_type": "operator review and approval record, not a GitHub attestation",
+  "user_authorization": "Update only the test fork branch Action SHA and rerun validation; no source PR merge, tag push or release",
+  "reviewed_commit": "fe7e9778257a24a5efa884c94fb08d7b5068281d",
+  "parent_commit": "01e73957f09b473cc0d133e7bc67c333530030f0",
+  "change": "Five Action uses pins and the corresponding candidate_sha metadata, in one workflow file",
+  "candidate_sha": "a907b78423cd18b5e7a8f53f5d092fcba6df77e9",
+  "run_id": 42406970081,
+  "before_approval": {"run_attempt": 1, "status": "completed", "conclusion": "action_required"},
+  "after_approval_run_attempt": 2,
+  "repository_policy_changed": false
+}

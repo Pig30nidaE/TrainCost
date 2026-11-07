@@ -11,12 +11,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Review ML training cost
-        uses: Pig30nidaE/TrainCost@v0.1.0
+        # Reviewed public report-only candidate; not a published release tag.
+        uses: Pig30nidaE/TrainCost@a907b78423cd18b5e7a8f53f5d092fcba6df77e9
         with:
           config-path: "config.yaml"
           gpu-prices: "T4=0.35,A10G=1.2,A100=3.20"

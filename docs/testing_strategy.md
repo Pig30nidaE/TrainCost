@@ -1,72 +1,72 @@
-# TrainCost CI Testing Strategy
+# Verify a beta candidate
 
-## Goals
+Run from the repository root after installing requirements-dev.txt into a venv.
 
-The MVP test suite should prove that TrainCost CI can parse common ML config files, compare base and PR values, estimate GPU cost with transparent rules, generate a useful Markdown report, and fail gracefully when PR context or config data is incomplete.
-
-The suite should also protect the product boundary: reports must use estimate/risk language, must not claim exact GPU cost prediction, and must not print secret values.
-
-## Test Layers
-
-### Core Unit Tests
-
-Location: `packages/core/tests/test_core_engine.py`
-
-Coverage areas:
-
-- YAML, JSON, and simple Python config parsing.
-- Invalid YAML handling.
-- Supported field normalization and coercion.
-- Missing fields and low-confidence estimates.
-- Cost estimation formula.
-- Budget exceeded warnings.
-- Cost increase warnings.
-- GPU type upgrade warnings.
-- GPU count increase warnings.
-- Precision regression warnings.
-- Small batch size warnings.
-- Sensitive-looking config key detection without rendering sensitive values.
-- Markdown report structure and estimate-only wording.
-
-Run:
+For a structured local result with the tested code/configuration fingerprint:
 
 ```bash
-python3 -m unittest discover packages/core/tests
+.venv/bin/python scripts/verify_upgrade.py --output /tmp/traincost-upgrade-evidence.json
 ```
 
-### GitHub Action Unit Tests
+This runs the offline checks below, but does not replace the networked isolated
+installation, wheel distribution, history scan, or hosted consumer gates.
+See [the current upgrade record](upgrade_validation.md) for measured results.
 
-Location: `packages/github-action/tests/test_traincost_action.py`
+~~~bash
+.venv/bin/python -m coverage run --branch --source=packages/core/src/traincost_ci_core,packages/github-action -m unittest discover -s packages/core/tests
+.venv/bin/python -m coverage run --append --branch --source=packages/core/src/traincost_ci_core,packages/github-action -m unittest discover -s packages/github-action/tests
+.venv/bin/python -m coverage report --omit='*/tests/*'
+.venv/bin/python scripts/verify_release.py
+.venv/bin/python scripts/verify_hf_corpus.py
+.venv/bin/python scripts/verify_external_consumer.py
+.venv/bin/python -m unittest discover examples/huggingface-demo/tests
+.venv/bin/python -m unittest discover examples/hf-model-matrix/tests
+.venv/bin/python scripts/verify_hf_evidence.py
+python3 -I -S scripts/verify_no_yaml.py
+.venv/bin/python -m build packages/core --no-isolation --outdir /tmp/traincost-dist
+.venv/bin/python scripts/verify_wheel.py /tmp/traincost-dist
+.venv/bin/python scripts/audit_secrets.py
+~~~
 
-Coverage areas:
+## Release gates
 
-- Action input parsing.
-- Local dry-run report output.
-- No changed config file behavior.
-- Missing config behavior.
-- Base config unavailable behavior.
-- Invalid YAML behavior.
-- Multiple changed config file aggregation.
-- PR comment failure handling without printing GitHub tokens.
+- Core validation: negative and non-finite inputs, count fractions, fractional epochs, overflow, threshold and budget boundaries.
+- Parser consistency: equivalent formats, duplicate keys, cycles, resource bounds, list ambiguity, and non-execution of Python expressions.
+- Security: synthetic credentials in labels, sensitive subtrees, invalid syntax, report output, stdout, stderr, and dependency errors.
+- Git: modifications, additions, deletions, renames, no changes, globs, braces, Unicode paths, unavailable commits, and ignored worktree changes.
+- Distribution: four Python versions in CI, root/package metadata, actual isolated bootstrap, wheel installation outside the repository.
+- Evidence: three deterministic fixtures and a GitHub-hosted consumer run pinned to the candidate commit SHA.
+- Review regressions: known unmodeled keys cannot produce a clean report, reused runtime is flagged, epoch-only changes do not spuriously invalidate epoch time, and subcent/near-budget comparisons remain distinguishable.
+- HF adapter: stopping-rule precedence, micro/global batch and accumulation, nested/root conflicts, precision flags, unknown hardware, and unsafe/unsupported settings.
+- JSON: versioned schema validation, unrounded amounts, status/exclusion contracts, secret safety, and preservation of input files when output paths collide.
 
-Run:
+The HF corpus contains upstream-derived minimized examples and deliberately
+constructed mutations. It is not an independent production accuracy benchmark.
+Local normal/fork event simulations test Git and process boundaries, not hosted
+GitHub permissions. With the private source Action's cross-repository access set to
+`none`, true hosted external installation remains an unpassed gate. Do not loosen
+permissions or claim a copied local Action is equivalent evidence.
 
-```bash
-python3 -m unittest discover packages/github-action/tests
-```
+Coverage is reported as measured, including branches. It does not replace scenario acceptance.
+No coverage percentage alone approves publication.
 
-## Manual QA Checklist
+## Real pretrained models
 
-Before calling an MVP change complete:
+The [HF matrix](../examples/hf-model-matrix/README.md) keeps actual local MPS
+fine-tuning separate from offline CI tests. It binds model revisions, subset hashes,
+actual Trainer arguments, and calibration before held-out execution. Report
+correctness and time-extrapolation accuracy have separate outcomes. Both failed
+and successful measurements belong in the evidence; no automatic retry selects a
+preferred result. [Current measurements](hf_model_matrix.md).
 
-- Run both unit test commands above.
-- Review generated report wording for estimate/risk language.
-- Confirm README and docs avoid exact-cost claims.
-- Confirm logs do not print environment variables, GitHub tokens, cloud credentials, or config secret values.
-- Confirm no dashboard, Kubernetes, MLflow, W&B, Comet, OpenCost, or Kubecost scope was added.
+## Fixture and image updates
 
-## Current Known Gaps
+After reviewing an intentional report change:
 
-- Comment posting has unit coverage for failure/token safety, but still needs a live pull request smoke test before release.
-- Changed-file detection relies on local `git diff` behavior and should be exercised in a real GitHub Actions workflow.
-- The dependency-free YAML parser intentionally supports only common mappings and scalar values; complex YAML should be treated as unsupported rather than expanded in the MVP.
+~~~bash
+.venv/bin/python scripts/verify_release.py --update-fixtures
+python3 scripts/render_reports.py
+~~~
+
+Image rendering requires Pillow. Images are local renderings of fixture excerpts, not screenshots of a GitHub run.
+The original v0.1.0 PR evidence does not validate changes in this branch.

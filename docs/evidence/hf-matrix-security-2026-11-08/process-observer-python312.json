@@ -1,0 +1,250 @@
+{
+  "architecture": "arm64",
+  "base_git_commit": "40d17a09ff13964b9e87f4613a16466cd51177ec",
+  "checks": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "packages/core/tests"
+      ],
+      "exit_code": 0,
+      "name": "core",
+      "skipped": 0,
+      "tests_run": 113
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "packages/github-action/tests"
+      ],
+      "exit_code": 0,
+      "name": "action",
+      "skipped": 0,
+      "tests_run": 71
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "examples/huggingface-demo/tests"
+      ],
+      "exit_code": 0,
+      "name": "hf_demo",
+      "skipped": 1,
+      "tests_run": 76
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "examples/hf-model-matrix/tests"
+      ],
+      "exit_code": 0,
+      "name": "hf_model_matrix",
+      "skipped": 0,
+      "tests_run": 43
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_hf_matrix.py",
+        "--list"
+      ],
+      "exit_code": 0,
+      "name": "hf_matrix_profiles"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_hf_evidence.py"
+      ],
+      "exit_code": 0,
+      "name": "hf_registered_evidence"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "examples/hf-config-corpus/tests"
+      ],
+      "exit_code": 0,
+      "name": "corpus_evaluator",
+      "skipped": 0,
+      "tests_run": 6
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_release.py"
+      ],
+      "exit_code": 0,
+      "name": "release_fixtures"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_hf_demo.py"
+      ],
+      "exit_code": 0,
+      "name": "hf_static_demo"
+    },
+    {
+      "cases_passed": 50,
+      "cases_total": 50,
+      "command": [
+        "python",
+        "scripts/verify_hf_corpus.py"
+      ],
+      "exit_code": 0,
+      "name": "hf_corpus"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/verify_external_consumer.py",
+        "--direct-only"
+      ],
+      "exit_code": 0,
+      "name": "independent_consumer"
+    },
+    {
+      "command": [
+        "python",
+        "-I",
+        "-S",
+        "scripts/verify_no_yaml.py"
+      ],
+      "exit_code": 0,
+      "name": "missing_yaml"
+    }
+  ],
+  "code_fixture_sha256": "12c75a2560ac6efd77556fadfa661e26b4154a7f9b962becd0c3797af78f9982",
+  "files_sha256": {
+    ".github/ISSUE_TEMPLATE/bug_report.yml": "eff984d3725cdd1db36a4d63ed51c2eb91ed0de7e6761f1b368d00b0e1bb4ee7",
+    ".github/ISSUE_TEMPLATE/feature_request.yml": "b7be1934bc5f9cb1cb66d85674ce9bf05d14cbd4ce55878d707c20f9713df0d6",
+    ".github/workflows/ci.yml": "279f19259a9b1034715ed6b51b13d1b82ebd301404ca8fd21a4178d1f1a9ea30",
+    ".github/workflows/example-traincost.yml": "5a942b102c0a2d0abbc317efff36a621bea1c34ea2c518574021025765b21ad6",
+    ".github/workflows/hf-validation.yml": "4e379491d6a64e531dbc0b92d420185afb98673c2b7c5aa44a0a2ce8a99bb184",
+    "action.yml": "bac5342a9197dfbbbce9e2a51d28749405d1e62798fc5dfb4e05516f31606cf2",
+    "docs/schemas/report-v1.schema.json": "734f2e43a25e604ad752a0b2673b7c4e40962963328b1948393c9dfdbec2e83b",
+    "examples/external-consumer/.github/workflows/traincost.yml": "6e36f85f04ff6811608ce15bfae24e65d52a8fc67675589678a927f016db8bf5",
+    "examples/hf-config-corpus/corpus.json": "4c0e045baec68e9ff694841796e0d86882644db58da94e2971642364e97be6db",
+    "examples/hf-config-corpus/tests/test_evaluator.py": "ca9d0f9dbb2d8d06e4425aa9907440bb67ff93f06b9849552f231edafcc2268a",
+    "examples/hf-model-matrix/evidence-index.json": "a1299318b26b926e69ba5545040c2bcc598da8265afe2581308917e05dcc4434",
+    "examples/hf-model-matrix/matrix_common.py": "1f9f4b92ae2bc12ad5a3133b9047e6e882411ef017b4b159745eae8d0c94b4d3",
+    "examples/hf-model-matrix/matrix_worker.py": "2e74d7781cdb2f06f2485b34daec3e089fbc448bf60e976c390652cbcc1aa706",
+    "examples/hf-model-matrix/profiles.json": "46013192d66c02a58f32e2add596cd7ecba9a751a5048f971604106763f2c674",
+    "examples/hf-model-matrix/provenance.py": "3f8ccc426fe4054ceed4504387007595eb5a42268e2ddc93c41aded97c8ada0f",
+    "examples/hf-model-matrix/tests/test_matrix_contract.py": "89bb5b3def691ffdc9d74f843bc931647ce619e4228a59d41c706a35bcbb9ac1",
+    "examples/hf-model-matrix/tests/test_matrix_worker.py": "97debe24825753c8094444e078ef101e7f6e3c4d82e990141ee33d2351615f90",
+    "examples/hf-model-matrix/tests/test_provenance.py": "2869c007dae2fc97c6202bd61a2569770f2dc17d24c87f50d398b6f2fd748e3f",
+    "examples/hf-model-matrix/tests/test_registered_evidence.py": "b2fd3a727c38441db47ed5314f57d02e82e4492164e5a6e22e42fe8b4ed943b5",
+    "examples/huggingface-demo/common.py": "9b0871b21fa0cc37e7cc23b3a5ba23c06ed5eb35a787718ef071deeef55a7334",
+    "examples/huggingface-demo/config.json": "deca90997ceece8dd2c1a35476de599522bdcbb69b566a5534ace3806d2b1e2e",
+    "examples/huggingface-demo/fixtures/base.json": "deca90997ceece8dd2c1a35476de599522bdcbb69b566a5534ace3806d2b1e2e",
+    "examples/huggingface-demo/fixtures/risky.json": "4d571a627372e83faaf9722f6923379348a1625ee1dc25881c120766390f795d",
+    "examples/huggingface-demo/macos-requirements.lock": "27044543db224acfeda45a52e1794133d1a4a57e284402ee6d5ea43cae8d10a6",
+    "examples/huggingface-demo/manifest.json": "cf2c84b8adeb20e7c0731cb59a4a6a4d96721a97fe2d63d1c7896743e96b0d54",
+    "examples/huggingface-demo/model_safety.py": "e09dbd53f97afbb069ba64b7c5b4253a2be323f0bc32ea2f3541692a5f16778a",
+    "examples/huggingface-demo/oracle.py": "29cbbb991018a55b11c2d83c32de8743ece0d83b28618ca12d9f4a90d82f0476",
+    "examples/huggingface-demo/requirements.lock": "bed4dc00466310cb573182eaaeb3ab9edeac064e0273a18890aefea69b41e3e9",
+    "examples/huggingface-demo/run_validation.py": "8faf7f5d6c7792e2ce7f6641f3844ab0a3afbd3aa7ce6e9cb5a3a7d2f71295d5",
+    "examples/huggingface-demo/tests/fixtures/model-metadata/albert/config.json": "f5b7ef285a15ebbc7043b23284e60ac6f6de8d0a6051e282dfdf81da9351dc03",
+    "examples/huggingface-demo/tests/fixtures/model-metadata/albert/tokenizer_config.json": "994f46754c5bf4014f1aa92d34b1374319c3a6b3f702105cd5b742beaecd18ce",
+    "examples/huggingface-demo/tests/fixtures/model-metadata/bert/config.json": "7160e1553ad2ca51d8c1cb066be533db31826e12d173824c1bb0cb1a4f187d20",
+    "examples/huggingface-demo/tests/fixtures/model-metadata/bert/tokenizer_config.json": "a025160ef0431f1a392f6f050c1310f4c5d9fb6f275932dbccba73c4d214bf10",
+    "examples/huggingface-demo/tests/fixtures/model-metadata/distilbert/config.json": "69c94b0222d5d1f4b0ad027ca7416cdafb98378cbbb8305d0bf47c9365c60c83",
+    "examples/huggingface-demo/tests/fixtures/model-metadata/distilbert/tokenizer_config.json": "a025160ef0431f1a392f6f050c1310f4c5d9fb6f275932dbccba73c4d214bf10",
+    "examples/huggingface-demo/tests/test_balanced.py": "aaad99946958b3404da5b7e4e16fdc401377672097f52b6612aaf8074d5faca3",
+    "examples/huggingface-demo/tests/test_contract.py": "e820c7364c81c2d2e5764af7ac093a6067f5c6374bc6bdc46e7638ad8cbdc580",
+    "examples/huggingface-demo/tests/test_cuda_environment.py": "82b4c06e78d679120af3aa35f78dcbd70efcc045492abeb1673a2060c3d21b8e",
+    "examples/huggingface-demo/tests/test_dependency_audit.py": "defc102a3333987904463f6efbe868ec3b68dfb4d08857e917af2f1b1bc84181",
+    "examples/huggingface-demo/tests/test_lock.py": "0152b0b37a009e9a535fc413621c44359a6701481394ec9090f63a580b07f837",
+    "examples/huggingface-demo/tests/test_macos_smoke.py": "4568fff2ea9793b936d50f749a7c60c4b4a6e5243b108eb08e90b7f2561d7e1e",
+    "examples/huggingface-demo/tests/test_main_outcomes.py": "15d58089370bfb111c18ab0b603ea47509c474791fe23c97976ce55c17474bcc",
+    "examples/huggingface-demo/tests/test_model_safety.py": "53b207295a17dfa4f4e2a15aa5e5cacaf0bd64c47454cf16b40fd43a8224d36f",
+    "examples/huggingface-demo/tests/test_oracle.py": "ad32bb01ddf9643e224c2c99143d24798fceece05ba3222553ab7da98dd9d81b",
+    "examples/huggingface-demo/tests/test_runner.py": "6d7420fcb3130175a1265c3b5bab07eb26dbb7764d1ec65e1e48d8a61bf36672",
+    "examples/huggingface-demo/tests/test_static_cli.py": "71087157ce2c6a6c039ea6f0afe84620fa5ea213b880726c0ba5c6ddaab361ab",
+    "examples/huggingface-demo/tests/test_subcent_calibration.py": "1c2fd29e0bb7b129ed301dd68b4cd651237158dcfe50b1a92532809aed30e99f",
+    "examples/huggingface-demo/tests/test_worker_mock.py": "fdce59cc6675728452d3a4e6a21db564317480e0f6d66f75f39378611c08f9c3",
+    "examples/huggingface-demo/worker.py": "adbc43214186a45153c8faf3a13c24b2a670542047b1ab74cb2977ff7708778a",
+    "examples/pytorch-demo/.github/workflows/traincost-ci.yml": "250172a199f998bf878223cb817836ed2577f3c0506b10a312dc9ae0532c340e",
+    "examples/pytorch-demo/config.yaml": "56b2c83351675293e280b2c7811cb01420b0c4ca73dc99285be30ea085f74586",
+    "examples/pytorch-demo/configs/base-config.yaml": "56b2c83351675293e280b2c7811cb01420b0c4ca73dc99285be30ea085f74586",
+    "examples/pytorch-demo/configs/invalid-config.yaml": "0fc7f8b26f420f7e8a91481c8e6001c7e125aed6bcca1a722498af3fa0f132e9",
+    "examples/pytorch-demo/configs/missing-config.yaml": "e44645efeb494b739dcde2b4f4e0b2fe7cd8609485d28df4aa2651b01671ecf5",
+    "examples/pytorch-demo/configs/risky-config.yaml": "66a441bfe604efdda86da7e7e20851181e5ca0da5ae935bfe3fed5a184e2d13b",
+    "packages/core/pyproject.toml": "999bbf35200b3fa77e5ec0d1f0b9e8b388a9edd88a91bff6ec2c87a2787e7e7e",
+    "packages/core/src/traincost_ci_core/__init__.py": "af090538f76d68039d5c55e538e76422013655d1f316e1153d1241bb5b2a3794",
+    "packages/core/src/traincost_ci_core/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "packages/core/src/traincost_ci_core/analysis.py": "e2ece17835e71a35bbaf9e551b6e464f6fa9f657e0f54b04a719ffd6b09d84dd",
+    "packages/core/src/traincost_ci_core/cli.py": "4ebe6e08a137b833e99b986da56b509f7757258a8882d5dc28a186c1821dd6cc",
+    "packages/core/src/traincost_ci_core/diff.py": "e8c5b6c5ccb15ed5a441a5a004bf519d36856bcae99aed374dceef252df91ad5",
+    "packages/core/src/traincost_ci_core/estimation.py": "d248c31e9a3296b152e5768f4ac20959c91acf1cfd85ca4003ecf2a85f13db2a",
+    "packages/core/src/traincost_ci_core/formatting.py": "4252518d866c26da4434f73247bb779cef2ff9200c6a87fe41a7c2097368570b",
+    "packages/core/src/traincost_ci_core/huggingface.py": "bc84523fc40bcd196a56a0acf29089520eb4ac9ef65a40f2c9d74bc647b8eb86",
+    "packages/core/src/traincost_ci_core/models.py": "2b63b0baaa94b3d94fee85350b05fe382a80bef7a45c2cf1bdc3da28bce680e0",
+    "packages/core/src/traincost_ci_core/output_safety.py": "ac6c1e5a67bb28c39b432b38d610d6a9ff3ee161b06f67fa9860db87b1e30a17",
+    "packages/core/src/traincost_ci_core/parsing.py": "d1c816584d77eef077389e7bf47777a45a0118610d55f8317d25390f47adb7ba",
+    "packages/core/src/traincost_ci_core/report.py": "fcb98510f43ee7447a701e757544e4f62ccd968b634cdb8f925ba55956f6b8db",
+    "packages/core/src/traincost_ci_core/rules.py": "c2c10918215a9bc79d16fa83783b35c43b6dc4667c7970d2c847b350d2e99bd4",
+    "packages/core/src/traincost_ci_core/safety.py": "c98c6b84949ff8a2fbe4f2482872e8c14747cf35dd056ddacd81df53c11d02d7",
+    "packages/core/src/traincost_ci_core/serialization.py": "a91a49dfa8abd0332944542156848defa9a8fc0354ce209e38c46eb284a23f06",
+    "packages/core/tests/test_boundaries.py": "81033f7e68a7d4dda72e8705d74ddd014d3967077a1eef0cfc312c34d79ac26b",
+    "packages/core/tests/test_cli_json.py": "e1e0657a34dca35c9a39c929cf7d3c1114876c3f3606648f2581b2a289edce81",
+    "packages/core/tests/test_core_engine.py": "fa3fcc4de4b62db1c98ba227563e52774ae94a4f7c36be2af792584f979933b4",
+    "packages/core/tests/test_huggingface_adapter.py": "81b982d020f60b5beefde2ea94bf678010d77a83ce51f328a57eeb866923c7d5",
+    "packages/core/tests/test_microbatch_regression.py": "3a6a913363632988604f2aeb0f6d7ab392024eb6ef480b1e9ad07aa33c3d93c5",
+    "packages/core/tests/test_output_safety.py": "41f17fa78db414c8d281b64dcb1356631acb273590b42e42fa3623a0040bdce0",
+    "packages/core/tests/test_release_acceptance.py": "f50dd396f6230c47bef1ff08250736d5e169bffc71179086c537b263a435b2ed",
+    "packages/core/tests/test_review_fixes.py": "1a0a6154d6861706d8e94c149e3d7fd63108a6169b6414ef1d33e1c707669fda",
+    "packages/core/tests/test_upgrade_acceptance.py": "017e900ae7d91617c062027eebb1c2aef47e6815a3e1f769623d66f542e210d7",
+    "packages/github-action/action.yml": "abd9ce931cae7ac3b5a51efc3ba1fc69f9b8c7b1457785ae07e2f264087fc50a",
+    "packages/github-action/bootstrap.py": "0be2ba6f0150d36448fed939552cecc26bce07a3877010830bdc6a3481234424",
+    "packages/github-action/requirements.txt": "0969da99a0bc2a1b71ed50584560f4588a37567ac63af3ddbaf3c4617ca5621a",
+    "packages/github-action/tests/test_bootstrap.py": "f0599fcd1f6d7ac388792227c333c6f2ca7cd397befc2d77ec61db86e53e753d",
+    "packages/github-action/tests/test_json_outputs.py": "22a14785be6e0290c03b0f351b7ca4b2b885c3d767f03df6a623fd9370bcfc7e",
+    "packages/github-action/tests/test_release_acceptance.py": "7512c6c56646261793fa598c23d7210107c09bfd1d7297a5458629290cac7a65",
+    "packages/github-action/tests/test_release_added_hf.py": "91553a3794ac9c09bb8efd1b50740b25d8f9ef63bf2640703178fe20e68fc757",
+    "packages/github-action/tests/test_release_glob_outputs.py": "15cbd7b605cf7ef887c1ee9f29a5cd24bb2ed7c75e771e6376566f6322d03a02",
+    "packages/github-action/tests/test_release_output_safety.py": "61fb473d1366d494d97f7ae9275c35418ae1d7fd1b43971095cd52ca5366a729",
+    "packages/github-action/tests/test_traincost_action.py": "894c9c6913cfc3535fdbd69dc5696d550d44bc0bdcf876fe346c57a6e2080d1e",
+    "packages/github-action/tests/test_upgrade_acceptance.py": "d558c39ef39ba352c5824dd597de48e701fea74667d53c5f22a1df8d87e5a0d0",
+    "packages/github-action/traincost_action.py": "25de7338867bc3320264e7cf1f1f9581f95936c8219580bf68f35e4fa1c274c0",
+    "requirements-dev.txt": "fa56bb6be9a958916eb51af1e70d5b2da4b49db1c49dc5dce560b4a28fc621de",
+    "scripts/audit_ml_dependencies.py": "abefa87e88696fd4a694d20fda9e3136c6379eb99ac74d4d31f858df202d6c0f",
+    "scripts/audit_secrets.py": "b613e344908bf1fdbd054c8ed8f89bf81bb032dfac3fdb19fe7072a68e044343",
+    "scripts/render_reports.py": "d5a04d41ce22be2d004d15d475ee6fa9f0cec60d631cafe99290b7e3e4bf18a6",
+    "scripts/verify_external_consumer.py": "8e664fbecde523112bfbac615bc39ddcc557d45fd2c6e45931413ef57ccd32cd",
+    "scripts/verify_hf_corpus.py": "e574f4f6ad34970f19e218d6b986f42ec7986e99ae621c8128aa756e0e653d09",
+    "scripts/verify_hf_demo.py": "7f70c7759526147dfb74a627f302f8b77e0acda649109a7a6aa44ef9393cc64d",
+    "scripts/verify_hf_evidence.py": "ccc31d4c12d88d45fc841bb5166a86ee989c808e0f9c6caf78b6d5816eab03da",
+    "scripts/verify_hf_macos.py": "36ed86e33bee370d97a92417d6722d25b7274ecb6e5a7f0a3777f6163241cdbf",
+    "scripts/verify_hf_matrix.py": "4dd4c28ac8090142049ec62184ec61e6315f7e88b3cbbd982aa5b5f6cc1d0321",
+    "scripts/verify_no_yaml.py": "2639a973698678eb2a71988a3fc94ebe0a21de40f383a7d87f1c670ebe6b63b1",
+    "scripts/verify_release.py": "b738dd3509383b4296cd9ac9a15b159301d3d51c185fe9fd45bd1d4895b335b3",
+    "scripts/verify_upgrade.py": "ee6aca7b828f6bc7cb7cacf52263b0512fe3f494ae575a39bfa7cf10d4f61b35",
+    "scripts/verify_wheel.py": "9cbba09e9c4023fdc5cf560ff4d36d3d5c8c885ef55130e8f86ce88376082863"
+  },
+  "os": "Darwin",
+  "os_release": "25.6.0",
+  "passed": true,
+  "python_version": "3.12.8",
+  "recorded_at_utc": "2026-11-07T18:33:53.387893+00:00",
+  "scope": "Local offline checks; no hosted PR permissions, model training, or release validation.",
+  "source_unchanged_during_checks": true,
+  "working_tree_included": true
+}

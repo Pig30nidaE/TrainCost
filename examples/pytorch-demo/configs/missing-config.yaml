@@ -1,0 +1,4 @@
+model_name: resnet50
+epochs: 5
+batch_size: 64
+# GPU and runtime fields are deliberately absent.

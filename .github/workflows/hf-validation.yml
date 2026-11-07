@@ -1,0 +1,56 @@
+name: Hugging Face config consumer validation
+
+on:
+  pull_request:
+    paths:
+      - "examples/huggingface-demo/config.json"
+
+permissions:
+  contents: read
+
+jobs:
+  consumer:
+    if: >-
+      github.event.pull_request.head.ref == 'codex/hf-distilbert-consumer-smoke' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run TrainCost CI
+        id: cost
+        uses: Pig30nidaE/TrainCost@243ed0889473180b50fdbc704ede5fd116d3527a
+        with:
+          config-path: "examples/huggingface-demo/config.json"
+          gpu-prices: "RTX3060=1.00"
+          comment-mode: "false"
+          report-path: "report.md"
+
+      - name: Verify consumer report
+        shell: bash
+        env:
+          REPORT_PATH: ${{ steps.cost.outputs.report-path }}
+          STATUS: ${{ steps.cost.outputs.analysis-status }}
+          COMMENT: ${{ steps.cost.outputs.comment-posted }}
+        run: |
+          set -euo pipefail
+          test -n "$REPORT_PATH"
+          test -s "$REPORT_PATH"
+          test "$STATUS" = "complete"
+          test "$COMMENT" = "false"
+          grep -F -- 'Config: `examples/huggingface-demo/config.json`.' "$REPORT_PATH"
+          grep -F -- '- epochs: 1 -> 3' "$REPORT_PATH"
+          grep -F -- 'Merge-base estimate: $0.10' "$REPORT_PATH"
+          grep -F -- 'PR-head estimate: $0.30' "$REPORT_PATH"
+          grep -F -- 'Increase: +200%' "$REPORT_PATH"
+          grep -F -- 'Budget limit exceeded' "$REPORT_PATH"
+          grep -F -- 'Estimated cost increased by more than 50%' "$REPORT_PATH"
+          grep -F -- 'Epoch count increased significantly' "$REPORT_PATH"
+          grep -F -- 'Mixed precision appears disabled' "$REPORT_PATH"
+          printf 'Verified report-path: %s\n' "$REPORT_PATH"
+          printf 'Verified analysis-status: %s\n' "$STATUS"
+          printf 'Verified comment-posted: %s\n' "$COMMENT"

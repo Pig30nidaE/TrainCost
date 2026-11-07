@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "studies": [
+    {
+      "id": "macos-sequence-classification-2026-11-07",
+      "bundle": "docs/evidence/hf-matrix-2026-11-07/bundle",
+      "manifest_sha256": "e64c8d0f1c4f915ef262a57b39523089ab2d212a4a3310a737f6dd54a72c5ecf",
+      "measured_source_sha256": "466eb92ed15a920d617ac9ac46120230626a390ff0720708c1393bae54e7624b",
+      "measured_commit": null,
+      "source_snapshot_available": false,
+      "models": ["distilbert", "bert", "albert"],
+      "expected_status": {
+        "status": "FAIL",
+        "compatibility_status": "PASS",
+        "report_status": "PASS",
+        "timing_status": "FAIL"
+      }
+    },
+    {
+      "id": "macos-committed-sequence-classification-2026-11-08",
+      "bundle": "docs/evidence/hf-matrix-2026-11-08/bundle",
+      "manifest_sha256": "b114208b5db9c05b0cf704fb8f32c7e16591f84ce0f97112da53a9962bf5f177",
+      "measured_source_sha256": "200c2b8c073e292d0ee7fbd5ef0022691909e52fdbd9f97bc541b063b945f155",
+      "measured_commit": "01ddafcda9a2545460f067dbb7c154f9661c2b97",
+      "source_snapshot_available": true,
+      "models": ["distilbert", "bert", "albert"],
+      "expected_status": {
+        "status": "PASS",
+        "compatibility_status": "PASS",
+        "report_status": "PASS",
+        "timing_status": "PASS"
+      }
+    },
+    {
+      "id": "macos-security-upgrade-2026-11-08",
+      "bundle": "docs/evidence/hf-matrix-security-2026-11-08/bundle",
+      "manifest_sha256": "00f943c29c0f58cdf4abc83e2e40cac4421a6cb2da8c8e436e1affda467ee672",
+      "measured_source_sha256": "b18e1a307d31b15cf83b5333eea55e5f50558a377164633b3495e2f7b2b2a3da",
+      "measured_commit": "26613f604b9a25cecd65a6f8835dfd3ca8f5997e",
+      "source_snapshot_available": true,
+      "models": ["distilbert", "bert", "albert"],
+      "expected_status": {
+        "status": "PASS",
+        "compatibility_status": "PASS",
+        "report_status": "PASS",
+        "timing_status": "PASS"
+      }
+    },
+    {
+      "id": "macos-final-review-2026-11-08",
+      "bundle": "docs/evidence/hf-matrix-final-review-2026-11-08/bundle",
+      "manifest_sha256": "a857852c06a7984d4adf2e90bd59f5b6c095fafa78598b9547b39cb05aa8f033",
+      "measured_source_sha256": "4703409d434d365efc4fe24289c9c9eaa1a72e9c799f27f7f64734d84e54e107",
+      "measured_commit": "a907b78423cd18b5e7a8f53f5d092fcba6df77e9",
+      "source_snapshot_available": true,
+      "models": ["distilbert", "bert", "albert"],
+      "expected_status": {
+        "status": "PASS",
+        "compatibility_status": "PASS",
+        "report_status": "PASS",
+        "timing_status": "PASS"
+      }
+    }
+  ]
+}

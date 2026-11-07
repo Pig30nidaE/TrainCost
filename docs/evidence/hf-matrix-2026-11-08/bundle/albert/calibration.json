@@ -1,0 +1,12 @@
+{
+  "budget_usd": 0.0032627002544439974,
+  "condition_sha256": "7f9c755dc9a6c2a140ca757b306479848596d7da62c80b1e0016d67cc0c930be",
+  "median_seconds": 5.872860457999195,
+  "minutes_per_epoch": 0.09788100763331992,
+  "price_usd_per_unit_hour": 1.0,
+  "seconds": [
+    5.872860457999195,
+    5.883095291001155,
+    5.827754707999702
+  ]
+}

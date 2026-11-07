@@ -1,0 +1,21 @@
+{
+  "repository": "Pig30nidaE/TrainCost",
+  "pull_request": 13,
+  "run_id": 42396163334,
+  "url": "https://github.com/Pig30nidaE/TrainCost/actions/runs/42396163334",
+  "event": "pull_request",
+  "head_sha": "2c9d3db49e5af5ef7e61bc23c0ccaa02c91300e2",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-11-07T17:24:34Z",
+  "updated_at": "2026-11-07T17:25:14Z",
+  "jobs": [
+    {"id": 128473873542, "name": "Isolated composite action", "conclusion": "success"},
+    {"id": 128473873671, "name": "Audit runtime and build dependencies", "conclusion": "success"},
+    {"id": 128473873720, "name": "Verify Python 3.13", "conclusion": "success"},
+    {"id": 128473873731, "name": "Verify Python 3.11", "conclusion": "success"},
+    {"id": 128473873739, "name": "Verify Python 3.14", "conclusion": "success"},
+    {"id": 128473873812, "name": "Verify Python 3.12", "conclusion": "success"}
+  ],
+  "scope": "Same-repository candidate CI, not an external-consumer or GPU training run"
+}

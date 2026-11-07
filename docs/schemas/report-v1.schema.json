@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TrainCost CI report version 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "analysis_status", "analyses", "diagnostics", "summary"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "analysis_status": {"enum": ["complete", "partial", "skipped", "error"]},
+    "analyses": {"type": "array", "items": {"$ref": "#/$defs/analysis"}},
+    "diagnostics": {"$ref": "#/$defs/strings"},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["analyzed_count", "excluded_count", "base_cost_usd", "pr_cost_usd", "scope"],
+      "properties": {
+        "analyzed_count": {"type": "integer", "minimum": 0},
+        "excluded_count": {"type": "integer", "minimum": 0},
+        "base_cost_usd": {"type": ["number", "null"], "minimum": 0},
+        "pr_cost_usd": {"type": ["number", "null"], "minimum": 0},
+        "scope": {"const": "analyzed_configs_only"}
+      }
+    }
+  },
+  "allOf": [{
+    "if": {"properties": {"analysis_status": {"enum": ["error", "skipped"]}}},
+    "then": {
+      "properties": {
+        "analyses": {"maxItems": 0},
+        "summary": {"properties": {"analyzed_count": {"const": 0}, "base_cost_usd": {"type": "null"}, "pr_cost_usd": {"type": "null"}}}
+      }
+    }
+  }],
+  "$defs": {
+    "strings": {"type": "array", "items": {"type": "string"}},
+    "scalar": {"type": ["string", "number", "boolean", "null"]},
+    "config": {
+      "type": "object",
+      "required": ["model", "model_name", "epochs", "max_epochs", "batch_size", "global_batch_size", "precision", "mixed_precision", "gpu_type", "gpu_count", "estimated_minutes_per_epoch", "dataset_size", "budget_limit_usd"],
+      "propertyNames": {"enum": ["model", "model_name", "epochs", "max_epochs", "batch_size", "global_batch_size", "precision", "mixed_precision", "gpu_type", "gpu_count", "estimated_minutes_per_epoch", "dataset_size", "budget_limit_usd"]},
+      "additionalProperties": {"$ref": "#/$defs/scalar"}
+    },
+    "estimate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["epochs", "estimated_minutes_per_epoch", "gpu_count", "gpu_type", "gpu_hourly_price", "estimated_total_minutes", "estimated_gpu_hours", "estimated_cost_usd", "missing_fields", "defaulted_fields", "price_source"],
+      "properties": {
+        "epochs": {"type": "number", "exclusiveMinimum": 0},
+        "estimated_minutes_per_epoch": {"type": "number", "exclusiveMinimum": 0},
+        "gpu_count": {"type": "integer", "minimum": 1},
+        "gpu_type": {"type": ["string", "null"]},
+        "gpu_hourly_price": {"type": "number", "minimum": 0},
+        "estimated_total_minutes": {"type": "number", "minimum": 0},
+        "estimated_gpu_hours": {"type": "number", "minimum": 0},
+        "estimated_cost_usd": {"type": "number", "minimum": 0},
+        "missing_fields": {"$ref": "#/$defs/strings"},
+        "defaulted_fields": {"$ref": "#/$defs/strings"},
+        "price_source": {"enum": ["default", "default_hourly_price", "gpu_prices_input", "builtin_price_table"]}
+      }
+    },
+    "side": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter", "config", "source_path", "field_sources", "estimate"],
+      "properties": {
+        "adapter": {"enum": ["canonical", "huggingface"]},
+        "config": {"$ref": "#/$defs/config"},
+        "source_path": {"type": ["string", "null"]},
+        "field_sources": {"type": "object", "additionalProperties": {"$ref": "#/$defs/strings"}},
+        "estimate": {"$ref": "#/$defs/estimate"}
+      }
+    },
+    "warning": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "title", "what_changed", "why_it_matters", "how_to_reduce_risk", "recommendation"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "title": {"type": "string"}, "what_changed": {"type": "string"},
+        "why_it_matters": {"type": "string"}, "how_to_reduce_risk": {"type": "string"},
+        "recommendation": {"type": "string"}
+      }
+    },
+    "analysis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "base", "pr", "changes", "increase_percent", "warnings", "recommendations", "confidence"],
+      "properties": {
+        "path": {"type": "string"},
+        "base": {"$ref": "#/$defs/side"}, "pr": {"$ref": "#/$defs/side"},
+        "increase_percent": {"type": ["number", "null"]},
+        "changes": {
+          "type": "array", "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["field", "before", "after"],
+            "properties": {"field": {"type": "string"}, "before": {"$ref": "#/$defs/scalar"}, "after": {"$ref": "#/$defs/scalar"}}
+          }
+        },
+        "warnings": {"type": "array", "items": {"$ref": "#/$defs/warning"}},
+        "recommendations": {"$ref": "#/$defs/strings"},
+        "confidence": {
+          "type": "object", "additionalProperties": false,
+          "required": ["level", "reason", "missing_fields", "defaulted_fields"],
+          "properties": {
+            "level": {"enum": ["Low", "Medium", "High"]}, "reason": {"type": "string"},
+            "missing_fields": {"$ref": "#/$defs/strings"}, "defaulted_fields": {"$ref": "#/$defs/strings"}
+          }
+        }
+      }
+    }
+  }
+}

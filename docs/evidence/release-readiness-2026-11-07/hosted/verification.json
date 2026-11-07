@@ -1,0 +1,67 @@
+{
+  "candidate_sha": "20af5724ed292066d79c8e47557baf5dd3e14a43",
+  "event": "pull_request",
+  "base_sha": "20af5724ed292066d79c8e47557baf5dd3e14a43",
+  "head_sha": "95486b6c43cf9eb2da14b164cda57f68454260aa",
+  "pr_number": 12,
+  "python": "3.12.16",
+  "platform": "Linux",
+  "outputs": {
+    "modified": {
+      "analysis_status": "complete",
+      "comment_posted": "false",
+      "report_path": "/home/runner/work/_temp/traincost-release-evidence/modified.md",
+      "report_json_path": "/home/runner/work/_temp/traincost-release-evidence/modified.json",
+      "summary": {
+        "analyzed_count": 1,
+        "excluded_count": 0,
+        "base_cost_usd": 0.1,
+        "pr_cost_usd": 0.3,
+        "scope": "analyzed_configs_only"
+      }
+    },
+    "added": {
+      "analysis_status": "complete",
+      "comment_posted": "false",
+      "report_path": "/home/runner/work/_temp/traincost-release-evidence/added.md",
+      "report_json_path": "/home/runner/work/_temp/traincost-release-evidence/added.json",
+      "summary": {
+        "analyzed_count": 1,
+        "excluded_count": 0,
+        "base_cost_usd": 0.5,
+        "pr_cost_usd": 0.3,
+        "scope": "analyzed_configs_only"
+      }
+    },
+    "partial": {
+      "analysis_status": "partial",
+      "comment_posted": "false",
+      "report_path": "/home/runner/work/_temp/traincost-release-evidence/partial.md",
+      "report_json_path": "/home/runner/work/_temp/traincost-release-evidence/partial.json",
+      "summary": {
+        "analyzed_count": 1,
+        "excluded_count": 1,
+        "base_cost_usd": 0.5,
+        "pr_cost_usd": 0.3,
+        "scope": "analyzed_configs_only"
+      }
+    },
+    "invalid": {
+      "analysis_status": "error",
+      "comment_posted": "false",
+      "report_path": "/home/runner/work/_temp/traincost-release-evidence/invalid.md",
+      "report_json_path": "/home/runner/work/_temp/traincost-release-evidence/invalid.json",
+      "summary": {
+        "analyzed_count": 0,
+        "excluded_count": 1,
+        "base_cost_usd": null,
+        "pr_cost_usd": null,
+        "scope": "analyzed_configs_only"
+      }
+    }
+  },
+  "unsafe_output_preserved": true,
+  "step_summary_matches_reports": true,
+  "scope": "same-repository hosted PR, not an external consumer or fork",
+  "passed": true
+}

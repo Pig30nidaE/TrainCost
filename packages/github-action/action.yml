@@ -1,11 +1,20 @@
 name: TrainCost CI
 description: PR-level ML training cost review for GitHub Actions.
+author: Pig30nidaE
+
+branding:
+  icon: dollar-sign
+  color: green
 
 inputs:
   config-path:
     description: Path or glob for the ML training config file to compare.
     required: false
     default: "config.yaml"
+  config-adapter:
+    description: Config format adapter, canonical or huggingface.
+    required: false
+    default: "canonical"
   gpu-prices:
     description: Comma-separated GPU hourly prices, such as T4=0.5,A10G=1.2,A100=3.5.
     required: false
@@ -14,6 +23,10 @@ inputs:
     description: Optional default budget limit in USD when the config does not define budget_limit_usd.
     required: false
     default: ""
+  warn-increase-percent:
+    description: Cost increase percentage that triggers the cost-increase warning.
+    required: false
+    default: "50"
   comment-mode:
     description: Set to true to post or update a pull request comment. False only writes the report.
     required: false
@@ -22,11 +35,21 @@ inputs:
     description: Path where the Markdown report should be written.
     required: false
     default: "report.md"
+  report-json-path:
+    description: JSON output path; defaults to report-path with a .json suffix.
+    required: false
+    default: ""
 
 outputs:
+  analysis-status:
+    description: Analysis outcome (complete, partial, skipped, error).
+    value: ${{ steps.traincost.outputs.analysis-status }}
   report-path:
     description: Path to the generated Markdown report.
     value: ${{ steps.traincost.outputs.report-path }}
+  report-json-path:
+    description: Path to the generated versioned JSON report.
+    value: ${{ steps.traincost.outputs.report-json-path }}
   comment-posted:
     description: Whether the action posted or updated a PR comment.
     value: ${{ steps.traincost.outputs.comment-posted }}
@@ -35,14 +58,16 @@ runs:
   using: composite
   steps:
     - id: traincost
-      name: Run TrainCost CI
+      name: Run isolated TrainCost CI
       shell: bash
       env:
         INPUT_CONFIG_PATH: ${{ inputs.config-path }}
+        INPUT_CONFIG_ADAPTER: ${{ inputs.config-adapter }}
         INPUT_GPU_PRICES: ${{ inputs.gpu-prices }}
         INPUT_BUDGET_LIMIT: ${{ inputs.budget-limit }}
+        INPUT_WARN_INCREASE_PERCENT: ${{ inputs.warn-increase-percent }}
         INPUT_COMMENT_MODE: ${{ inputs.comment-mode }}
         INPUT_REPORT_PATH: ${{ inputs.report-path }}
-        GITHUB_TOKEN: ${{ github.token }}
-      run: |
-        python3 "$GITHUB_ACTION_PATH/traincost_action.py"
+        INPUT_REPORT_JSON_PATH: ${{ inputs.report-json-path }}
+        GITHUB_TOKEN: ${{ inputs.comment-mode == 'true' && github.token || '' }}
+      run: python3 -I "$GITHUB_ACTION_PATH/bootstrap.py"

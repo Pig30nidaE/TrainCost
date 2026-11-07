@@ -159,7 +159,45 @@ class EstimationTests(unittest.TestCase):
 
         self.assertAlmostEqual(estimate.estimated_gpu_hours, 1.0)
         self.assertAlmostEqual(estimate.estimated_cost_usd, 4.10)
-        self.assertEqual(estimate.price_source, "known_gpu_type")
+        self.assertEqual(estimate.price_source, "builtin_price_table")
+
+    def test_gpu_price_override_is_tracked_as_input_source(self) -> None:
+        config = analyze_config_dicts(
+            {"epochs": 1, "estimated_minutes_per_epoch": 60, "gpu_count": 1, "gpu_type": "A100"},
+            {"epochs": 1, "estimated_minutes_per_epoch": 60, "gpu_count": 1, "gpu_type": "A100"},
+        ).pr_config
+
+        estimate = estimate_cost(config, gpu_hourly_prices={"A100": 3.20})
+
+        self.assertAlmostEqual(estimate.estimated_cost_usd, 3.20)
+        self.assertEqual(estimate.price_source, "gpu_prices_input")
+
+    def test_report_shows_gpu_price_and_source(self) -> None:
+        result = analyze_config_dicts(
+            {"epochs": 1, "estimated_minutes_per_epoch": 60, "gpu_count": 1, "gpu_type": "T4"},
+            {"epochs": 1, "estimated_minutes_per_epoch": 60, "gpu_count": 1, "gpu_type": "A100"},
+            gpu_hourly_prices={"T4": 0.35, "A100": 3.20},
+        )
+
+        report = result.markdown_report
+
+        self.assertIn("- GPU price: Base T4 at $0.35/hour", report)
+        self.assertIn("PR A100 at $3.20/hour", report)
+        self.assertIn("from the gpu-prices input", report)
+
+    def test_cost_increase_threshold_is_configurable(self) -> None:
+        base = {"epochs": 10, "estimated_minutes_per_epoch": 10, "gpu_count": 1, "gpu_type": "T4"}
+        pr = {"epochs": 14, "estimated_minutes_per_epoch": 10, "gpu_count": 1, "gpu_type": "T4"}
+
+        default_result = analyze_config_dicts(base, pr)
+        strict_result = analyze_config_dicts(base, pr, cost_increase_threshold_percent=30)
+
+        self.assertNotIn("cost_increase", {warning.code for warning in default_result.warnings})
+        self.assertIn("cost_increase", {warning.code for warning in strict_result.warnings})
+        strict_warning = next(
+            warning for warning in strict_result.warnings if warning.code == "cost_increase"
+        )
+        self.assertIn("more than 30%", strict_warning.title)
 
 
 class RiskWarningTests(unittest.TestCase):
@@ -269,8 +307,50 @@ class RiskWarningTests(unittest.TestCase):
 
         warning_codes = {warning.code for warning in result.warnings}
         self.assertIn("sensitive_config_value", warning_codes)
-        self.assertIn("api_key", result.markdown_report)
+        self.assertIn(r"api\_key", result.markdown_report)
         self.assertNotIn("super-secret-token", result.markdown_report)
+
+    def test_detects_secret_shaped_values_under_innocuous_keys(self) -> None:
+        leaked_token = "ghp_" + "a1B2c3D4e5F6g7H8i9J0" * 2
+        result = analyze_config_dicts(
+            {
+                "epochs": 1,
+                "estimated_minutes_per_epoch": 5,
+                "gpu_count": 1,
+                "gpu_type": "T4",
+            },
+            {
+                "epochs": 1,
+                "estimated_minutes_per_epoch": 5,
+                "gpu_count": 1,
+                "gpu_type": "T4",
+                "notes": leaked_token,
+            },
+        )
+
+        warning_codes = {warning.code for warning in result.warnings}
+        self.assertIn("sensitive_config_value", warning_codes)
+        self.assertIn("notes", result.pr_config.sensitive_keys)
+        self.assertNotIn(leaked_token, result.markdown_report)
+
+    def test_small_batch_uses_parameter_count_in_model_name(self) -> None:
+        base = {
+            "model_name": "qwen-72b",
+            "epochs": 1,
+            "batch_size": 8,
+            "estimated_minutes_per_epoch": 5,
+            "gpu_count": 1,
+            "gpu_type": "A100",
+        }
+        result = analyze_config_dicts(base, base)
+
+        small_model = {**base, "model_name": "resnet18"}
+        small_model_result = analyze_config_dicts(small_model, small_model)
+
+        self.assertIn("small_batch_size", {warning.code for warning in result.warnings})
+        self.assertNotIn(
+            "small_batch_size", {warning.code for warning in small_model_result.warnings}
+        )
 
 
 class MarkdownReportTests(unittest.TestCase):
