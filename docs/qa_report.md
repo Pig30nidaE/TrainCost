@@ -1,5 +1,30 @@
 # Beta QA evidence
 
+## Commit-bound matrix (2026-11-08)
+
+The new [study](hf_committed_study.md) measured commit
+`01ddafcda9a2545460f067dbb7c154f9661c2b97`. All 27 real MPS runs passed the
+training contract, Decimal/report checks, and unchanged timing criteria. The
+historical failed observations below remain registered. Git-based source replay
+rejects modified, missing, or symlinked execution source and uses a versioned
+inventory so later policy changes do not invalidate old studies.
+
+The measured candidate passed all six
+[hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42396945740).
+That run predates the new bundle registration; follow-up evidence edits need CI.
+The new local study is not CUDA evidence, an external consumer, or a public release.
+
+The follow-up [local Python 3.12 record](evidence/hf-matrix-2026-11-08/local-python312.json)
+contains 284 unittest methods: 283 passed and one Linux-only test was skipped.
+Suite sizes are core 113, Action 71, HF demo 53, matrix 41, and corpus evaluator 6.
+The 50-case corpus, fixtures, missing-YAML diagnostic, local normal/fork simulations,
+and replay of both registered studies also passed. Git source replay was performed
+by the implementation chat. QAReview separately compared bundle counts, hashes,
+documented medians/errors, and retained limitations without rerunning the suite;
+it found no blocking documentation discrepancy. Known-pattern scanning reported
+zero findings in 409 reachable blobs and 317 worktree entries before the final
+documentation additions, not a comprehensive confidentiality audit.
+
 ## Multi-model upgrade (2026-11-07)
 
 The current local branch is `codex/hf-model-matrix`. See

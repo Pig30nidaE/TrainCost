@@ -11,16 +11,17 @@ Think **Infracost for ML experiments**.
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
 The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
 subcent amounts, an installed CLI, and versioned JSON.
-[Candidate PR #11](https://github.com/Pig30nidaE/TrainCost/pull/11) passed
-[Python 3.11-3.14 CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42350182764).
-[Consumer PR #12](https://github.com/Pig30nidaE/TrainCost/pull/12) tests the full
-candidate SHA in this same private repository. These links require repository access.
+[Candidate PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) includes the
+multi-model upgrade. Its measured source commit `01ddafc` passed
+[Python 3.11-3.14 CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42396945740).
+These links require repository access. The older consumer PR #12 tests an earlier
+candidate and does not establish consumer behavior for this revision.
 Independent cross-repository and real fork validation remain release gates because
 the user retained the current Action access restriction. See the
-[release-readiness record](docs/release_readiness.md) for evidence and limits.
-The later [multi-model validation upgrade](docs/hf_model_matrix.md) is local;
-those hosted runs do not cover its changes. Its training/report checks passed for
-three real architectures, while the combined timing-repeatability gate failed.
+[PM status](docs/pm_status.md) for remaining gates.
+The [commit-bound model study](docs/hf_committed_study.md) completed 27 real runs
+with all training, report, and timing checks passing. The prior study's timing
+failures remain recorded; neither study establishes general runtime accuracy.
 
 ## See the three outcomes
 
@@ -42,7 +43,7 @@ DistilBERT, BERT, and ALBERT sequence-classification verification on Apple Silic
 It checks actual Trainer arguments against the HF adapter, runs independent
 calibration and held-out repetitions, and keeps report correctness separate from
 time-extrapolation accuracy. This is a bounded text-classification study, not
-support for all Hugging Face tasks. [Measured results](docs/hf_model_matrix.md).
+support for all Hugging Face tasks. [Measured results](docs/hf_committed_study.md).
 
 The [DistilBERT validation example](examples/huggingface-demo/README.md) connects one canonical
 config to a real text-classification training run on a user-operated RTX 3060 12GB under WSL2.

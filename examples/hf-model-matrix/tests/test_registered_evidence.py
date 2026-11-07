@@ -20,6 +20,8 @@ class RegisteredEvidenceTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve()
         self.index = deepcopy(evidence.matrix.read_json(evidence.INDEX))
+        self.index["studies"] = self.index["studies"][:1]
+        self.original_index = deepcopy(self.index)
         self.bundle = self.root / self.index["studies"][0]["bundle"]
         shutil.copytree(ROOT / self.index["studies"][0]["bundle"], self.bundle)
         self.path = self.root / "index.json"
@@ -88,10 +90,20 @@ class RegisteredEvidenceTests(unittest.TestCase):
         self.index["studies"][0]["bundle"] = "../outside"
         with self.assertRaises(ValueError):
             self.check()
-        self.index = deepcopy(evidence.matrix.read_json(evidence.INDEX))
+        self.index = deepcopy(self.original_index)
         (self.bundle / "extra.md").symlink_to(self.bundle / "bert/report.md")
         with self.assertRaises(ValueError):
             self.check()
+
+    def test_committed_study_replays_source_and_all_runs(self):
+        with redirect_stdout(io.StringIO()):
+            studies = evidence.verify()
+        committed = [study for study in studies if study["measured_commit"]]
+        self.assertEqual(len(committed), 1)
+        self.assertEqual(committed[0]["measured_commit"], "01ddafcda9a2545460f067dbb7c154f9661c2b97")
+        self.assertEqual(committed[0]["training_runs"], 27)
+        self.assertEqual(committed[0]["timing_status"], "PASS")
+        self.assertTrue(committed[0]["source_snapshot_available"])
 
 
 if __name__ == "__main__":

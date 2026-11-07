@@ -13,18 +13,26 @@ Current release gates are a reviewed immutable candidate, current hosted CI,
 commit-bound real-model evidence, documented support/limitations, independent
 installation/fork evidence, confidentiality review, and publication. Private
 Action access remains `none`; permission/visibility changes have not been
-authorized. The current local changes are being prepared for a review PR and
-hosted CI. The old failed timing study remains preserved and cannot be relabeled
+authorized. [PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) now contains
+the upgrade. Measured commit `01ddafcda9a2545460f067dbb7c154f9661c2b97` passed all
+six [hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42396945740).
+The old failed timing study remains preserved and cannot be relabeled
 or used as proof of stable runtime prediction.
 
-The historical matrix now has a registered evidence replay in CI. This verifies
-all three models and 27 artifacts-backed runs without training, rejects missing
-or extra files, and retains failed outcomes. The portfolio walkthrough now uses
-the actual findings and measurements rather than the outdated claim that no real
-models or HF adapter exist. A committed-source study is still required: the
-temporary measured source snapshot from the initial run is no longer available.
+The [commit-bound study](hf_committed_study.md) completed 27 new real training runs,
+all PASS for training contracts, reports, and timing. The versioned source inventory
+is verified against immutable Git blobs; dirty execution source is rejected before
+training. QAReview identified nested-module and inventory-version issues, and the
+implementation includes their fixes and regressions. Historical evidence remains
+registered, including timing failures and its missing executable snapshot.
 
-## Earlier matrix snapshot
+The latest evidence-registration edits still require their own hosted CI. Remaining
+release work is final candidate review, a same-repository consumer for the new SHA,
+independent external/fork validation when permitted, confidentiality review, and
+publication approval. Same-repository or local simulations cannot replace the
+external/fork gate. No permission expansion, tag push, release, or merge occurred.
+
+## Earlier matrix snapshot, superseded
 
 The current local `codex/hf-model-matrix` upgrade supersedes the candidate snapshot
 below for HF validation. DistilBERT, BERT, and ALBERT each completed nine real MPS

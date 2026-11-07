@@ -12,12 +12,12 @@ It is not a learned runtime predictor or a claim of guaranteed savings.
 2. Show the [missing-input](../examples/pytorch-demo/expected-missing-report.md)
    and [invalid-input](../examples/pytorch-demo/expected-invalid-report.md) reports.
    A missing value is an assumption; an invalid value is not a trustworthy estimate.
-3. Open the [real-model study](hf_model_matrix.md). DistilBERT, BERT, and ALBERT
+3. Open the [commit-bound model study](hf_committed_study.md). DistilBERT, BERT, and ALBERT
    completed 27 MPS fine-tuning runs. Compare actual Trainer arguments, normalized
    fields, the independent Decimal calculation, and the generated reports.
-4. Show the timing failures, not just successful training. All model/report checks
-   passed, but DistilBERT and BERT failed the predefined repeatability test. Explain
-   why input confidence does not establish billing or runtime accuracy.
+4. Compare both studies. The original DistilBERT and BERT repeatability failures
+   remain recorded; the commit-bound follow-up passed the unchanged criteria.
+   Explain why these small studies do not establish general runtime accuracy.
 5. Run the evidence replay below, then open a Git/output-safety regression test.
    Finish with the exact candidate's CI record and remaining distribution gates.
 
@@ -27,8 +27,8 @@ python scripts/verify_hf_corpus.py
 ```
 
 The first command performs no training or downloads. It rechecks recorded files,
-all 27 executions, common dataset identity, reports, and the declared failed timing
-outcome. It does not turn historical evidence into a fresh GPU run.
+all 54 executions across two studies, common dataset identity, reports, source
+provenance where available, and both timing outcomes. It does not train models.
 
 ## Data flow and trust boundaries
 
@@ -67,6 +67,7 @@ unless experimental comment mode is explicitly enabled.
 | Effective batch size hid a tiny HF microbatch | Use the actual per-device batch for utilization warnings | `test_microbatch_regression.py` |
 | A two-decimal assertion rejected a valid short calibration | Compare independent Decimal values and complete display rows | `test_subcent_calibration.py` |
 | A green-looking study could omit failures or models | Register bundle identity and coverage; preserve separate outcomes | `test_registered_evidence.py` |
+| A source hash alone could not reconstruct measured code | Require committed source and versioned file inventory | `test_provenance.py`, real Git-object comparisons |
 
 These are reproducible engineering results, not claims that the tool is free from
 all defects. Each contract is narrower than supporting every framework setting.
@@ -74,10 +75,10 @@ all defects. Each contract is narrower than supporting every framework setting.
 ## Evidence and honest limits
 
 See [QA evidence](qa_report.md) for tests, environments, and run links. The
-[model study](hf_model_matrix.md) records the actual three-model experiment and its
-limits. Its measured source was an uncommitted worktree; a complete source snapshot
-was not preserved. The evidence index states that limitation explicitly. A new
-release candidate needs commit-bound execution evidence, not a rewritten history.
+[historical study](hf_model_matrix.md) lacked a preserved executable source snapshot.
+The [follow-up](hf_committed_study.md) binds 27 new measurements to commit `01ddafc`
+and verifies its source against Git blobs. The evidence index preserves both
+studies and does not retroactively assign a commit to the original measurements.
 
 There are no verified external adopters, measured cost savings, or production
 prediction-accuracy claims. The current matrix uses only small IMDb subsets for

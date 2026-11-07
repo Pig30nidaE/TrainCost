@@ -2,10 +2,11 @@
 
 Updated: 2026-11-07. Target: `v0.2.0-beta.1`, not published.
 
-This is the PR #11 candidate record. The subsequent local
-[multi-model upgrade](hf_model_matrix.md) changes code and tooling and needs its
-own candidate review and hosted checks. Do not apply the completion decision
-below to that newer worktree. Publication and Action access remain unchanged.
+This is the historical PR #11 candidate record. [PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13)
+now includes the [commit-bound multi-model study](hf_committed_study.md) and its
+own hosted CI. Follow [PM status](pm_status.md) for its remaining release gates.
+Do not apply the completion decision below to that newer candidate. Publication
+and Action access remain unchanged.
 
 This record supersedes the earlier review-driven upgrade's local result. The
 release-readiness branch preserves the previous implementation and Mac evidence,

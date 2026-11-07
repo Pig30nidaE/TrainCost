@@ -1,5 +1,9 @@
 # Hugging Face real-model validation
 
+This is the historical study. The later [committed-source study](hf_committed_study.md)
+adds another 27 runs with reproducible Git provenance. It does not replace the
+failed timing observations or missing-source limitation recorded below.
+
 Date: 2026-11-07. Branch: `codex/hf-model-matrix`, based on
 `5983297a22352fe25078cd35a340a930d3663539`. The changes are local and are not the
 already-hosted PR #11 candidate.

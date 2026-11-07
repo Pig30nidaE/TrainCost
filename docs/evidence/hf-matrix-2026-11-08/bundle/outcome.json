@@ -1,0 +1,103 @@
+{
+  "compatibility_status": "PASS",
+  "models": {
+    "albert": {
+      "compatibility_status": "PASS",
+      "condition_sha256": "7f9c755dc9a6c2a140ca757b306479848596d7da62c80b1e0016d67cc0c930be",
+      "model_id": "albert/albert-base-v2",
+      "price_note": "Hypothetical $1/unit-hour; not billed or electricity cost.",
+      "report_status": "PASS",
+      "revision": "8e2f239c5f8a2c0f253781ca60135db913e5c80c",
+      "timing": {
+        "calibration_median_seconds": 5.872860457999195,
+        "observed_median_seconds": {
+          "base": 6.199184041999615,
+          "pr": 17.422636292001698
+        },
+        "predicted_seconds": {
+          "base": 5.872860457999195,
+          "pr": 17.618581373997586
+        },
+        "relative_errors": {
+          "base": 0.05263976384465604,
+          "pr": 0.011246580523857951
+        },
+        "repeatable": {
+          "base": true,
+          "calibration": true,
+          "pr": true
+        },
+        "status": "PASS"
+      },
+      "timing_status": "PASS",
+      "training_runs": 9
+    },
+    "bert": {
+      "compatibility_status": "PASS",
+      "condition_sha256": "0f84644d67619301a0f94fc073f32d25049748f7010626c91b8a6f553de85216",
+      "model_id": "google-bert/bert-base-uncased",
+      "price_note": "Hypothetical $1/unit-hour; not billed or electricity cost.",
+      "report_status": "PASS",
+      "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+      "timing": {
+        "calibration_median_seconds": 7.653687083000477,
+        "observed_median_seconds": {
+          "base": 8.059186333999605,
+          "pr": 23.4990816669997
+        },
+        "predicted_seconds": {
+          "base": 7.653687083000477,
+          "pr": 22.961061249001432
+        },
+        "relative_errors": {
+          "base": 0.05031516014072444,
+          "pr": 0.022895380577949282
+        },
+        "repeatable": {
+          "base": true,
+          "calibration": true,
+          "pr": true
+        },
+        "status": "PASS"
+      },
+      "timing_status": "PASS",
+      "training_runs": 9
+    },
+    "distilbert": {
+      "compatibility_status": "PASS",
+      "condition_sha256": "181e26f8f7de86ba9c3ef06745242ac7bfb51c2ab6b888a04e58efbb5c65fadb",
+      "model_id": "distilbert/distilbert-base-uncased",
+      "price_note": "Hypothetical $1/unit-hour; not billed or electricity cost.",
+      "report_status": "PASS",
+      "revision": "12040accade4e8a0f71eabdb258fecc2e7e948be",
+      "timing": {
+        "calibration_median_seconds": 4.743777625000803,
+        "observed_median_seconds": {
+          "base": 4.1166099999991275,
+          "pr": 11.992114708000372
+        },
+        "predicted_seconds": {
+          "base": 4.743777625000803,
+          "pr": 14.231332875002408
+        },
+        "relative_errors": {
+          "base": 0.15235050806411304,
+          "pr": 0.18672421182797508
+        },
+        "repeatable": {
+          "base": true,
+          "calibration": true,
+          "pr": true
+        },
+        "status": "PASS"
+      },
+      "timing_status": "PASS",
+      "training_runs": 9
+    }
+  },
+  "report_status": "PASS",
+  "source_sha256": "200c2b8c073e292d0ee7fbd5ef0022691909e52fdbd9f97bc541b063b945f155",
+  "status": "PASS",
+  "timing_status": "PASS",
+  "training_process_seconds": 393.75708746000237
+}
