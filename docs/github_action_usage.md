@@ -87,8 +87,11 @@ After the upgrade is reviewed, replace the placeholder below with its full commi
     comment-mode: "false"
 ~~~
 
-The placeholder is not a runnable reference or a published beta tag. Repository access is required while the project remains private.
-Private cross-repository action access requires GitHub repository settings and is not established by a same-repository smoke test.
+The placeholder is not a runnable reference or a published beta tag. The source is
+public. Candidate `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed a separate
+[hosted consumer test](external_consumer_validation.md) for both Action entrypoints.
+Real fork PR permissions remain unverified. For private copies of the source,
+cross-repository Action access requires separate repository settings.
 The historical v0.1.0 tag and earlier candidate SHA lack the HF adapter and JSON output described here.
 
 The locally reproducible unrelated-consumer and fork-payload checks are in `scripts/verify_external_consumer.py`. They do not establish GitHub-hosted fork permissions or private cross-repository Action access. An example consumer workflow is in `examples/external-consumer/`.

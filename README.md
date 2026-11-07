@@ -18,12 +18,13 @@ subcent amounts, an installed CLI, and versioned JSON.
 [Candidate PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) includes the
 multi-model upgrade. Its measured source commit `26613f6` passed
 [Python 3.11-3.14 and dependency CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42400274167).
-The SHA-pinned [consumer PR #14](https://github.com/Pig30nidaE/TrainCost/pull/14)
-also [passed](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401267868).
-These links require repository access.
-Independent cross-repository and real fork validation remain release gates because
-the user retained the current Action access restriction. See the
-[PM status](docs/pm_status.md) for remaining gates.
+The source is now public. Candidate `28b4c54` passed all eight
+[CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42402097394) and an
+[external consumer PR](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/1)
+using SHA-pinned root and package Actions. See the
+[external validation record](docs/external_consumer_validation.md).
+A real fork PR remains unverified. Candidate PR #13 is not merged, and release
+publication is not approved. See [PM status](docs/pm_status.md) for remaining gates.
 The [security-upgraded model study](docs/hf_security_upgrade_study.md) completed 27 real runs
 with all training, report, and timing checks passing. The prior study's timing
 failures remain recorded across 81 total observations; these studies do not establish general runtime accuracy.
@@ -84,8 +85,10 @@ Dependency installation downloads PyYAML; experimental comment mode sends the sa
 
 The [external consumer template](examples/external-consumer/README.md) uses a
 separate consumer repository and requires a reviewed upgrade commit SHA. The source
-is still private and currently disallows cross-repository Action access. The template
-does not work until that gate is resolved; no existing tag contains the upgrade.
+is public. Full SHA `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed the
+[hosted external consumer test](docs/external_consumer_validation.md).
+No existing tag contains the upgrade. Replace the template's placeholder with a
+reviewed full SHA before use.
 
 The following example is for testing inside this repository, not external installation:
 

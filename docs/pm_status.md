@@ -18,9 +18,23 @@ QAReview replayed source/evidence and found no additional blocking issue. The
 post-registration local suite passed, and the refreshed SHA-pinned
 [same-repository consumer](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401267868)
 and its eight-job CI passed. Evidence-only changes do not alter the measured
-Core/Action implementation. External/fork validation, publication approval, and public availability
-remain unresolved. The repository is still private and Action access is `none`.
-No remote PR merge, release, tag push, or permission/visibility change occurred.
+Core/Action implementation.
+
+The user made the source repository public and approved a separate public consumer
+repository. Candidate `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed all eight
+[final CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42402097394)
+and the [external consumer run](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42403549313).
+Root and package Actions were downloaded by full SHA from a checkout without the
+TrainCost implementation. Complete, partial, error, unsafe-output rejection, and
+report/Summary checks passed. This closes the cross-repository installation gate,
+not the real fork gate. [Exact identity and results](external_consumer_validation.md).
+
+The user will create a fork PR from another account and provide its URL. Next,
+review that PR's changes and workflow, verify distinct base/head repository IDs,
+and observe its GitHub-hosted run. Do not replace it with a simulated event or the
+ordinary branch PR already tested. Candidate PR #13 and consumer PRs remain
+unmerged. PR merge, tag push, and release publication still require separate
+approval. No agent-initiated source visibility or Action access change occurred.
 
 Final CI exposed a Linux test-observer exit race at `40d17a0`. The test-only fix
 `18f209c` adds six regressions and passed all eight

@@ -131,13 +131,14 @@ not a comprehensive confidentiality audit or publication approval.
   failure. Bundle exports reject unexpected metadata fields and omit raw data,
   weights, tokens, full environment variables, and subprocess logs.
 
-## Publication decision
+## Historical publication decision
 
-Private Action access remains `none`. No release, tag push, repository visibility
-change, PR merge, or permission expansion is performed. The earlier hosted runs
-do not validate this new worktree. A reviewed candidate still needs its own
-hosted CI evidence; independent external-consumer and fork validation remain
-blocked under the retained access restriction.
+At the time of this study, private Action access was `none`. No release, tag push,
+repository visibility change, PR merge, or permission expansion accompanied the
+study. Its worktree still required candidate-bound hosted evidence. Later studies,
+CI, and the [external consumer test](external_consumer_validation.md) record the
+subsequent candidate checks and user-controlled public transition. Real fork
+validation remains pending. See [current PM status](pm_status.md).
 
 The contribution claim is deliberately bounded: reproducible configuration
 review and a reusable verification protocol across several real text encoders.

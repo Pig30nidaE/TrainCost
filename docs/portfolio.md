@@ -87,8 +87,10 @@ the original measurements.
 There are no verified external adopters, measured cost savings, or production
 prediction-accuracy claims. The current matrix uses only small IMDb subsets for
 sequence classification on MPS. CUDA, LoRA, generation, and distributed engines
-remain unverified. The source is private and Action access is `none`; an external
-installation is not proven by copying the Action into the same repository.
+remain unverified. The user made the source public. A separate
+[consumer repository](external_consumer_validation.md) verified SHA-pinned
+installation and report contracts without a copy of the implementation.
+That controlled test is not community adoption or a real fork PR test.
 
 The project includes an MIT license, an installed CLI, documented JSON, contribution
 instructions, and reproducible tests. Those enable review and reuse; they do not

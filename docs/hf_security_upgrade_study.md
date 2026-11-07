@@ -95,7 +95,8 @@ The consumer branch's [eight-job CI](https://github.com/Pig30nidaE/TrainCost/act
 passed too. Keep the consumer PR unmerged. No rendered browser inspection is claimed.
 
 CUDA/WSL2 execution, generation, vision, speech, PEFT, distributed training, and
-general runtime prediction remain outside this evidence. Real external-repository
-and fork distribution validation remains blocked by the retained private Action
-access setting. Same-repository reports do not satisfy that gate. No release,
-tag push, repository visibility change, or access expansion was performed.
+general runtime prediction remain outside this evidence. This study's same-repository
+reports do not establish external installation. After the user made the source
+public, a separate [external consumer test](external_consumer_validation.md) passed
+against candidate `28b4c54`. A real fork PR test remains pending. No release or tag
+push was performed, and the study did not change repository visibility or access.

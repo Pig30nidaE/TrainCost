@@ -1,0 +1,163 @@
+name: External TrainCost candidate consumer
+on:
+  pull_request:
+    paths:
+      - examples/huggingface-demo/config.json
+      - examples/release-consumer/**
+      - .github/workflows/release-consumer.yml
+permissions:
+  contents: read
+jobs:
+  consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Modified canonical config
+        id: modified
+        uses: Pig30nidaE/TrainCost@28b4c541ab98a840a814f6bed8d3b205ece3d4ca
+        with:
+          config-path: examples/huggingface-demo/config.json
+          gpu-prices: RTX3060=1
+          comment-mode: 'false'
+          report-path: ${{ runner.temp }}/traincost-release-evidence/modified.md
+      - name: Added native HF config via package action
+        id: added
+        uses: Pig30nidaE/TrainCost/packages/github-action@28b4c541ab98a840a814f6bed8d3b205ece3d4ca
+        with:
+          config-path: examples/release-consumer/added.json
+          config-adapter: huggingface
+          gpu-prices: RTX3060=1
+          comment-mode: 'false'
+          report-path: ${{ runner.temp }}/traincost-release-evidence/added.md
+      - name: Partial native HF comparison
+        id: partial
+        uses: Pig30nidaE/TrainCost@28b4c541ab98a840a814f6bed8d3b205ece3d4ca
+        with:
+          config-path: examples/release-consumer/*.json
+          config-adapter: huggingface
+          gpu-prices: RTX3060=1
+          comment-mode: 'false'
+          report-path: ${{ runner.temp }}/traincost-release-evidence/partial.md
+      - name: Rejected native HF config
+        id: invalid
+        continue-on-error: true
+        uses: Pig30nidaE/TrainCost@28b4c541ab98a840a814f6bed8d3b205ece3d4ca
+        with:
+          config-path: examples/release-consumer/invalid.json
+          config-adapter: huggingface
+          gpu-prices: RTX3060=1
+          comment-mode: 'false'
+          report-path: ${{ runner.temp }}/traincost-release-evidence/invalid.md
+      - name: Prepare synthetic output-link sentinel
+        run: |
+          printf 'preserve-synthetic-sentinel' > "$RUNNER_TEMP/traincost-sentinel.json"
+          ln -s "$RUNNER_TEMP/traincost-sentinel.json" "$RUNNER_TEMP/traincost-output-link.json"
+      - name: Reject unsafe output link
+        id: unsafe
+        continue-on-error: true
+        uses: Pig30nidaE/TrainCost@28b4c541ab98a840a814f6bed8d3b205ece3d4ca
+        with:
+          config-path: examples/huggingface-demo/config.json
+          comment-mode: 'false'
+          report-path: ${{ runner.temp }}/traincost-blocked.md
+          report-json-path: ${{ runner.temp }}/traincost-output-link.json
+      - name: Verify reports and actual outputs
+        env:
+          MODIFIED_STATUS: ${{ steps.modified.outputs.analysis-status }}
+          ADDED_STATUS: ${{ steps.added.outputs.analysis-status }}
+          PARTIAL_STATUS: ${{ steps.partial.outputs.analysis-status }}
+          INVALID_STATUS: ${{ steps.invalid.outputs.analysis-status }}
+          MODIFIED_COMMENT: ${{ steps.modified.outputs.comment-posted }}
+          ADDED_COMMENT: ${{ steps.added.outputs.comment-posted }}
+          PARTIAL_COMMENT: ${{ steps.partial.outputs.comment-posted }}
+          INVALID_COMMENT: ${{ steps.invalid.outputs.comment-posted }}
+          MODIFIED_PATH: ${{ steps.modified.outputs.report-path }}
+          MODIFIED_JSON: ${{ steps.modified.outputs.report-json-path }}
+          ADDED_PATH: ${{ steps.added.outputs.report-path }}
+          ADDED_JSON: ${{ steps.added.outputs.report-json-path }}
+          PARTIAL_PATH: ${{ steps.partial.outputs.report-path }}
+          PARTIAL_JSON: ${{ steps.partial.outputs.report-json-path }}
+          INVALID_PATH: ${{ steps.invalid.outputs.report-path }}
+          INVALID_JSON: ${{ steps.invalid.outputs.report-json-path }}
+          INVALID_OUTCOME: ${{ steps.invalid.outcome }}
+          UNSAFE_OUTCOME: ${{ steps.unsafe.outcome }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python - <<'PY'
+          import json, math, os, platform
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP']) / 'traincost-release-evidence'
+          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          pr = event['pull_request']
+          consumer = os.environ['GITHUB_REPOSITORY']
+          assert consumer == 'Pig30nidaE/TrainCost-consumer-validation'
+          assert consumer != 'Pig30nidaE/TrainCost'
+          assert not Path('action.yml').exists() and not Path('packages/core').exists()
+          summary_files = list(Path(os.environ['GITHUB_STEP_SUMMARY']).parent.glob('step_summary_*'))
+          summary_contents = [path.read_bytes() for path in summary_files if path.is_file()]
+          records = {}
+          for name, status in [('modified','complete'), ('added','complete'), ('partial','partial'), ('invalid','error')]:
+              prefix = name.upper()
+              assert os.environ[prefix + '_STATUS'] == status
+              assert os.environ[prefix + '_COMMENT'] == 'false'
+              report = Path(os.environ[prefix + '_PATH'])
+              machine = Path(os.environ[prefix + '_JSON'])
+              assert report == root / (name + '.md') and report.stat().st_size > 0
+              assert machine == root / (name + '.json') and machine.stat().st_size > 0
+              assert report.read_bytes() in summary_contents, name + ': report missing from runner Step Summary'
+              data = json.loads(machine.read_text())
+              assert data['schema_version'] == '1.0' and data['analysis_status'] == status
+              records[name] = {'analysis_status': status, 'comment_posted': 'false',
+                               'report_path': str(report), 'report_json_path': str(machine),
+                               'summary': data['summary']}
+          m = json.loads((root / 'modified.json').read_text())
+          assert math.isclose(m['summary']['base_cost_usd'], .1)
+          assert math.isclose(m['summary']['pr_cost_usd'], .3)
+          assert math.isclose(m['analyses'][0]['increase_percent'], 200)
+          assert 'Budget limit exceeded' in (root / 'modified.md').read_text()
+          a = json.loads((root / 'added.json').read_text())
+          assert a['summary']['analyzed_count'] == 1 and math.isclose(a['summary']['pr_cost_usd'], .3)
+          assert a['analyses'][0]['pr']['adapter'] == 'huggingface'
+          assert a['analyses'][0]['confidence']['level'] == 'Low'
+          assert any('no base file exists' in d for d in a['diagnostics'])
+          p = json.loads((root / 'partial.json').read_text())
+          assert p['summary']['analyzed_count'] == 1 and p['summary']['excluded_count'] == 1
+          assert math.isclose(p['summary']['pr_cost_usd'], .3)
+          e = json.loads((root / 'invalid.json').read_text())
+          assert not e['analyses'] and e['summary']['pr_cost_usd'] is None
+          assert os.environ['INVALID_OUTCOME'] == 'failure'
+          assert os.environ['UNSAFE_OUTCOME'] == 'failure'
+          assert (Path(os.environ['RUNNER_TEMP']) / 'traincost-sentinel.json').read_text() == 'preserve-synthetic-sentinel'
+          assert not (Path(os.environ['RUNNER_TEMP']) / 'traincost-blocked.md').exists()
+          metadata = {'candidate_sha': '28b4c541ab98a840a814f6bed8d3b205ece3d4ca',
+                      'source_repository': 'Pig30nidaE/TrainCost', 'consumer_repository': consumer,
+                      'pr_base_repository': pr['base']['repo']['full_name'],
+                      'pr_head_repository': pr['head']['repo']['full_name'],
+                      'head_is_fork': pr['head']['repo']['fork'],
+                      'distinct_head_repository': pr['head']['repo']['id'] != pr['base']['repo']['id'],
+                      'event': os.environ['GITHUB_EVENT_NAME'], 'base_sha': os.environ['PR_BASE_SHA'],
+                      'head_sha': os.environ['PR_HEAD_SHA'], 'pr_number': int(os.environ['PR_NUMBER']),
+                      'python': platform.python_version(), 'platform': platform.system(),
+                      'outputs': records, 'unsafe_output_preserved': True,
+                      'step_summary_matches_reports': True,
+                      'scope': 'cross-repository public Action consumer; fork status recorded separately', 'passed': True}
+          assert metadata['event'] == 'pull_request'
+          (root / 'verification.json').write_text(json.dumps(metadata, indent=2) + '\n')
+          print('Verified complete, added HF, partial, error and safe-output paths against the pinned candidate.')
+          PY
+      - name: Preserve verified reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: traincost-release-evidence
+          path: ${{ runner.temp }}/traincost-release-evidence/
+          if-no-files-found: error
+          retention-days: 14

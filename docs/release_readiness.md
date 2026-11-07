@@ -4,10 +4,12 @@ Updated: 2026-11-07. Target: `v0.2.0-beta.1`, not published.
 
 This is the historical PR #11 candidate record. [PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13)
 now includes the [security-upgraded multi-model study](hf_security_upgrade_study.md),
-its eight-job hosted CI, and the refreshed SHA-pinned consumer PR #14. Follow
+its eight-job hosted CI, and the refreshed SHA-pinned consumer PR #14. A later
+[external consumer record](external_consumer_validation.md) covers validation
+after the user made the source public. Follow
 [PM status](pm_status.md) for its remaining release gates.
-Do not apply the completion decision below to that newer candidate. Publication
-and Action access remain unchanged.
+Do not apply the completion decision or private-access state below to that newer
+candidate. No new release has been published.
 
 This record supersedes the earlier review-driven upgrade's local result. The
 release-readiness branch preserves the previous implementation and Mac evidence,

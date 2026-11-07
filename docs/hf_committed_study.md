@@ -82,9 +82,11 @@ The measured commit passed all six jobs in
 predates registration of this new evidence, so its CI result does not cover later
 documentation or evidence-registration edits.
 
-The project remains private with Action access `none`. Cross-repository installation,
-real fork permissions, and publication approval remain separate release gates.
-No release, tag, merge, or access-policy change follows from this measurement.
+At the time of this study, the project was private with Action access `none`.
+Afterward, the user made it public and a newer candidate passed a separate
+[external consumer test](external_consumer_validation.md). Real fork permissions
+and publication approval remain separate gates. No release, tag, merge, or
+access-policy change follows from this measurement.
 
 ## Hosted consumer follow-up
 

@@ -1,5 +1,32 @@
 # Beta QA evidence
 
+## External consumer follow-up, 2026-11-08
+
+After the user made the source public, the authorized separate
+[consumer PR #1](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/1)
+passed [run 42403549313](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42403549313).
+Both Action entrypoints pin candidate `28b4c541ab98a840a814f6bed8d3b205ece3d4ca`.
+The consumer contains no Core/Action implementation. Read-only permissions were
+sufficient for complete, partial, error, and unsafe-output cases; reports matched
+runner Step Summary files and all four comment outputs were false.
+
+The [external validation record](external_consumer_validation.md) preserves exact
+base/head SHAs, output paths, reports, workflow, and reduced GitHub API snapshots.
+QAReview found two archive-checker issues: exact comparison with floating-point
+200%, and lack of an independent workflow pin check. The checker now uses a tight
+tolerance and verifies all five Action references plus the reviewed workflow Git
+blob hash. These corrections do not change the hosted run or production code.
+QAReview reran the corrected checker and independently confirmed the workflow
+blob. A local negative check rejected eight mutations to identity, status, costs,
+comment output, and workflow pins. Known-pattern scanning found zero matches in
+617 reachable blobs and 440 worktree entries before the final documentation edits.
+That scan is not proof that arbitrary credentials or confidential content are absent.
+
+This was an ordinary branch PR in a separate consumer repository, not a fork PR.
+The real fork gate remains pending. Candidate PR #13 is unmerged; no new tag or
+release has been published. Earlier private/access-blocked entries below are
+historical snapshots, not the current repository state.
+
 ## Final CI process-observer correction
 
 Evidence commit `40d17a0` had a real
