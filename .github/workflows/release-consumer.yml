@@ -96,6 +96,8 @@ jobs:
           import json, math, os, platform
           from pathlib import Path
           root = Path(os.environ['RUNNER_TEMP']) / 'traincost-release-evidence'
+          summary_files = list(Path(os.environ['GITHUB_STEP_SUMMARY']).parent.glob('step_summary_*'))
+          summary_contents = [path.read_bytes() for path in summary_files if path.is_file()]
           records = {}
           for name, status in [('modified','complete'), ('added','complete'), ('partial','partial'), ('invalid','error')]:
               prefix = name.upper()
@@ -105,6 +107,7 @@ jobs:
               machine = Path(os.environ[prefix + '_JSON'])
               assert report == root / (name + '.md') and report.stat().st_size > 0
               assert machine == root / (name + '.json') and machine.stat().st_size > 0
+              assert report.read_bytes() in summary_contents, name + ': report missing from runner Step Summary'
               data = json.loads(machine.read_text())
               assert data['schema_version'] == '1.0' and data['analysis_status'] == status
               records[name] = {'analysis_status': status, 'comment_posted': 'false',
@@ -134,6 +137,7 @@ jobs:
                       'head_sha': os.environ['PR_HEAD_SHA'], 'pr_number': int(os.environ['PR_NUMBER']),
                       'python': platform.python_version(), 'platform': platform.system(),
                       'outputs': records, 'unsafe_output_preserved': True,
+                      'step_summary_matches_reports': True,
                       'scope': 'same-repository hosted PR, not an external consumer or fork', 'passed': True}
           assert metadata['event'] == 'pull_request'
           (root / 'verification.json').write_text(json.dumps(metadata, indent=2) + '\n')
