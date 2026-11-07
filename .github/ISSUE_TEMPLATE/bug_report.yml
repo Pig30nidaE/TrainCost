@@ -1,0 +1,31 @@
+name: Bug report
+description: Report reproducible behavior that is not a security vulnerability.
+body:
+  - type: markdown
+    attributes:
+      value: Do not include secrets, private training data, or credentials. For security issues, follow SECURITY.md instead.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include commands and a small synthetic config without real credentials or data.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Python version and operating system. Do not paste environment variables.

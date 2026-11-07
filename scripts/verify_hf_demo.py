@@ -71,18 +71,34 @@ def main():
               "per_device_train_batch_size": 1, "gradient_accumulation_steps": 32,
               "bf16": True, "fp16": False, "world_size": 8}
     ignored = analyze_config_dicts(base, native, gpu_hourly_prices={"RTX3060": 1.0})
-    unchanged = analyze_config_dicts(base, base, gpu_hourly_prices={"RTX3060": 1.0})
-    require(not ignored.changes and {w.code for w in ignored.warnings} == {w.code for w in unchanged.warnings},
-            "native-field limitation behavior changed; re-review demo claims")
+    require(not ignored.changes and "unsupported_training_settings" in {w.code for w in ignored.warnings},
+            "canonical mode must diagnose unmodeled native HF fields without silently translating them")
+    require("No major cost risk detected." not in ignored.markdown_report,
+            "unmodeled HF settings must not produce a clean headline")
     for change in ({"dataset_size": 10240}, {"batch_size": 16}, {"precision": "bf16", "mixed_precision": True}):
         stale = analyze_config_dicts(base, {**base, **change}, gpu_hourly_prices={"RTX3060": 1.0})
         require(stale.pr_estimate.estimated_cost_usd == stale.base_estimate.estimated_cost_usd,
                 "stale runtime limitation behavior changed; re-review demo claims")
+        require("stale_runtime_assumption" in {w.code for w in stale.warnings},
+                "changed execution conditions must warn about reused runtime")
     metadata = {"model_type": "distilbert", "architectures": ["DistilBertModel"], "torch_dtype": "float32"}
     metadata_result = analyze_config_dicts(metadata, metadata)
     require(metadata_result.confidence.level == "Low" and metadata_result.pr_config.model_name is None,
             "model metadata limitation behavior changed; re-review demo claims")
-    print("KNOWN_LIMITATION: native HF fields and model metadata are not translated; data, batch, or precision changes can leave the runtime assumption stale")
+    native_base = {"num_train_epochs": 1, "per_device_train_batch_size": 8,
+                   "gpu_count": 1, "gpu_type": "RTX3060", "estimated_minutes_per_epoch": 6}
+    adapted = analyze_config_dicts(native_base, {**native_base, "num_train_epochs": 3},
+                                   adapter="huggingface", gpu_hourly_prices={"RTX3060": 1})
+    require(adapted.pr_config.epochs == 3 and abs(adapted.increase_percent - 200) < 1e-10,
+            "explicit HF adapter must translate epoch changes")
+    try:
+        analyze_config_dicts(native_base, {**native_base, "max_steps": 100}, adapter="huggingface")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("positive max_steps must not be priced using epochs")
+    print("PASS: explicit HF adapter and canonical unsupported/stale diagnostics")
+    print("KNOWN_LIMITATION: model metadata and positive max_steps are unsupported; runtime is supplied or assumed, not predicted")
     print("NOT RUN: model download, training, GPU measurement, or actual provider billing")
 
 

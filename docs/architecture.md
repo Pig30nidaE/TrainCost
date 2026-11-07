@@ -12,13 +12,16 @@ GitHub event base/head SHAs
   -> credential exclusion, validation, conflict checks, field paths
   -> normalized TrainingConfig
   -> deterministic estimates and risk rules
-  -> escaped Markdown, runner outputs, Step Summary
+  -> escaped Markdown, versioned JSON, runner outputs, Step Summary
 ~~~
 
 Core owns config interpretation, the formula, warnings, and report content.
 The Action owns Git, event handling, file selection, runner outputs, and the optional GitHub API.
 Bootstrap owns a disposable Python environment and pinned dependency installation.
 Core can be installed as a wheel and used without GitHub.
+The installed `traincost-ci` command and `python -m traincost_ci_core` compare two
+local files. Core serialization owns the public JSON envelope; Action and CLI use
+the same schema instead of exposing raw dataclass internals.
 
 ## Decisions
 
@@ -34,7 +37,17 @@ Core can be installed as a wheel and used without GitHub.
 
 Generic framework inference would need training semantics, not just aliases. Hugging Face permits fractional epochs and max_steps overrides.
 Lightning devices may mean GPU indices, automatic hardware, or a count per node. That scope is deferred to explicit, tested adapters.
+The opt-in Hugging Face adapter translates a bounded epoch-based TrainingArguments
+subset. It refuses positive max_steps instead of deriving epochs from incomplete
+dataset and dataloader assumptions. Canonical remains the default, so adding an
+adapter does not reinterpret existing configurations silently.
 Executing a Python config to discover values would cross the PR trust boundary, so expressions remain unsupported.
+
+Known unmodeled runtime keys are compared using internal fingerprints without
+retaining their raw values in reports. Canonical runtime-affecting fields are
+compared directly. Reusing the same epoch time after condition changes triggers a
+warning, not an invented timing adjustment. This is a change heuristic, not a
+validated measurement-provenance system.
 
 Default prices are examples, not a pricing feed. Confidence reports input completeness.
 A GPU count change is evaluated at fixed runtime, not with predicted distributed speedup.

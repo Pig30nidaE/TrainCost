@@ -9,9 +9,12 @@ Think **Infracost for ML experiments**.
 
 **Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
-The [candidate CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782284598) and
-[SHA-pinned PR demo](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782394357) passed.
-These links require repository access while the project remains private.
+The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
+subcent amounts, an installed CLI, and versioned JSON. The
+[earlier candidate CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782284598) and
+[earlier SHA-pinned PR demo](https://github.com/Pig30nidaE/TrainCost/actions/runs/41782394357)
+do not verify this upgrade. The links require repository access. Cross-repository hosted
+verification and selection of a reviewed upgrade SHA remain release gates.
 
 ## See the three outcomes
 
@@ -31,23 +34,28 @@ These are deterministic config examples, not measured training runs.
 The [DistilBERT validation example](examples/huggingface-demo/README.md) connects one canonical
 config to a real text-classification training run on a user-operated RTX 3060 12GB under WSL2.
 Its separate runner measures calibration and held-out executions; the GitHub Action still only
-reviews config changes and never trains models. It is not a general Hugging Face config adapter.
+reviews config changes and never trains models. The demo runner is separate from the bounded
+Hugging Face config adapter described below.
 USD values use an explicit hypothetical rate, not an electricity bill or cloud invoice.
 [Validation status](docs/hf_validation_status.md) distinguishes tooling checks from GPU evidence.
 
 ## Run locally
 
-Python 3.11 or later is required. From the repository root:
+The local CLI targets Linux and macOS with Python 3.11 or later. On Windows, use
+WSL2 Ubuntu; native Windows output handling is not validated and can reject paths.
+From the repository root:
 
 ~~~bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m pip install ./packages/core
 .venv/bin/python scripts/verify_release.py
-.venv/bin/python packages/github-action/traincost_action.py \
+.venv/bin/traincost-ci \
   --base-config examples/pytorch-demo/configs/base-config.yaml \
   --head-config examples/pytorch-demo/configs/risky-config.yaml \
   --gpu-prices "T4=0.35,A10G=1.2,A100=3.20" \
-  --budget-limit 5 --comment-mode false --report-path report.md
+  --budget-limit 5 --report-path /tmp/traincost-report.md \
+  --json-path /tmp/traincost-report.json
 ~~~
 
 Analysis runs locally. It does not execute training code or send config contents to an external service.
@@ -55,8 +63,12 @@ Dependency installation downloads PyYAML; experimental comment mode sends the sa
 
 ## Use in GitHub Actions
 
-This example runs the action from this repository. External consumers must pin the reviewed candidate SHA listed in the [QA report](docs/qa_report.md).
-The candidate tag does not exist until publication is approved.
+The [external consumer template](examples/external-consumer/README.md) uses a
+separate consumer repository and requires a reviewed upgrade commit SHA. The source
+is still private and currently disallows cross-repository Action access. The template
+does not work until that gate is resolved; no existing tag contains the upgrade.
+
+The following example is for testing inside this repository, not external installation:
 
 ~~~yaml
 name: Review training cost
@@ -80,8 +92,15 @@ jobs:
           comment-mode: "false"
 ~~~
 
-The action writes report-path, comment-posted, and analysis-status outputs, and appends the report to Step Summary.
+The action writes report-path, report-json-path, comment-posted, and analysis-status outputs, and appends Markdown to Step Summary.
 Cost risk does not fail the job. Invalid inputs or an entirely failed analysis return exit 2.
+For an added config, the Action compares the new file to explicit illustrative base assumptions;
+that base estimate is not a measurement of a previous run.
+Choose report paths that do not contain data you need to keep; existing regular output
+files may be replaced. [Output path safety](docs/github_action_usage.md#report-path-safety)
+describes rejected destinations and diagnostic fallbacks.
+For broad config globs such as `**/*.json`, set both report paths under
+`${{ runner.temp }}` outside the checkout so existing reports do not match the glob.
 [Full input, output, and status reference](docs/github_action_usage.md).
 
 ## What is detected
@@ -92,7 +111,12 @@ model, model_name, epochs, max_epochs, batch_size, global_batch_size, precision,
 gpu_type, gpu_count, estimated_minutes_per_epoch, dataset_size, budget_limit_usd.
 
 Nested canonical keys are supported with source paths. Conflicting values and training fields inside lists are rejected.
-It does not infer GPU hardware from the runner, execute Python expressions, resolve Hydra, or translate framework-specific aliases.
+Canonical mode does not translate framework aliases. Known unmodeled training
+settings produce a warning instead of a clean report. Opt into `config-adapter:
+huggingface` in the Action or `--adapter huggingface` in the installed CLI for a
+bounded TrainingArguments subset. Positive max_steps, ambiguous batching and
+unsupported distributed engines are rejected. GPU hardware discovery, Python
+execution and Hydra resolution remain unsupported.
 [Supported formats and validation rules](docs/config_reference.md).
 
 ## What the estimate means
@@ -105,8 +129,13 @@ cost = GPU-hours * hourly_price
 Use your provider's rate per GPU-hour through gpu-prices. Built-in prices are illustrative examples, not current market rates.
 Missing fields use visible defaults and Low confidence. An unknown GPU price uses $1/GPU-hour and Medium confidence.
 Confidence describes input completeness, not actual billing accuracy.
+Changes to model, data, batch, precision, GPUs or known execution settings with the
+same minutes per epoch produce a stale-runtime warning. A new numeric time input is
+not proof of remeasurement; this tool cannot verify its provenance automatically.
 Runtime is held fixed when GPU count changes; multi-GPU speedups, utilization, storage, and network charges are not modeled.
 Combined totals cover analyzed configs, not a forecast that every config will be run.
+Markdown displays positive subcent amounts without rounding them to zero; JSON retains
+unrounded numeric estimates. A warning is not budget enforcement.
 
 ## Engineering evidence
 
@@ -116,5 +145,8 @@ Combined totals cover analyzed configs, not a forecast that every config will be
 - [Portfolio walkthrough](docs/portfolio.md)
 - [PM status and remaining publication steps](docs/pm_status.md)
 - [Beta release notes](docs/release_notes_v0.2.0.md)
+- [JSON report and installed CLI](docs/json_report.md)
+- [Labeled upstream-derived HF corpus](examples/hf-config-corpus/README.md)
+- [Contribution guide](CONTRIBUTING.md) and [security reporting](SECURITY.md)
 
 MIT licensed. No dashboard, backend, cloud account, or paid GPU is required.

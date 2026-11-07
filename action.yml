@@ -11,6 +11,10 @@ inputs:
     description: Path or glob for the ML training config file to compare.
     required: false
     default: "config.yaml"
+  config-adapter:
+    description: Config format adapter, canonical or huggingface.
+    required: false
+    default: "canonical"
   gpu-prices:
     description: Comma-separated GPU hourly prices, such as T4=0.5,A10G=1.2,A100=3.5.
     required: false
@@ -31,6 +35,10 @@ inputs:
     description: Path where the Markdown report should be written.
     required: false
     default: "report.md"
+  report-json-path:
+    description: JSON output path; defaults to report-path with a .json suffix.
+    required: false
+    default: ""
 
 outputs:
   analysis-status:
@@ -39,6 +47,9 @@ outputs:
   report-path:
     description: Path to the generated Markdown report.
     value: ${{ steps.traincost.outputs.report-path }}
+  report-json-path:
+    description: Path to the generated versioned JSON report.
+    value: ${{ steps.traincost.outputs.report-json-path }}
   comment-posted:
     description: Whether the action posted or updated a PR comment.
     value: ${{ steps.traincost.outputs.comment-posted }}
@@ -51,10 +62,12 @@ runs:
       shell: bash
       env:
         INPUT_CONFIG_PATH: ${{ inputs.config-path }}
+        INPUT_CONFIG_ADAPTER: ${{ inputs.config-adapter }}
         INPUT_GPU_PRICES: ${{ inputs.gpu-prices }}
         INPUT_BUDGET_LIMIT: ${{ inputs.budget-limit }}
         INPUT_WARN_INCREASE_PERCENT: ${{ inputs.warn-increase-percent }}
         INPUT_COMMENT_MODE: ${{ inputs.comment-mode }}
         INPUT_REPORT_PATH: ${{ inputs.report-path }}
+        INPUT_REPORT_JSON_PATH: ${{ inputs.report-json-path }}
         GITHUB_TOKEN: ${{ inputs.comment-mode == 'true' && github.token || '' }}
       run: python3 -I "$GITHUB_ACTION_PATH/packages/github-action/bootstrap.py"

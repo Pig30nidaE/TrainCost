@@ -5,6 +5,7 @@ __pycache__/
 
 # Generated report from local dry runs.
 /report.md
+/report.json
 /.venv/
 /.coverage*
 /coverage.xml

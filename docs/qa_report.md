@@ -1,6 +1,50 @@
 # Beta QA evidence
 
-Updated: 2026-11-04. Technical beta gates: PASS. Publication: HOLD for review and explicit approval.
+Updated: 2026-11-07. Current upgrade: local checks PASS; hosted gates NOT RUN. Publication: HOLD.
+
+## Release-readiness follow-up
+
+The two further P1 findings were reproduced independently: an output symlink could
+overwrite a synthetic file outside the checkout, and a newly added valid HF config
+was rejected because its absent base was normalized as an invalid HF input.
+Independent tests then found a related pre-Git/bootstrap glob input overwrite.
+All three paths now have regression coverage. No acceptance tests were weakened.
+
+The shared output writer rejects unsafe paths and stages reports through directory
+descriptors; actual empty/model-only HF files remain invalid. Broad globs cannot
+overwrite a matching existing output path before file discovery succeeds.
+See [release readiness](release_readiness.md) for current evidence and limits.
+
+The user retained private Action access `none`; true external-consumer/fork hosting
+is not silently replaced by local simulations or a same-repository PR.
+
+## Current review-driven upgrade
+
+The uncommitted worktree based on `fa687ad297b8a9b488255bc4e304297494f76fa9`
+fixes unsupported-setting false-safe reports, stale runtime assumptions, and subcent
+display. It adds a bounded opt-in HF adapter, installed CLI, versioned JSON output,
+an independent-consumer harness, and a 50-case upstream-derived boundary corpus.
+
+Independent QA acceptance covers the original findings plus alias conflicts,
+root/nested stopping-rule bypasses, path/symlink/hardlink input preservation,
+invalid CLI arguments, redaction, and non-finite aggregate results.
+
+Each of Python 3.11.14, 3.12.8, 3.13.12, and 3.14.0 passed Core 89, Action 48,
+HF demo 46 (one Linux-only skip), and corpus evaluator 6 tests. All 50 labeled
+corpus cases passed. Final wheel installation outside the checkout, all four local
+normal/fork direct/bootstrap modes, and existing report fixtures also passed.
+Measured combined branch-enabled coverage, excluding tests, is 85%; the measurement
+does not trace the tested CLI subprocesses. It is not a release approval metric.
+
+See [the current validation record](upgrade_validation.md) for exact source hashes,
+four interpreter evidence files, commands, limitations, and remaining owners.
+This code has no new hosted run evidence. Actual external/fork Action access remains
+unvalidated: the source is private with access level `none`, and that setting was
+not changed. No release, remote push, tag push, merge, or public transition occurred.
+
+## Historical beta evidence
+
+The following PASS records belong to the named older commits, not the current worktree.
 
 Code candidate: 45f6652ebbff1a48162b58738e4ef1974c244232.
 Later evidence and installation-example edits do not change this tested code.
@@ -105,3 +149,16 @@ installed on the user PC by these checks.
 See [the validation evidence record](hf_validation_status.md) for exact run links,
 SHAs, outputs, remaining Summary inspection, and all GPU gates marked NOT RUN.
 No PR merge, release, tag push, or repository visibility change was performed.
+
+## Mac-only execution follow-up (2026-11-07)
+
+At the user's request, Windows testing is deferred. The separate Mac MPS smoke ran
+real DistilBERT fine-tuning on balanced 64-example IMDb subsets. Both the initial
+1/3-epoch pair and a rerun after evidence-control fixes passed 8/24 updates, finite
+gradient/weight checks, encoder updates, and independent report arithmetic.
+
+The updated local suites passed 119 tests and skipped one Linux-only test. Known-pattern
+secret scanning, package installation, and existing fixtures passed. See [Mac results](macos_validation.md)
+for preserved raw metadata, exact code/lock hashes, timings, and the 42.965% / 7.496%
+single-base extrapolation errors. These are compatibility checks, not a CUDA calibration
+study, product-wide timing accuracy evidence, or a release approval.

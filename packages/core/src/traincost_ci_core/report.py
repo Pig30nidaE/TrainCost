@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .models import AnalysisResult, CostEstimate
+from .formatting import format_money, format_money_pair
 from .safety import markdown
 
 
@@ -33,8 +34,9 @@ def generate_markdown_report(result: AnalysisResult) -> str:
         lines.append("- No supported fields changed.")
 
     lines.extend(["", "### Estimated cost", ""])
-    lines.append(f"- Base branch: {_format_money(result.base_estimate.estimated_cost_usd)}")
-    lines.append(f"- This PR: {_format_money(result.pr_estimate.estimated_cost_usd)}")
+    base_cost, pr_cost = format_money_pair(result.base_estimate.estimated_cost_usd, result.pr_estimate.estimated_cost_usd)
+    lines.append(f"- Base branch: {base_cost}")
+    lines.append(f"- This PR: {pr_cost}")
     if result.increase_percent is None:
         lines.append("- Increase: not available")
     else:
@@ -85,11 +87,7 @@ def _describe_gpu_pricing(base_estimate: CostEstimate, pr_estimate: CostEstimate
 
 def _gpu_price_fragment(estimate: CostEstimate) -> str:
     gpu_label = markdown(estimate.gpu_type or "unknown GPU")
-    return f"{gpu_label} at {_format_money(estimate.gpu_hourly_price)}/hour"
-
-
-def _format_money(value: float) -> str:
-    return f"${value:,.2f}"
+    return f"{gpu_label} at {format_money(estimate.gpu_hourly_price)}/hour"
 
 
 def _format_percent(value: float) -> str:

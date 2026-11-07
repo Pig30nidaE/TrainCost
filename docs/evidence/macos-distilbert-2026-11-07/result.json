@@ -1,0 +1,21 @@
+{
+  "comparison": {
+    "base_seconds": 6.101105915997323,
+    "cost_increase_percent": 199.99999999999997,
+    "pr_seconds": 12.80265949999739,
+    "predicted_pr_seconds_from_single_base_run": 18.30331774799197,
+    "warnings": [
+      "budget_exceeded",
+      "cost_increase",
+      "epochs_increased",
+      "precision_risk"
+    ]
+  },
+  "cuda_validation": "NOT RUN",
+  "dataset_revision": "e6281661ce1c48d982bc483cf8a173c1bbeb5d31",
+  "model": "distilbert/distilbert-base-uncased",
+  "model_revision": "12040accade4e8a0f71eabdb258fecc2e7e948be",
+  "scope": "MAC_COMPATIBILITY_ONLY",
+  "script_sha256": "e8346e1084ff05ac65aab3ac61d70f5f776318d079b42e8b6744079e1abc99e2",
+  "status": "PASS"
+}

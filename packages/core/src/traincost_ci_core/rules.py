@@ -7,6 +7,7 @@ import math
 from typing import Mapping
 
 from .estimation import lookup_gpu_hourly_price
+from .formatting import format_money, format_money_pair
 from .models import Confidence, CostEstimate, FieldChange, RiskWarning, TrainingConfig
 from .safety import ConfigError
 
@@ -50,13 +51,14 @@ def detect_warnings(
     if budget_limit is None:
         budget_limit = default_budget_limit_usd
     if budget_limit is not None and pr_estimate.estimated_cost_usd > budget_limit:
+        cost_display, budget_display = format_money_pair(pr_estimate.estimated_cost_usd, budget_limit)
         warnings.append(
             RiskWarning(
                 code="budget_exceeded",
                 title="Budget limit exceeded",
                 what_changed=(
-                    f"Estimated PR cost is {_format_money(pr_estimate.estimated_cost_usd)}, "
-                    f"above the {_format_money(budget_limit)} budget."
+                    f"Estimated PR cost is {cost_display}, "
+                    f"above the {budget_display} budget."
                 ),
                 why_it_matters="The run may spend more than the configured experiment budget.",
                 how_to_reduce_risk="Reduce epochs, GPU count, runtime per epoch, or choose a lower-cost GPU.",
@@ -70,8 +72,8 @@ def detect_warnings(
                 code="cost_increase",
                 title=f"Estimated cost increased by more than {cost_increase_threshold_percent:g}%",
                 what_changed=(
-                    f"Estimated cost changed from {_format_money(base_estimate.estimated_cost_usd)} "
-                    f"to {_format_money(pr_estimate.estimated_cost_usd)} "
+                    f"Estimated cost changed from {format_money_pair(base_estimate.estimated_cost_usd, pr_estimate.estimated_cost_usd)[0]} "
+                    f"to {format_money_pair(base_estimate.estimated_cost_usd, pr_estimate.estimated_cost_usd)[1]} "
                     f"({_format_percent(increase_percent)})."
                 ),
                 why_it_matters="Large cost increases are easy to miss in config review.",
@@ -114,8 +116,8 @@ def detect_warnings(
                 title="GPU type changed to a more expensive option",
                 what_changed=(
                     f"GPU type changed from {base_config.gpu_type} "
-                    f"({_format_money(base_gpu_price)}/hour) to {pr_config.gpu_type} "
-                    f"({_format_money(pr_gpu_price)}/hour)."
+                    f"({format_money_pair(base_gpu_price, pr_gpu_price)[0]}/hour) to {pr_config.gpu_type} "
+                    f"({format_money_pair(base_gpu_price, pr_gpu_price)[1]}/hour)."
                 ),
                 why_it_matters="Higher hourly GPU prices raise total training cost even if runtime stays flat.",
                 how_to_reduce_risk="Use the smaller GPU when it meets memory and throughput needs.",
@@ -182,6 +184,39 @@ def detect_warnings(
             )
         )
 
+    hf_supported = {"num_train_epochs", "per_device_train_batch_size", "gradient_accumulation_steps", "bf16", "fp16", "world_size", "max_steps", "auto_find_batch_size", "use_cpu", "no_cuda", "use_tpu", "tpu_num_cores"}
+    unsupported = set()
+    for config in (base_config, pr_config):
+        unsupported.update(set(config.runtime_conditions) - (hf_supported if config.config_adapter == "huggingface" else set()))
+    if unsupported:
+        warnings.append(RiskWarning(
+            code="unsupported_training_settings", title="Training settings are not modeled",
+            what_changed="Detected settings: " + ", ".join(sorted(unsupported)) + ".",
+            why_it_matters="These settings may affect training runtime but are not included in the cost formula.",
+            how_to_reduce_risk="Measure runtime with these settings and update estimated_minutes_per_epoch.",
+            recommendation="Review unsupported settings and provide a measured runtime per epoch.",
+        ))
+
+    changed_runtime = {change.field for change in changes if change.field in {
+        "model", "model_name", "batch_size", "global_batch_size", "precision", "mixed_precision",
+        "gpu_type", "gpu_count", "dataset_size",
+    }}
+    changed_runtime.update(key for key in set(base_config.runtime_conditions) | set(pr_config.runtime_conditions)
+                           if base_config.runtime_conditions.get(key) != pr_config.runtime_conditions.get(key)
+                           and not (base_config.config_adapter == pr_config.config_adapter == "huggingface"
+                                    and key in {"num_train_epochs", "max_steps", "world_size",
+                                                "per_device_train_batch_size", "bf16", "fp16",
+                                                "auto_find_batch_size", "use_cpu", "no_cuda", "use_tpu", "tpu_num_cores"}))
+    if (changed_runtime and base_config.estimated_minutes_per_epoch is not None
+            and base_config.estimated_minutes_per_epoch == pr_config.estimated_minutes_per_epoch):
+        warnings.append(RiskWarning(
+            code="stale_runtime_assumption", title="Runtime assumption may be stale",
+            what_changed="Runtime-affecting settings changed: " + ", ".join(sorted(changed_runtime)) + "; minutes per epoch stayed the same.",
+            why_it_matters="The supplied runtime may no longer represent the changed training conditions.",
+            how_to_reduce_risk="Measure runtime under the new conditions and update estimated_minutes_per_epoch.",
+            recommendation="Re-measure minutes per epoch after runtime-affecting changes.",
+        ))
+
     if confidence.level == "Low":
         warnings.append(
             RiskWarning(
@@ -243,10 +278,6 @@ def _is_large_model(config: TrainingConfig) -> bool:
     if param_match and float(param_match.group(1)) >= 7:
         return True
     return config.dataset_size is not None and config.dataset_size >= 1_000_000
-
-
-def _format_money(value: float) -> str:
-    return f"${value:,.2f}"
 
 
 def _format_percent(value: float) -> str:

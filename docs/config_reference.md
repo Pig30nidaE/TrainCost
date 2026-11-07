@@ -41,8 +41,26 @@ Sensitive-key subtrees and values matching known credential patterns are exclude
 This is defense in depth, not a complete secret scanner. Never commit credentials.
 Output values are escaped for Markdown. Errors omit input values even when syntax is invalid.
 
-## Unsupported automatic detection
+## Hugging Face adapter
 
-num_train_epochs, per_device_train_batch_size, devices, num_nodes, bf16, and fp16 are not translated in this beta.
-Hydra interpolation, Python evaluation, cloud instance lookup, automatic GPU probing, and runtime prediction are unsupported.
-Use canonical fields or prepare one resolved, literal config per experiment.
+The default adapter remains `canonical`. Opt in with `adapter="huggingface"` on the core normalization,
+file loading, or dict/file analysis APIs. The adapter reads flat TrainingArguments-like mappings or a
+`training_args` mapping with canonical metadata at the top level. It does not import Hugging Face or run code.
+Model-only `config.json` files are not training configs.
+
+`num_train_epochs` maps to epochs, `per_device_train_batch_size` to the per-device batch size,
+and explicit `world_size` to GPU count. The global batch size is calculated only when per-device batch
+and explicit GPU count are available, using `gradient_accumulation_steps` (default 1). Explicit global
+batch values must agree with that calculation. Conflicting aliases are rejected. Explicit `bf16` or `fp16`
+true selects mixed precision; when both are explicitly false it is disabled. Omitted flags are unknown,
+not evidence that precision is enabled or disabled. Positive `max_steps`, automatic batch sizing, unsupported
+distributed engines, enabled CPU-only or TPU execution, and framework execution settings outside the
+supported mapping locations are rejected.
+
+Known unmodeled training keys are reported by name without their values. Changes to model, data, batch,
+GPU, precision, or known framework conditions warn when minutes per epoch is unchanged. This does not
+predict how runtime changes; measure it again. High confidence describes input completeness, not measurement
+quality or billing accuracy.
+
+Hydra interpolation, Python evaluation, cloud instance lookup, automatic GPU probing, and runtime prediction
+are unsupported. Use canonical fields or prepare one resolved, literal config per experiment.

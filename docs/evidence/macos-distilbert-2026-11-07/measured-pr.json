@@ -1,0 +1,12 @@
+{
+  "batch_size": 8,
+  "budget_limit_usd": 0.0033895032866651793,
+  "dataset_size": 64,
+  "epochs": 3,
+  "estimated_minutes_per_epoch": 0.10168509859995538,
+  "gpu_count": 1,
+  "gpu_type": "APPLE_M1_MPS",
+  "mixed_precision": false,
+  "model_name": "distilbert/distilbert-base-uncased",
+  "precision": "fp32"
+}

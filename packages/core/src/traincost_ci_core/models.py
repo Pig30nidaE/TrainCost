@@ -44,6 +44,9 @@ class TrainingConfig:
     source_path: str | None = None
     sensitive_keys: tuple[str, ...] = ()
     field_sources: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    # Only whitelisted setting names and opaque digests are retained, never values.
+    runtime_conditions: Mapping[str, str] = field(default_factory=dict)
+    config_adapter: str = "canonical"
 
     @property
     def effective_epochs(self) -> float | None:

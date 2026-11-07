@@ -24,6 +24,7 @@ if CORE_SRC.exists():
 
 from traincost_ci_core import analyze_configs, normalize_training_config, parse_config_text
 from traincost_ci_core.models import AnalysisResult
+from traincost_ci_core.output_safety import OutputPathError, validate_report_paths, write_report_files
 from traincost_ci_core.safety import ConfigError, MAX_CONFIG_BYTES, looks_sensitive, markdown, number, safe_text
 
 SUPPORTED_SUFFIXES = {".yaml", ".yml", ".json", ".py"}
@@ -52,18 +53,40 @@ class ConfigReport:
 class AnalysisRun:
     report: str
     status: str
+    analyses: tuple[ConfigReport, ...] = ()
+    diagnostics: tuple[str, ...] = ()
+    excluded_count: int = 0
+    protected_paths: tuple[str, ...] = ()
+
+
+class SafeArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ConfigError("Invalid command arguments; use --help for supported options.")
 
 
 def main(argv=None):
-    args = parse_args(argv)
+    try:
+        args = parse_args(argv)
+    except ConfigError:
+        print("Invalid command arguments; use --help for supported options.", file=sys.stderr)
+        return 2
     repo_root = Path(args.repo_root).resolve()
-    report_path, path_error = resolve_report_path(repo_root, args.report_path)
+    report_path, json_path, path_error = resolve_output_paths(repo_root, args.report_path, args.report_json_path)
+    input_paths = declared_input_paths(repo_root, args)
+    input_paths.extend(protected_output_candidates(repo_root, args, (report_path, json_path)))
+    try:
+        validate_report_paths(report_path, json_path, protected_paths=input_paths, workspace_root=repo_root)
+    except OutputPathError:
+        print("TrainCost CI could not write reports to unsafe output paths.", file=sys.stderr)
+        return 2
     try:
         if path_error:
             raise ConfigError(path_error)
         prices = parse_gpu_prices(args.gpu_prices)
         budget = parse_budget_limit(args.budget_limit)
         threshold = parse_warn_increase_percent(args.warn_increase_percent)
+        if args.config_adapter not in {"canonical", "huggingface"}:
+            raise ConfigError("config-adapter must be canonical or huggingface.")
         if args.comment_mode.lower() not in {"true", "false"}:
             raise ConfigError("comment-mode must be true or false.")
         if bool(args.base_config) != bool(args.head_config):
@@ -71,23 +94,28 @@ def main(argv=None):
         if args.base_config:
             outcome = run_local_pair(Path(args.base_config), Path(args.head_config),
                 default_budget_limit_usd=budget, gpu_hourly_prices=prices,
-                cost_increase_threshold_percent=threshold)
+                cost_increase_threshold_percent=threshold, adapter=args.config_adapter)
         else:
             outcome = run_pull_request_analysis(repo_root=repo_root, event=load_event(args.event_path),
                 event_name=args.event_name, config_path_input=args.config_path,
                 default_budget_limit_usd=budget, gpu_hourly_prices=prices,
-                cost_increase_threshold_percent=threshold)
+                cost_increase_threshold_percent=threshold, adapter=args.config_adapter)
     except ConfigError as exc:
-        outcome = AnalysisRun(render_no_config_report([], [str(exc)]), "error")
+        outcome = error_run(str(exc))
     except (OSError, UnicodeError, ValueError, RecursionError):
-        outcome = AnalysisRun(render_no_config_report([], ["Analysis failed: unreadable or invalid input."]), "error")
+        outcome = error_run("Analysis failed: unreadable or invalid input.")
+    input_paths.extend(repo_root / source for source in outcome.protected_paths)
+    try:
+        validate_report_paths(report_path, json_path, protected_paths=input_paths, workspace_root=repo_root)
+    except OutputPathError:
+        print("TrainCost CI could not write reports to unsafe output paths.", file=sys.stderr)
+        return 2
     comment_posted = False
     try:
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(outcome.report, encoding="utf-8")
         if args.comment_mode.lower() == "true" and outcome.status != "error":
             comment_posted = post_or_update_pr_comment(load_event(args.event_path), outcome.report)
-        publish_report(outcome, report_path, comment_posted=comment_posted)
+        publish_report(outcome, report_path, json_path=json_path, comment_posted=comment_posted,
+                       protected_paths=input_paths, workspace_root=repo_root)
     except (OSError, ValueError):
         print("TrainCost CI could not write its report or runner outputs.", file=sys.stderr)
         return 2
@@ -99,15 +127,80 @@ def resolve_report_path(repo_root, value):
     path = Path(value)
     if not path.is_absolute():
         path = Path(repo_root) / path
-    if any(c in str(path) for c in "\r\n\0") or looks_sensitive(str(path)):
+    if not value.strip() or not Path(value).name or any(c in str(path) for c in "\r\n\0") or looks_sensitive(str(path)):
         return Path(repo_root) / "report.md", "Invalid report-path; diagnostics were written to report.md."
     return path, None
 
 
-def publish_report(outcome, report_path, *, comment_posted=False):
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(outcome.report, encoding="utf-8")
+def resolve_output_paths(repo_root, report_value, json_value):
+    report_path, report_error = resolve_report_path(repo_root, report_value)
+    json_path = Path(json_value) if json_value else report_path.with_suffix(".json")
+    if not json_path.is_absolute():
+        json_path = Path(repo_root) / json_path
+    json_error = any(c in str(json_path) for c in "\r\n\0") or looks_sensitive(str(json_path))
+    if json_error:
+        return Path(repo_root) / "report.md", Path(repo_root) / "report.json", "Invalid report-json-path."
+    if os.path.abspath(report_path) == os.path.abspath(json_path):
+        return Path(repo_root) / "report.md", Path(repo_root) / "report.json", "Markdown and JSON report paths must differ."
+    return report_path, json_path, report_error
+
+
+def declared_input_paths(repo_root, args):
+    paths = [Path(value) for value in (args.base_config, args.head_config) if value]
+    if not args.base_config and not args.head_config:
+        try:
+            patterns = split_config_paths(args.config_path)
+        except ConfigError:
+            return paths
+        paths.extend(Path(repo_root) / pattern for pattern in patterns
+                     if not any(char in pattern for char in "*?[{") and not Path(pattern).is_absolute()
+                     and ".." not in Path(pattern).parts)
+    return paths
+
+
+def protected_output_candidates(repo_root, args, output_paths):
+    """Protect existing output destinations that may be selected as config inputs."""
+    if args.base_config or args.head_config:
+        return []
+    candidates = []
+    for path in output_paths:
+        path = Path(os.path.abspath(path))
+        try:
+            relative = path.relative_to(repo_root).as_posix()
+        except ValueError:
+            continue
+        if path.suffix.lower() in SUPPORTED_SUFFIXES and os.path.lexists(path):
+            candidates.append((path, ChangedFile(relative, None)))
+    try:
+        matches = resolve_candidate_paths(args.config_path, [change for _, change in candidates])
+    except ConfigError:
+        return [path for path, _ in candidates]
+    return [path for path, change in candidates if change in matches]
+
+
+def error_run(message, checked_paths=(), *, protected_paths=()):
+    message = safe_text(message)
+    return AnalysisRun(render_no_config_report(checked_paths, [message]), "error", diagnostics=(message,),
+                       protected_paths=tuple(protected_paths))
+
+
+def report_envelope(outcome):
+    from traincost_ci_core.serialization import analysis_to_dict, make_document
+
+    return make_document(outcome.status,
+        ({"path": safe_text(item.path), **analysis_to_dict(item.result)} for item in outcome.analyses),
+        diagnostics=outcome.diagnostics, excluded_count=outcome.excluded_count)
+
+
+def publish_report(outcome, report_path, *, json_path=None, comment_posted=False,
+                   protected_paths=(), workspace_root=None):
+    if json_path is None:
+        json_path = report_path.with_suffix(".json")
+    json_text = json.dumps(report_envelope(outcome), ensure_ascii=False, allow_nan=False, indent=2) + "\n"
+    write_report_files(report_path, json_path, outcome.report, json_text,
+                       protected_paths=protected_paths, workspace_root=workspace_root)
     write_output("report-path", str(report_path))
+    write_output("report-json-path", str(json_path))
     write_output("comment-posted", "true" if comment_posted else "false")
     write_output("analysis-status", outcome.status)
     summary = os.getenv("GITHUB_STEP_SUMMARY")
@@ -117,9 +210,10 @@ def publish_report(outcome, report_path, *, comment_posted=False):
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser(description="Run TrainCost CI cost analysis.")
+    parser = SafeArgumentParser(description="Run TrainCost CI cost analysis.")
     for name, default in (("config-path", "config.yaml"), ("gpu-prices", ""), ("budget-limit", ""),
-        ("warn-increase-percent", "50"), ("comment-mode", "false"), ("report-path", "report.md")):
+        ("warn-increase-percent", "50"), ("comment-mode", "false"), ("report-path", "report.md"),
+        ("report-json-path", ""), ("config-adapter", "canonical")):
         parser.add_argument("--" + name, default=os.getenv("INPUT_" + name.upper().replace("-", "_"), default))
     parser.add_argument("--event-path", default=os.getenv("GITHUB_EVENT_PATH", ""))
     parser.add_argument("--event-name", default=os.getenv("GITHUB_EVENT_NAME", ""))
@@ -188,15 +282,15 @@ def _read_local(path):
 
 
 def run_local_pair(base_path, head_path, *, default_budget_limit_usd, gpu_hourly_prices,
-                   cost_increase_threshold_percent=50.0):
+                   cost_increase_threshold_percent=50.0, adapter="canonical"):
     try:
-        base = normalize_training_config(parse_config_text(_read_local(base_path), base_path.suffix), source_path=str(base_path))
-        head = normalize_training_config(parse_config_text(_read_local(head_path), head_path.suffix), source_path=str(head_path))
+        base = normalize_training_config(parse_config_text(_read_local(base_path), base_path.suffix), source_path=str(base_path), adapter=adapter)
+        head = normalize_training_config(parse_config_text(_read_local(head_path), head_path.suffix), source_path=str(head_path), adapter=adapter)
         result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
             gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
-        return AnalysisRun(result.markdown_report, "complete")
+        return AnalysisRun(result.markdown_report, "complete", (ConfigReport(str(head_path), result.markdown_report, result),))
     except ConfigError as exc:
-        return AnalysisRun(render_no_config_report([str(head_path)], [str(exc)]), "error")
+        return error_run(str(exc), [str(head_path)])
 
 
 def get_nested(value, *keys):
@@ -210,16 +304,17 @@ def get_nested(value, *keys):
 
 def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input,
                               default_budget_limit_usd, gpu_hourly_prices,
-                              cost_increase_threshold_percent=50.0):
+                              cost_increase_threshold_percent=50.0, adapter="canonical"):
     if event_name != "pull_request":
-        return AnalysisRun(render_no_config_report([], ["Skipped: this action requires a pull_request event."]), "skipped")
+        note = "Skipped: this action requires a pull_request event."
+        return AnalysisRun(render_no_config_report([], [note]), "skipped", diagnostics=(note,))
     pr = event.get("pull_request")
     base_sha, head_sha = get_nested(pr, "base", "sha"), get_nested(pr, "head", "sha")
     try:
         changes = changed_supported_files(repo_root, base_sha, head_sha)
         selected = resolve_candidate_paths(config_path_input, changes)
     except ConfigError as exc:
-        return AnalysisRun(render_no_config_report([], [str(exc)]), "error")
+        return error_run(str(exc))
     reports, notes = [], []
     failed = deleted = 0
     for change in selected:
@@ -231,8 +326,8 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
             base_text = read_git_file(repo_root, base_sha, change.base_path) if change.base_path else None
             head_text = read_git_file(repo_root, head_sha, change.path)
             base = normalize_training_config({}) if base_text is None else normalize_training_config(
-                parse_config_text(base_text, Path(change.base_path).suffix), source_path=change.base_path)
-            head = normalize_training_config(parse_config_text(head_text, Path(change.path).suffix), source_path=change.path)
+                parse_config_text(base_text, Path(change.base_path).suffix), source_path=change.base_path, adapter=adapter)
+            head = normalize_training_config(parse_config_text(head_text, Path(change.path).suffix), source_path=change.path, adapter=adapter)
             result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
                 gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
             if change.base_path is None:
@@ -241,7 +336,7 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
                 notes.append(f"Detected rename: {safe_text(change.base_path)} -> {safe_text(change.path)}.")
             reports.append(ConfigReport(change.path, result.markdown_report, result))
         except GitError as exc:
-            return AnalysisRun(render_no_config_report([c.path for c in selected], [str(exc)]), "error")
+            return error_run(str(exc), [c.path for c in selected], protected_paths=[c.path for c in selected])
         except ConfigError as exc:
             failed += 1
             notes.append(f"Skipped {safe_text(change.path)}: {exc}")
@@ -251,8 +346,9 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
     try:
         report = render_action_report(reports, notes, [c.path for c in selected], excluded=failed + deleted)
     except ConfigError as exc:
-        return AnalysisRun(render_no_config_report([], [str(exc)]), "error")
-    return AnalysisRun(report, status)
+        return error_run(str(exc), protected_paths=[c.path for c in selected])
+    return AnalysisRun(report, status, tuple(reports), tuple(notes), failed + deleted,
+                       tuple(change.path for change in selected))
 
 
 def split_config_paths(value):
@@ -354,10 +450,11 @@ def read_git_file(repo_root, sha, path):
 
 
 def analyze_config_texts(*, display_path, base_text, head_text, file_suffix,
-                         default_budget_limit_usd, gpu_hourly_prices, cost_increase_threshold_percent=50.0):
+                         default_budget_limit_usd, gpu_hourly_prices, cost_increase_threshold_percent=50.0,
+                         adapter="canonical"):
     try:
-        base = normalize_training_config(parse_config_text(base_text, file_suffix) if base_text is not None else {})
-        head = normalize_training_config(parse_config_text(head_text, file_suffix) if head_text is not None else {})
+        base = normalize_training_config(parse_config_text(base_text, file_suffix) if base_text is not None else {}, adapter=adapter)
+        head = normalize_training_config(parse_config_text(head_text, file_suffix) if head_text is not None else {}, adapter=adapter)
         result = analyze_configs(base, head, default_budget_limit_usd=default_budget_limit_usd,
             gpu_hourly_prices=gpu_hourly_prices, cost_increase_threshold_percent=cost_increase_threshold_percent)
         return {"report": result.markdown_report, "result": result, "notes": []}
@@ -384,12 +481,14 @@ def render_action_report(reports, notes, checked_paths, *, excluded=0):
 
 
 def render_combined_totals(reports):
+    from traincost_ci_core.formatting import format_money_pair
     base = sum(r.result.base_estimate.estimated_cost_usd for r in reports)
     head = sum(r.result.pr_estimate.estimated_cost_usd for r in reports)
     if not math.isfinite(base) or not math.isfinite(head):
         raise ConfigError("Combined estimate arithmetic overflow.")
+    base_display, head_display = format_money_pair(base, head)
     return ["### Combined estimated cost", "", "- Sum of analyzed configs only; this is not a scheduled workload forecast.",
-            f"- Base branch total: {chr(36)}{base:,.2f}", f"- This PR total: {chr(36)}{head:,.2f}", ""]
+            f"- Base branch total: {base_display}", f"- This PR total: {head_display}", ""]
 
 
 def insert_config_path(report, path):

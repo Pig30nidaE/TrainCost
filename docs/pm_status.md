@@ -4,7 +4,38 @@ Updated: 2026-11-07.
 
 ## Decision
 
-Technical validation passed for the report-only beta candidate. Publication remains on hold for human review and explicit approval.
+The latest [release-readiness record](release_readiness.md) supersedes the upgrade
+snapshot below. Both reproduced P1 paths and the follow-up glob diagnostic overwrite
+are fixed and covered by independent acceptance tests. Runtime/build dependencies
+were updated after an advisory scan. Candidate GitHub verification is being recorded
+separately; do not reuse an earlier SHA's results.
+
+The user explicitly retained private Action access `none` on 2026-11-07. No separate
+consumer repository, permission expansion, public transition, release, or tag push
+is permitted. Public-distribution approval remains HOLD until the outstanding
+external consumer/fork gate and separate publication approval are satisfied.
+
+## Earlier upgrade snapshot
+
+Current upgrade: local regression validation passed; release readiness remains on hold.
+The P1 false-safe and stale-runtime findings, subcent display, bounded HF adapter,
+CLI/JSON contract, labeled corpus, consumer harness, and contribution documentation
+are implemented in the uncommitted worktree based on `fa687ad297b8a9b488255bc4e304297494f76fa9`.
+See [current upgrade evidence](upgrade_validation.md) for exact tests and source hashes.
+Python 3.11-3.14 each passed 189 tests with one Linux-only skip; the 50-case corpus passed.
+New hosted CI and a true cross-repository/fork consumer are not yet validated.
+The private Action has cross-repository access `none`; no permission or visibility
+change was made to bypass that gate. No release, tag push, commit, or remote push
+was performed in this upgrade. Existing changes and Mac evidence were preserved.
+
+The next owner is GithubAction for a reviewed, committed candidate's hosted evidence
+when an authorized consumer can access it, followed by QAReview and PM. Local fork
+payload simulations and the old hosted runs do not satisfy that gate.
+
+## Historical beta decision
+
+The following approval and completion records apply to earlier commits only.
+Technical validation passed for that report-only beta candidate. Publication remained on hold for human review and explicit approval.
 The historical v0.1.0 tag exists at 107ddebce40cec45e932c875dafa1b8b46ba05fb and will not be moved.
 The target is a report-only v0.2.0-beta.1 candidate. The repository remains private.
 The tested code SHA is 45f6652ebbff1a48162b58738e4ef1974c244232.
@@ -26,7 +57,7 @@ QAReview owns regression and release evidence. Integration owns the three demos.
 ProductArchitect and PM own support boundaries, documentation, and the publication decision.
 No new agents are required.
 
-## Completion gates
+## Historical completion gates
 
 - Local regression suites, three fixtures, package installation, and isolated bootstrap: see docs/qa_report.md.
 - Python 3.11-3.14 GitHub CI and SHA-pinned consumer smoke: passed; links and exact outputs are in docs/qa_report.md.
@@ -34,7 +65,7 @@ No new agents are required.
 - Repository visibility, release tag push, and GitHub Release: require separate approval.
 - Comment mode remains experimental and outside the beta gate.
 
-## Next milestone
+## Earlier milestone
 
 Review [implementation PR #7](https://github.com/Pig30nidaE/TrainCost/pull/7).
 Keep [consumer demo PR #8](https://github.com/Pig30nidaE/TrainCost/pull/8) unmerged.
@@ -43,14 +74,16 @@ After review, select the release commit explicitly and rerun gates for any imple
 Do not reuse v0.1.0 live evidence as proof of the new candidate.
 No dashboard, backend, framework inference, or GPU training is included.
 
-## Follow-up order
+## Earlier follow-up order (superseded)
 
 1. ProductArchitect: specify a Hugging Face adapter with max_steps precedence and a small labeled evaluation corpus.
 2. CoreEngine and QAReview: implement and evaluate that adapter only after the canonical beta is accepted.
 3. GithubAction: validate comment create/update, permissions, pagination, and concurrency separately from report-only support.
 4. Integration: add user-provided measured runtime with provenance; no autonomous runtime prediction.
 
-These are future tasks, not additions to this beta or permission to publish.
+The later user-approved upgrade implemented the bounded HF adapter before publication;
+the current scope and remaining gates are in upgrade_validation.md. Comments and
+measured-runtime provenance remain separate follow-ups, not permission to publish.
 
 ## User-approved validation follow-up
 
@@ -70,3 +103,11 @@ The SHA-pinned consumer reported complete / false and $0.10 -> $0.30 (+200%).
 Next owner: the user, for WSL2 dependency installation and preflight, followed by
 explicit local GPU stages. PM must review the returned evidence before judging the
 experiment; rendered hosted Summary inspection and every GPU measurement remain pending.
+
+The user subsequently deferred Windows execution and approved real Mac mini training.
+The separate [Mac validation](macos_validation.md) passed model loading, MPS fine-tuning,
+and cost arithmetic on a 64-example smoke pair. This is not the CUDA acceptance study:
+there were no repeated runs or independent calibration, and simple 3x extrapolation
+overestimated observed time by 42.965%. A second compatibility run after evidence-control
+fixes overestimated by 7.496%; both results are retained without choosing a preferred run.
+RTX 3060 verification and publication remain on hold.

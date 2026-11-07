@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 from pathlib import Path
 from typing import Any, Mapping
@@ -16,8 +17,22 @@ from .safety import (
 _STRING_FIELDS = {"model", "model_name", "precision", "gpu_type"}
 _INTEGER_FIELDS = {"batch_size", "global_batch_size", "gpu_count", "dataset_size"}
 
+# Known knobs that affect runtime but are not incorporated into the formula.
+RUNTIME_CONDITION_KEYS = frozenset({
+    "num_train_epochs", "per_device_train_batch_size", "gradient_accumulation_steps",
+    "bf16", "fp16", "world_size", "max_steps", "devices", "num_nodes",
+    "accelerator", "strategy", "deepspeed", "fsdp", "sharded_ddp", "ddp_backend",
+    "auto_find_batch_size", "gradient_checkpointing", "max_seq_length", "max_length",
+    "block_size", "sequence_length", "seq_length", "dataset", "dataset_name",
+    "dataloader_num_workers", "packing", "group_by_length", "optim", "optimizer",
+    "torch_compile", "load_in_8bit", "load_in_4bit", "quantization_config",
+    "model_name_or_path", "model_revision", "revision", "dataset_revision",
+    "max_train_samples", "tokenizer_name", "tokenizer_revision", "max_seq_len",
+    "use_cpu", "no_cuda", "use_tpu", "tpu_num_cores",
+})
 
-def load_config_file(path: str | Path) -> TrainingConfig:
+
+def load_config_file(path: str | Path, *, adapter: str = "canonical") -> TrainingConfig:
     config_path = Path(path)
     with config_path.open("rb") as stream:
         data = stream.read(MAX_CONFIG_BYTES + 1)
@@ -27,7 +42,7 @@ def load_config_file(path: str | Path) -> TrainingConfig:
         text = data.decode("utf-8")
     except UnicodeError:
         raise ConfigError("Config must be UTF-8.") from None
-    return normalize_training_config(parse_config_text(text, config_path.suffix), source_path=str(path))
+    return normalize_training_config(parse_config_text(text, config_path.suffix), source_path=str(path), adapter=adapter)
 
 
 def _unique_pairs(pairs):
@@ -175,19 +190,33 @@ def _check_structure(value: Any) -> None:
     visit(value, 0)
 
 
-def normalize_training_config(raw_config: Mapping[str, Any], *, source_path: str | None = None) -> TrainingConfig:
+def normalize_training_config(raw_config: Mapping[str, Any], *, source_path: str | None = None, adapter: str = "canonical") -> TrainingConfig:
+    if adapter not in {"canonical", "huggingface"}:
+        raise ConfigError("Unsupported config adapter.")
+    if adapter == "huggingface":
+        from .huggingface import normalize_huggingface_config
+        return normalize_huggingface_config(raw_config, source_path=source_path)
+    return _normalize_canonical(raw_config, source_path=source_path)
+
+
+def _normalize_canonical(raw_config: Mapping[str, Any], *, source_path: str | None = None) -> TrainingConfig:
     if not isinstance(raw_config, Mapping):
         raise ConfigError("Config must be a mapping.")
     _check_structure(raw_config)
     extracted = {}
     sources: dict[str, list[str]] = {}
     sensitive = set()
+    conditions: dict[str, list[str]] = {}
 
     def walk(item, prefix="", in_list=False):
         if isinstance(item, Mapping):
             for key, value in item.items():
                 name = str(key).strip().lower()
                 path = f"{prefix}.{safe_text(key)}" if prefix else safe_text(key)
+                if name in RUNTIME_CONDITION_KEYS and not looks_sensitive(key) and not looks_sensitive(value):
+                    # The digest supports comparisons without retaining raw setting values.
+                    encoded = json.dumps(_fingerprint_value(value), ensure_ascii=True, separators=(",", ":"))
+                    conditions.setdefault(name, []).append(hashlib.sha256(encoded.encode()).hexdigest())
                 if any(part in name for part in SENSITIVE_KEY_PARTS) or looks_sensitive(key) or looks_sensitive(value):
                     sensitive.add(path)
                     continue
@@ -216,7 +245,17 @@ def normalize_training_config(raw_config: Mapping[str, Any], *, source_path: str
         source_path=safe_text(source_path) if source_path else None,
         sensitive_keys=tuple(sorted(sensitive)),
         field_sources={key: tuple(paths) for key, paths in sources.items()},
+        runtime_conditions={key: hashlib.sha256("".join(sorted(values)).encode()).hexdigest()
+                            for key, values in conditions.items()},
     )
+
+
+def _fingerprint_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return sorted(((str(key), _fingerprint_value(item)) for key, item in value.items()), key=lambda pair: pair[0])
+    if isinstance(value, (list, tuple)):
+        return [_fingerprint_value(item) for item in value]
+    return [type(value).__name__, str(value)]
 
 
 def _coerce_field(name, value):

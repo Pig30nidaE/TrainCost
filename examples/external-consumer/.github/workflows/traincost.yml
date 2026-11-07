@@ -1,0 +1,39 @@
+name: TrainCost CI consumer
+
+on:
+  pull_request:
+    paths:
+      - "config.json"
+
+permissions:
+  contents: read
+
+jobs:
+  traincost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Replace REVIEWED_UPGRADE_COMMIT_SHA with the reviewed full commit SHA before use.
+      - id: cost
+        uses: Pig30nidaE/TrainCost@REVIEWED_UPGRADE_COMMIT_SHA
+        with:
+          config-path: "config.json"
+          config-adapter: "huggingface"
+          comment-mode: "false"
+          report-json-path: "traincost-report.json"
+      - name: Verify Action outputs
+        env:
+          REPORT: ${{ steps.cost.outputs.report-path }}
+          JSON_REPORT: ${{ steps.cost.outputs.report-json-path }}
+          STATUS: ${{ steps.cost.outputs.analysis-status }}
+          COMMENT: ${{ steps.cost.outputs.comment-posted }}
+        run: |
+          set -euo pipefail
+          test -s "$REPORT"
+          test -s "$JSON_REPORT"
+          test "$STATUS" = "complete"
+          test "$COMMENT" = "false"
+          python3 -c 'import json, os; d=json.load(open(os.environ["JSON_REPORT"], encoding="utf-8")); assert d["schema_version"] == "1.0" and d["analysis_status"] == "complete"'

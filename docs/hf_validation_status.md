@@ -1,6 +1,13 @@
 # DistilBERT validation evidence
 
-Updated: 2026-11-07. GPU validation: **NOT RUN**. Publication: **HOLD**.
+Updated: 2026-11-07. RTX 3060/CUDA validation: **DEFERRED, NOT RUN**. Publication: **HOLD**.
+
+The user deferred Windows testing and approved a separate Mac smoke. Real MPS
+fine-tuning and report arithmetic passed on the M1 Mac mini; its one-run-per-condition
+time extrapolation overestimated by 42.965% initially and 7.496% on a verification
+rerun after evidence-control fixes. Neither was an independent calibration study.
+See [Mac evidence](macos_validation.md).
+The gates below concern the original CUDA experiment, not the Mac smoke.
 
 This record is separate from the canonical beta evidence in `qa_report.md`.
 The validation tooling is based on cb86e5df199927410e0063768e137845a6811409.
@@ -44,7 +51,7 @@ by one GPU are not GPU utilization, electricity consumption, or billed cloud hou
 | Three calibration and six validation GPU executions | NOT RUN |
 | Held-out classification metrics and safe evidence bundle | NOT RUN |
 
-No actual training duration, accuracy, VRAM usage, or measured timing error is claimed yet.
+No RTX 3060 training duration, accuracy, VRAM usage, or measured timing error is claimed yet.
 Failures and inconclusive runs must remain in the evidence; do not replace calibration
 after observing validation outcomes or silently reduce the batch size.
 
@@ -90,6 +97,9 @@ or a release approval. Later documentation-only commits may record these results
 without changing the candidate or retroactively changing the recorded base SHA.
 
 ## User handoff
+
+Windows execution is deferred at the user's request. The instructions below remain
+available for a later explicit resume; the Mac smoke does not advance the CUDA gates.
 
 Follow [the example instructions](../examples/huggingface-demo/README.md) from a reviewed
 commit, in a dedicated environment and workspace. Run each stage in order and return

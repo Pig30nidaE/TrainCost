@@ -2,6 +2,9 @@
 
 This opt-in experiment connects a real single-GPU fine-tuning run to the existing TrainCost report. It is not a Hugging Face adapter or a runtime predictor. Do not run it in a pull request or CI. No download or training occurs until the commands below are run by the operator.
 
+For the separate, smaller Mac compatibility smoke, see [Mac validation](../../docs/macos_validation.md).
+It has its own dependency lock and runner; it does not replace the CUDA experiment below.
+
 ## Prerequisites
 
 - Windows with WSL2 Ubuntu, one NVIDIA RTX 3060 with 12 GiB VRAM, a working WSL NVIDIA driver, at least 8 GiB currently free GPU memory, and Python 3.12.

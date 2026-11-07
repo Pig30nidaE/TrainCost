@@ -18,6 +18,7 @@ from .models import (
     RiskWarning,
     TrainingConfig,
 )
+from .formatting import format_money, format_money_pair
 from .parsing import (
     load_config_file,
     normalize_training_config,
@@ -51,6 +52,8 @@ __all__ = [
     "compare_configs",
     "detect_warnings",
     "estimate_cost",
+    "format_money",
+    "format_money_pair",
     "generate_markdown_report",
     "load_config_file",
     "lookup_gpu_hourly_price",

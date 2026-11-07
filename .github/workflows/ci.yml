@@ -9,6 +9,21 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  dependency-audit:
+    name: Audit runtime and build dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Audit pinned runtime and build requirements
+        run: |
+          python -m pip install pip-audit==2.10.1
+          python -m pip_audit -r requirements-dev.txt --strict --progress-spinner off
   verify:
     name: Verify Python ${{ matrix.python }}
     runs-on: ubuntu-latest
@@ -33,6 +48,15 @@ jobs:
           python -m coverage report --omit='*/tests/*'
       - name: Metadata and all demo fixtures
         run: python scripts/verify_release.py
+      - name: Labeled HF configuration corpus
+        run: |
+          python -m unittest discover examples/hf-config-corpus/tests
+          python scripts/verify_hf_corpus.py
+      - name: Independent local consumer and fork payloads
+        run: python scripts/verify_external_consumer.py --direct-only
+      - name: Independent consumer isolated installation
+        if: matrix.python == '3.12'
+        run: python scripts/verify_external_consumer.py
       - name: Hugging Face validation tooling (no model downloads)
         run: |
           python -m unittest discover -s examples/huggingface-demo/tests
@@ -64,9 +88,11 @@ jobs:
       - name: Verify outputs
         env:
           REPORT: ${{ steps.smoke.outputs.report-path }}
+          JSON_REPORT: ${{ steps.smoke.outputs.report-json-path }}
           STATUS: ${{ steps.smoke.outputs.analysis-status }}
           COMMENT: ${{ steps.smoke.outputs.comment-posted }}
         run: |
           test -s "$REPORT"
+          test -s "$JSON_REPORT"
           test "$COMMENT" = "false"
           case "$STATUS" in complete|partial|skipped) ;; *) exit 1;; esac
