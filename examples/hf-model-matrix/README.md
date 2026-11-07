@@ -17,10 +17,15 @@ interface. Adding an architecture does not require a hard-coded encoder attribut
 All downloads are pinned; training uses local Safetensors with
 `trust_remote_code=False` and network access disabled through Hub offline mode.
 No remote model code, external tracking, or Hub upload is enabled.
+Before calling Transformers, the runner checks model and tokenizer metadata against
+reviewed SHA-256 values. It rejects remote-code, custom-kernel, template, and
+external-file fields, duplicate/nonfinite JSON, and unreviewed model dimensions.
+This boundary does not make vulnerable third-party libraries safe; the optional
+ML dependency audit must be reviewed separately before running an environment.
 
 ## Reproduce on Apple Silicon
 
-Requirements: macOS arm64, Python 3.12, working MPS, at least 3 GiB available system
+Requirements: macOS 14 or newer on arm64, Python 3.12, working MPS, at least 3 GiB available system
 memory at each process start, and enough disk space for model and dataset caches.
 This is a local experiment. It rejects CI and PR runners. The older
 [RTX 3060 study](../huggingface-demo/README.md) remains separate and unexecuted.
@@ -28,10 +33,10 @@ This is a local experiment. It rejects CI and PR runners. The older
 From the repository root:
 
 ```bash
-python3.12 -m venv .venv-hf-matrix
-.venv-hf-matrix/bin/python -m pip install -r examples/huggingface-demo/macos-requirements.lock
-.venv-hf-matrix/bin/python scripts/verify_hf_matrix.py --list
-.venv-hf-matrix/bin/python -I scripts/verify_hf_matrix.py \
+python3.12 -m venv .venv-hf-matrix-v2
+.venv-hf-matrix-v2/bin/python -m pip install --require-hashes -r examples/huggingface-demo/macos-requirements.lock
+.venv-hf-matrix-v2/bin/python scripts/verify_hf_matrix.py --list
+.venv-hf-matrix-v2/bin/python -I scripts/verify_hf_matrix.py \
   --workspace "$PWD/.hf-validation-matrix-new"
 ```
 
@@ -116,7 +121,9 @@ cryptographic attestation that training occurred.
    with Safetensors and a fast tokenizer. Review the upstream license and model
    card. Record an immutable Hub commit, not `main` or a mutable tag.
 2. Add its profile to `profiles.json`. Permit only the required model/tokenizer
-   filenames. Do not add Python or pickle files. Keep the existing study protocol.
+   filenames. Add reviewed `config.json` and `tokenizer_config.json` hashes plus
+   byte-preserved regression fixtures with license attribution. Do not add Python
+   or pickle files. Keep the existing study protocol.
 3. Run the offline tests and then the opt-in study on the supported device. Record
    failures as well as successes. Do not reuse calibration across models or settings.
 4. Submit metadata evidence, its committed source revision, and file hashes. Do not commit weights,

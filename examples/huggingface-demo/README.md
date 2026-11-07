@@ -8,6 +8,7 @@ It has its own dependency lock and runner; it does not replace the CUDA experime
 ## Prerequisites
 
 - Windows with WSL2 Ubuntu, one NVIDIA RTX 3060 with 12 GiB VRAM, a working WSL NVIDIA driver, at least 8 GiB currently free GPU memory, and Python 3.12.
+- The security-upgraded lock targets CUDA 13.0 and requires an R580-or-newer Windows host driver. The runner checks both the driver family and the actual runtime. See [NVIDIA minor-version compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html). This updated environment has not been executed on the user's RTX 3060.
 - Enough disk space for the CUDA dependencies, model, dataset, caches, and temporary training files. Installation and `prepare` require network access. Confirm the [IMDb dataset terms](https://huggingface.co/datasets/stanfordnlp/imdb) before downloading; its Hub card lists the license as `other`.
 - Run from a trusted checkout. Never run unreviewed PR code on the GPU. Use a new private workspace directory, not a symlink; do not put credentials in its path. Do not share the workspace cache or model files.
 

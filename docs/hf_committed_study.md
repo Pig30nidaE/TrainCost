@@ -4,6 +4,11 @@ Date: 2026-11-08. Measured source commit:
 `01ddafcda9a2545460f067dbb7c154f9661c2b97`, in
 [PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13).
 
+Security follow-up: the [ML dependency audit](evidence/hf-matrix-2026-11-08/ml-dependency-audit.json)
+found known advisories in the measured optional training environment. These
+measurements remain historical evidence, not approval to publish that lock.
+Dependency upgrades and renewed compatibility verification are in progress.
+
 DistilBERT, BERT, and ALBERT each completed nine real MPS fine-tuning runs. All
 training-contract checks, Action reports, and the predefined timing gates passed.
 This supports the reviewed sequence-classification profiles on this Mac, not all
@@ -79,3 +84,23 @@ documentation or evidence-registration edits.
 The project remains private with Action access `none`. Cross-repository installation,
 real fork permissions, and publication approval remain separate release gates.
 No release, tag, merge, or access-policy change follows from this measurement.
+
+## Hosted consumer follow-up
+
+Evidence-registration candidate `d6fd314b6528bc077b1a755f4427b4b56987da89` passed
+[all six CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42397896774).
+[Consumer PR #14](https://github.com/Pig30nidaE/TrainCost/pull/14), kept unmerged,
+used that full SHA and passed
+[run 42398032297](https://github.com/Pig30nidaE/TrainCost/actions/runs/42398032297).
+Its separate [regression CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42398032384)
+also passed all six jobs. These are same-repository checks, not external/fork tests.
+
+The downloaded [actual outputs](evidence/hf-matrix-2026-11-08/hosted-consumer/verification.json)
+record `pull_request`, base `d6fd314b6528bc077b1a755f4427b4b56987da89`, head
+`db642a6c106d8a3076d12c2752a7e41abfe73684`, and Linux Python 3.12.16.
+The canonical comparison returned complete and $0.10 to $0.30. Added native HF
+returned complete with explicit absent-base assumptions; the mixed case returned
+partial with one excluded file. Invalid input returned error and null costs.
+Every report-producing case returned comment-posted=false and matched a Step
+Summary file. Both expected failure steps failed, and the synthetic unsafe-output
+sentinel remained unchanged. No rendered browser inspection is claimed.
