@@ -21,7 +21,7 @@ jobs:
           python-version: '3.12'
       - name: Modified canonical config
         id: modified
-        uses: Pig30nidaE/TrainCost@d6fd314b6528bc077b1a755f4427b4b56987da89
+        uses: Pig30nidaE/TrainCost@26613f604b9a25cecd65a6f8835dfd3ca8f5997e
         with:
           config-path: examples/huggingface-demo/config.json
           gpu-prices: RTX3060=1
@@ -29,7 +29,7 @@ jobs:
           report-path: ${{ runner.temp }}/traincost-release-evidence/modified.md
       - name: Added native HF config via package action
         id: added
-        uses: Pig30nidaE/TrainCost/packages/github-action@d6fd314b6528bc077b1a755f4427b4b56987da89
+        uses: Pig30nidaE/TrainCost/packages/github-action@26613f604b9a25cecd65a6f8835dfd3ca8f5997e
         with:
           config-path: examples/release-consumer/added.json
           config-adapter: huggingface
@@ -38,7 +38,7 @@ jobs:
           report-path: ${{ runner.temp }}/traincost-release-evidence/added.md
       - name: Partial native HF comparison
         id: partial
-        uses: Pig30nidaE/TrainCost@d6fd314b6528bc077b1a755f4427b4b56987da89
+        uses: Pig30nidaE/TrainCost@26613f604b9a25cecd65a6f8835dfd3ca8f5997e
         with:
           config-path: examples/release-consumer/*.json
           config-adapter: huggingface
@@ -48,7 +48,7 @@ jobs:
       - name: Rejected native HF config
         id: invalid
         continue-on-error: true
-        uses: Pig30nidaE/TrainCost@d6fd314b6528bc077b1a755f4427b4b56987da89
+        uses: Pig30nidaE/TrainCost@26613f604b9a25cecd65a6f8835dfd3ca8f5997e
         with:
           config-path: examples/release-consumer/invalid.json
           config-adapter: huggingface
@@ -62,7 +62,7 @@ jobs:
       - name: Reject unsafe output link
         id: unsafe
         continue-on-error: true
-        uses: Pig30nidaE/TrainCost@d6fd314b6528bc077b1a755f4427b4b56987da89
+        uses: Pig30nidaE/TrainCost@26613f604b9a25cecd65a6f8835dfd3ca8f5997e
         with:
           config-path: examples/huggingface-demo/config.json
           comment-mode: 'false'
@@ -132,7 +132,7 @@ jobs:
           assert os.environ['UNSAFE_OUTCOME'] == 'failure'
           assert (Path(os.environ['RUNNER_TEMP']) / 'traincost-sentinel.json').read_text() == 'preserve-synthetic-sentinel'
           assert not (Path(os.environ['RUNNER_TEMP']) / 'traincost-blocked.md').exists()
-          metadata = {'candidate_sha': 'd6fd314b6528bc077b1a755f4427b4b56987da89',
+          metadata = {'candidate_sha': '26613f604b9a25cecd65a6f8835dfd3ca8f5997e',
                       'event': os.environ['GITHUB_EVENT_NAME'], 'base_sha': os.environ['PR_BASE_SHA'],
                       'head_sha': os.environ['PR_HEAD_SHA'], 'pr_number': int(os.environ['PR_NUMBER']),
                       'python': platform.python_version(), 'platform': platform.system(),
