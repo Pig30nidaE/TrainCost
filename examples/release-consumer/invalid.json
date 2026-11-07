@@ -1,0 +1,7 @@
+{
+  "num_train_epochs": 3,
+  "max_steps": 100,
+  "gpu_type": "RTX3060",
+  "gpu_count": 1,
+  "estimated_minutes_per_epoch": 6
+}
