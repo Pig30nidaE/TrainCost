@@ -1,0 +1,14 @@
+{
+  "run_id": 42405161652,
+  "run_attempt": 2,
+  "job_id": 128501877714,
+  "source": "GitHub job log: Set up job / GITHUB_TOKEN Permissions group",
+  "permissions": {
+    "Contents": "read",
+    "Metadata": "read"
+  },
+  "log_excerpt": [
+    "2026-11-07T19:16:30.9045269Z Contents: read",
+    "2026-11-07T19:16:30.9046374Z Metadata: read"
+  ]
+}

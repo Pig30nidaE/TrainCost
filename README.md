@@ -23,8 +23,10 @@ The source is now public. Candidate `28b4c54` passed all eight
 [external consumer PR](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/1)
 using SHA-pinned root and package Actions. See the
 [external validation record](docs/external_consumer_validation.md).
-A real fork PR remains unverified. Candidate PR #13 is not merged, and release
-publication is not approved. See [PM status](docs/pm_status.md) for remaining gates.
+A [real fork PR](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/2)
+also passed the same report contracts with read-only permissions.
+Candidate PR #13 is not merged, and release publication is not approved.
+See [PM status](docs/pm_status.md) for remaining gates.
 The [security-upgraded model study](docs/hf_security_upgrade_study.md) completed 27 real runs
 with all training, report, and timing checks passing. The prior study's timing
 failures remain recorded across 81 total observations; these studies do not establish general runtime accuracy.

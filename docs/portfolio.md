@@ -90,7 +90,8 @@ sequence classification on MPS. CUDA, LoRA, generation, and distributed engines
 remain unverified. The user made the source public. A separate
 [consumer repository](external_consumer_validation.md) verified SHA-pinned
 installation and report contracts without a copy of the implementation.
-That controlled test is not community adoption or a real fork PR test.
+The follow-up real fork PR passed under read-only permissions. These controlled
+tests are not community adoption.
 
 The project includes an MIT license, an installed CLI, documented JSON, contribution
 instructions, and reproducible tests. Those enable review and reuse; they do not

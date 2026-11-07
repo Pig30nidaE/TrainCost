@@ -63,6 +63,7 @@ From the source checkout with its development environment installed:
 
 ```bash
 .venv/bin/python docs/evidence/external-consumer-2026-11-08/verify.py
+.venv/bin/python -m unittest discover -s docs/evidence/external-consumer-2026-11-08 -p 'test_verify.py'
 ```
 
 The checker compares fixed expected run, PR, repository IDs, base/head SHAs, Action
@@ -70,14 +71,58 @@ pins, workflow Git blob hash, report paths, statuses, and costs. It requires PyY
 Replaying an archive does not rerun GitHub or independently attest how it was produced.
 Do not run the checker with Python's `-O` flag, which disables assertions.
 
-## Remaining gate
+## Real fork follow-up
 
-This run proves consumption from another repository, not a PR from a fork.
-The user will provide a fork PR from another account. Before accepting its run,
-review changed files and workflow, confirm `head.repo.fork=true` and different
-base/head repository IDs, and check the same outputs under fork permissions.
-Do not enable `pull_request_target`, add write permissions, or register the user's
-GPU computer as a runner. Keep validation PRs unmerged.
+The ordinary branch run above did not prove fork behavior. The user subsequently
+opened [PR #2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/2)
+from another account. Its three synthetic config changes and unchanged workflow
+were reviewed before approving the pending run.
+
+| Field | Observed value |
+| --- | --- |
+| Run | [42405161652, attempt 2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42405161652/attempts/2), success |
+| Job | `128501877714`, consumer |
+| Head repository | `anyhogs/TrainCost-consumer-validation`, ID `1449662675` |
+| Base repository | `Pig30nidaE/TrainCost-consumer-validation`, ID `1449646378` |
+| Event | `pull_request`, PR 2 |
+| Fork identity | `head_is_fork=true`, `distinct_head_repository=true` |
+| Base/head SHA | Same base/head as PR #1 above |
+| Action candidate | `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` |
+| Environment | GitHub-hosted Linux, Python 3.12.16 |
+| Actual token permissions | Contents read, Metadata read |
+
+Attempt 1 stopped at `action_required` without executing jobs. After review, the
+specific run was approved; attempt 2 passed. No repository policy was loosened.
+The head SHA alone is not sufficient evidence because PRs 1 and 2 share it.
+The [fork artifact](evidence/external-consumer-2026-11-08/fork/reports/verification.json)
+records PR 2 and its fork identity. Reduced [run](evidence/external-consumer-2026-11-08/fork/run.json)
+and [PR](evidence/external-consumer-2026-11-08/fork/pr.json) API snapshots independently
+record the distinct repository IDs. The archive checker requires these exact values,
+checks attempt 2, and checks the reviewed workflow blob and recorded permissions.
+
+All contracts in the observed-contracts table passed again. All eight Markdown/JSON
+reports are byte-identical to the first run. Each report matched a runner Step
+Summary file, and every comment output was false. The two exit-2 annotations are
+expected negative tests: the workflow checks their actual `failure` outcomes despite
+`continue-on-error`. No checkout or permission issue occurred after approval.
+
+The runner also emitted Node 20 Action deprecation and ubuntu-latest migration
+notices. They did not fail this run. Updating those third-party pins is separate
+maintenance and is not claimed complete by this evidence.
+
+The same archive command above now checks both runs. It remains an offline replay,
+not a fresh execution or a rendered Summary inspection. The permission record is
+a narrow log excerpt, not a token or full environment dump. No `pull_request_target`,
+write permission, self-hosted runner, model download, or GPU training was added.
+Two local regression tests accept both original archives and reject 12 mutations,
+including replacing the fork identity with the ordinary PR's identity.
+
+## Remaining approval
+
+External installation and the real fork report-only gate are now validated for
+the pinned candidate. Live comments, CUDA, other HF task families, and community
+adoption are outside these checks. Final candidate review and explicit merge/tag/
+release approval remain separate. Keep validation PRs unmerged.
 
 Candidate PR #13 remains separate from the public default branch. No new tag or
 release was created as part of this validation.

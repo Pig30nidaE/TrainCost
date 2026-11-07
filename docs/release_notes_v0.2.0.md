@@ -46,6 +46,6 @@ Report-only mode is the beta target. Comment mode remains experimental and is no
 Real-model evidence covers small IMDb sequence-classification runs on MPS, not general HF tasks or runtime prediction. See the [current study](hf_security_upgrade_study.md).
 The user made the source public. Candidate `28b4c54` passed CI and a separate
 [external consumer](external_consumer_validation.md) using both Action entrypoints.
-Real fork PR validation remains pending. Candidate PR #13 is unmerged, and tag push
+The real fork report-only test also passed. Candidate PR #13 is unmerged, and tag push
 and release publication require separate approval. See [PM status](pm_status.md).
 The v0.1.0 tag remains unchanged.

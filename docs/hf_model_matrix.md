@@ -137,8 +137,8 @@ At the time of this study, private Action access was `none`. No release, tag pus
 repository visibility change, PR merge, or permission expansion accompanied the
 study. Its worktree still required candidate-bound hosted evidence. Later studies,
 CI, and the [external consumer test](external_consumer_validation.md) record the
-subsequent candidate checks and user-controlled public transition. Real fork
-validation remains pending. See [current PM status](pm_status.md).
+subsequent candidate checks, real fork validation, and user-controlled public
+transition. See [current PM status](pm_status.md).
 
 The contribution claim is deliberately bounded: reproducible configuration
 review and a reusable verification protocol across several real text encoders.

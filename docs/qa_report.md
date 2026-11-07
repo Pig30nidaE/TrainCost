@@ -1,5 +1,36 @@
 # Beta QA evidence
 
+## Real fork consumer follow-up, 2026-11-08
+
+[Consumer PR #2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/2)
+is from `anyhogs/TrainCost-consumer-validation`, repository ID `1449662675`, into
+base repository ID `1449646378`. It changes the same three synthetic config files
+as PR #1, not code or workflow. Both PRs have head SHA `01e7395`; that shared SHA
+alone cannot identify a fork test.
+
+[Run 42405161652, attempt 2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42405161652/attempts/2)
+passed after the reviewed pending run was approved. Attempt 1's `action_required`
+status is retained in the operator approval record. Repository policy was not
+changed. The runner permission group contains only Contents read and Metadata read.
+The downloaded artifact identifies PR 2, the fork repository, and distinct base/head
+repositories. Root and package Actions still pin `28b4c541ab98a840a814f6bed8d3b205ece3d4ca`.
+
+All four report-producing cases returned the expected complete/partial/error
+statuses and `comment-posted=false`. Unsafe output was rejected; the synthetic
+target was unchanged. Markdown matched runner Step Summary files. The eight
+report files are byte-identical to the ordinary external PR's reports, with fork
+identity recorded separately. Expected negative steps returned exit 2; their
+actual failed outcomes are asserted before the verification step succeeds.
+
+The [archive checker](evidence/external-consumer-2026-11-08/verify.py) now checks
+both runs against fixed run IDs, PR numbers, repository IDs, fork flags, SHAs, and
+workflow pins. See [full evidence and limits](external_consumer_validation.md).
+Two local archive regressions passed, including rejection of 12 identity/contract
+mutations. QAReview independently checked GitHub run attempt 2 and its fork head
+repository ID, observed the successful verification job, and replayed the archive.
+It found no additional blocking issue within this fork-validation scope.
+This closes the real fork report-only gate, not live comments or publication.
+
 ## External consumer follow-up, 2026-11-08
 
 After the user made the source public, the authorized separate
@@ -23,7 +54,8 @@ comment output, and workflow pins. Known-pattern scanning found zero matches in
 That scan is not proof that arbitrary credentials or confidential content are absent.
 
 This was an ordinary branch PR in a separate consumer repository, not a fork PR.
-The real fork gate remains pending. Candidate PR #13 is unmerged; no new tag or
+The real fork gate was pending at that point and is covered by the follow-up above.
+Candidate PR #13 is unmerged; no new tag or
 release has been published. Earlier private/access-blocked entries below are
 historical snapshots, not the current repository state.
 

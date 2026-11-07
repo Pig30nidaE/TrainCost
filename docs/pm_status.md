@@ -26,13 +26,21 @@ repository. Candidate `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed all eigh
 and the [external consumer run](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42403549313).
 Root and package Actions were downloaded by full SHA from a checkout without the
 TrainCost implementation. Complete, partial, error, unsafe-output rejection, and
-report/Summary checks passed. This closes the cross-repository installation gate,
-not the real fork gate. [Exact identity and results](external_consumer_validation.md).
+report/Summary checks passed. This closes the cross-repository installation gate.
+[Exact identity and results](external_consumer_validation.md).
 
-The user will create a fork PR from another account and provide its URL. Next,
-review that PR's changes and workflow, verify distinct base/head repository IDs,
-and observe its GitHub-hosted run. Do not replace it with a simulated event or the
-ordinary branch PR already tested. Candidate PR #13 and consumer PRs remain
+The user's real [fork PR #2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/2)
+also passed [run 42405161652, attempt 2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42405161652/attempts/2).
+Its head repository is `anyhogs/TrainCost-consumer-validation`, ID `1449662675`,
+different from base ID `1449646378`. Both API and artifact identify the fork.
+After reviewing the three config changes and unchanged workflow, the pending run
+was approved without changing repository policy. Actual job permissions were
+Contents read and Metadata read. The same complete/partial/error, unsafe-output,
+and Summary checks passed. The real fork gate is now satisfied for report-only mode.
+
+Next: final human review of candidate PR #13 and selection of the release commit.
+Cross-repository/fork validation does not approve every HF task, CUDA execution,
+live comments, or an automatic release. Candidate PR #13 and consumer PRs remain
 unmerged. PR merge, tag push, and release publication still require separate
 approval. No agent-initiated source visibility or Action access change occurred.
 

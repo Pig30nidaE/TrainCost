@@ -98,5 +98,5 @@ CUDA/WSL2 execution, generation, vision, speech, PEFT, distributed training, and
 general runtime prediction remain outside this evidence. This study's same-repository
 reports do not establish external installation. After the user made the source
 public, a separate [external consumer test](external_consumer_validation.md) passed
-against candidate `28b4c54`. A real fork PR test remains pending. No release or tag
+against candidate `28b4c54`. Its follow-up real fork PR also passed. No release or tag
 push was performed, and the study did not change repository visibility or access.

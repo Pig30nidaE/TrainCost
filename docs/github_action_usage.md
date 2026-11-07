@@ -90,7 +90,8 @@ After the upgrade is reviewed, replace the placeholder below with its full commi
 The placeholder is not a runnable reference or a published beta tag. The source is
 public. Candidate `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed a separate
 [hosted consumer test](external_consumer_validation.md) for both Action entrypoints.
-Real fork PR permissions remain unverified. For private copies of the source,
+Its follow-up real fork PR passed with Contents read and Metadata read permissions.
+This covers report-only mode, not live comment posting. For private copies of the source,
 cross-repository Action access requires separate repository settings.
 The historical v0.1.0 tag and earlier candidate SHA lack the HF adapter and JSON output described here.
 

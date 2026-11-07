@@ -26,7 +26,8 @@ Run `python scripts/verify_external_consumer.py` from TrainCost CI to exercise b
 The user made the source repository public. A separate hosted consumer verified
 root and package Actions at `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` without
 copying the implementation. See the [run and archived reports](../../docs/external_consumer_validation.md).
-This was an ordinary branch PR in a separate repository. Real fork PR permissions
-remain unverified; local event simulations do not replace that check.
+The first run was an ordinary branch PR in a separate repository. A subsequent
+real fork PR passed the same contracts with read-only permissions. These hosted
+records are separate from the local event simulations.
 
 Inspect the Action's Step Summary in the hosted run and compare its contents with the report. A later workflow step gets a different `GITHUB_STEP_SUMMARY` file, so it cannot compare the Action step's summary using its own summary path.

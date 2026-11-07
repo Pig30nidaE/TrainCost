@@ -84,8 +84,8 @@ documentation or evidence-registration edits.
 
 At the time of this study, the project was private with Action access `none`.
 Afterward, the user made it public and a newer candidate passed a separate
-[external consumer test](external_consumer_validation.md). Real fork permissions
-and publication approval remain separate gates. No release, tag, merge, or
+[external consumer and real fork tests](external_consumer_validation.md).
+Publication approval remains separate. No release, tag, merge, or
 access-policy change follows from this measurement.
 
 ## Hosted consumer follow-up
