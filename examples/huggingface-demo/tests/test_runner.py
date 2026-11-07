@@ -18,6 +18,66 @@ runner = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(runner)
 
 
+def process_terminated(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return True
+    if sys.platform != "linux":
+        return False
+    # A successful kill(0) does not keep /proc alive until the subsequent read.
+    try:
+        state = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[0]
+    except ProcessLookupError:
+        return True
+    except FileNotFoundError:
+        # Missing procfs is not proof of exit. Confirm that the PID also vanished.
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return True
+        raise AssertionError("Live process is not observable through procfs")
+    return state == "Z"
+
+
+class ProcessObservationTests(unittest.TestCase):
+    def test_missing_pid_is_terminated(self):
+        with patch.object(os, "kill", side_effect=ProcessLookupError), patch.object(Path, "read_text") as read:
+            self.assertTrue(process_terminated(123))
+            read.assert_not_called()
+
+    def test_exit_between_probe_and_stat_read_is_terminated(self):
+        for error in (FileNotFoundError, ProcessLookupError):
+            with self.subTest(error=error), patch.object(sys, "platform", "linux"), \
+                    patch.object(os, "kill", side_effect=[None, ProcessLookupError]), \
+                    patch.object(Path, "read_text", side_effect=error):
+                self.assertTrue(process_terminated(123))
+
+    def test_missing_procfs_does_not_prove_a_live_process_exited(self):
+        with patch.object(sys, "platform", "linux"), patch.object(os, "kill"), \
+                patch.object(Path, "read_text", side_effect=FileNotFoundError):
+            with self.assertRaisesRegex(AssertionError, "not observable"):
+                process_terminated(123)
+
+    def test_linux_live_and_zombie_states(self):
+        for state, expected in (("S", False), ("R", False), ("Z", True)):
+            with self.subTest(state=state), patch.object(sys, "platform", "linux"), \
+                    patch.object(os, "kill"), patch.object(Path, "read_text", return_value=f"123 (worker (test)) {state} 1 2"):
+                self.assertEqual(process_terminated(123), expected)
+
+    def test_permission_and_unexpected_read_errors_are_not_success(self):
+        for error in (PermissionError, OSError):
+            with self.subTest(error=error), patch.object(sys, "platform", "linux"), \
+                    patch.object(os, "kill"), patch.object(Path, "read_text", side_effect=error):
+                with self.assertRaises(error):
+                    process_terminated(123)
+
+    def test_non_linux_live_process_does_not_use_procfs(self):
+        with patch.object(sys, "platform", "darwin"), patch.object(os, "kill"), patch.object(Path, "read_text") as read:
+            self.assertFalse(process_terminated(123))
+            read.assert_not_called()
+
+
 class RunnerTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform == "linux", "Linux parent-death signal required")
     def test_sigkill_parent_triggers_actual_linux_parent_death_guard(self):
@@ -46,12 +106,7 @@ class RunnerTests(unittest.TestCase):
                 proc.wait(timeout=5)
                 deadline = time.monotonic() + 5
                 while time.monotonic() < deadline:
-                    try:
-                        os.kill(child, 0)
-                    except ProcessLookupError:
-                        break
-                    stat = Path(f"/proc/{child}/stat")
-                    if stat.exists() and stat.read_text().rsplit(")", 1)[1].strip().startswith("Z "):
+                    if process_terminated(child):
                         break
                     time.sleep(0.02)
                 else:
@@ -104,12 +159,7 @@ class RunnerTests(unittest.TestCase):
                 deadline = time.monotonic() + 4
                 for pid in (worker_pid, child_pid):
                     while time.monotonic() < deadline:
-                        try:
-                            os.kill(pid, 0)
-                        except ProcessLookupError:
-                            break
-                        stat = Path(f"/proc/{pid}/stat")
-                        if stat.exists() and stat.read_text().rsplit(")", 1)[1].strip().startswith("Z "):
+                        if process_terminated(pid):
                             break
                         time.sleep(0.02)
                     else:
@@ -142,12 +192,7 @@ class RunnerTests(unittest.TestCase):
             child = int((root / "child.pid").read_text())
             deadline = time.monotonic() + 3
             while time.monotonic() < deadline:
-                try:
-                    os.kill(child, 0)
-                except ProcessLookupError:
-                    break
-                stat = Path(f"/proc/{child}/stat")
-                if stat.exists() and stat.read_text().rsplit(")", 1)[1].strip().startswith("Z "):
+                if process_terminated(child):
                     break
                 time.sleep(0.05)
             else:

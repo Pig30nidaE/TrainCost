@@ -1,5 +1,27 @@
 # Beta QA evidence
 
+## Final CI process-observer correction
+
+Evidence commit `40d17a0` had a real
+[Python 3.13 CI failure](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401555797).
+The Linux parent-death test observed process exit between `stat.exists()` and
+`stat.read_text()`, which raised `ProcessLookupError`. The failure is preserved in
+[structured evidence](evidence/hf-matrix-security-2026-11-08/ci-observer-failure.json),
+not hidden by rerunning the same job.
+
+All three test observers now use one process-state check. Linux ESRCH during the
+read means terminated; a missing procfs entry requires a second PID check. A live
+PID with an unreadable procfs entry fails instead of being declared dead. Permission
+and other unexpected errors still fail. macOS does not interpret its absent
+`/proc` as process termination. Six
+deterministic regressions cover this distinction. Production watchdogs and all
+measured execution-source files are unchanged. New GPU measurement is unnecessary
+for this test-only correction. The [local full regression](evidence/hf-matrix-security-2026-11-08/process-observer-python312.json)
+passed 308 of 309 methods, with one Linux-only skip. HF demo tests increased from
+70 to 76; other suite counts are unchanged. QAReview confirmed the procfs correction
+after identifying the missing-procfs ambiguity. Hosted Linux must still execute
+the actual parent-death test before merging.
+
 ## Security-upgraded real-model study
 
 The [new study](hf_security_upgrade_study.md) measured source `26613f6` with the

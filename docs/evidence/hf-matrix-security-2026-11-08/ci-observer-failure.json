@@ -1,0 +1,15 @@
+{
+  "run_id": 42401555797,
+  "url": "https://github.com/Pig30nidaE/TrainCost/actions/runs/42401555797",
+  "commit": "40d17a09ff13964b9e87f4613a16466cd51177ec",
+  "conclusion": "failure",
+  "failed_job": "Verify Python 3.13",
+  "job_id": 128490257748,
+  "python_version": "3.13.18",
+  "failed_step": "Hugging Face validation tooling (no model downloads)",
+  "test": "test_sigkill_parent_triggers_actual_linux_parent_death_guard",
+  "exception": "ProcessLookupError",
+  "errno": 3,
+  "cause": "Process exited between the existence probe and reading /proc/<pid>/stat in the test observer.",
+  "scope": "Test observation race, not a failed training run. Preserve this failed CI attempt."
+}
