@@ -1,6 +1,6 @@
 {
   "model_name": "distilbert/distilbert-base-uncased",
-  "epochs": 1,
+  "epochs": 3,
   "batch_size": 8,
   "precision": "fp32",
   "mixed_precision": false,
