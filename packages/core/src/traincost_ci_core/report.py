@@ -14,7 +14,8 @@ _PRICE_SOURCE_DESCRIPTIONS = {
 }
 
 
-def generate_markdown_report(result: AnalysisResult) -> str:
+def generate_markdown_report(result: AnalysisResult, *, base_label: str = "Base branch",
+                             pr_label: str = "This PR") -> str:
     """Render a concise Markdown report for PR review."""
 
     lines: list[str] = ["## TrainCost CI Report", ""]
@@ -35,8 +36,8 @@ def generate_markdown_report(result: AnalysisResult) -> str:
 
     lines.extend(["", "### Estimated cost", ""])
     base_cost, pr_cost = format_money_pair(result.base_estimate.estimated_cost_usd, result.pr_estimate.estimated_cost_usd)
-    lines.append(f"- Base branch: {base_cost}")
-    lines.append(f"- This PR: {pr_cost}")
+    lines.append(f"- {markdown(base_label)}: {base_cost}")
+    lines.append(f"- {markdown(pr_label)}: {pr_cost}")
     if result.increase_percent is None:
         lines.append("- Increase: not available")
     else:

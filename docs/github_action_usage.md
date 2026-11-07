@@ -57,7 +57,8 @@ Some invalid path inputs fall back to validated `report.md` and `report.json` lo
 Checkout must use fetch-depth: 0. PR base and head SHAs come from the GitHub event.
 The comparison baseline is their single merge base, matching GitHub's three-dot
 PR diff. Both changed-file selection and base config contents use that commit.
-The report records its SHA. Changes made only on the target branch are excluded.
+The report records its SHA and labels the costs `Merge-base estimate` and
+`PR-head estimate`. Changes made only on the target branch are excluded.
 This describes the PR's changes, not a prediction of a future merge result.
 Missing or multiple merge bases fail explicitly; fetch full history or update the
 PR branch instead of accepting an arbitrary ancestor.

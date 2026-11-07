@@ -201,7 +201,7 @@ class GitIntegrationTests(unittest.TestCase):
         self.write("config.yaml", "epochs: -999")
         outcome = self.analyze()
         self.assertEqual(outcome.status, "complete")
-        self.assertIn("This PR: $21.33", outcome.report)
+        self.assertIn("PR-head estimate: $21.33", outcome.report)
         self.assertIn("Increase: +48,662%", outcome.report)
 
     def test_base_only_changes_are_not_pr_changes(self):
@@ -231,6 +231,9 @@ class GitIntegrationTests(unittest.TestCase):
         self.assertEqual(outcome.analyses[0].result.pr_config.epochs, 50)
         self.assertIn("Increase: +48,662%", outcome.report)
         self.assertIn("merge base " + self.base, outcome.report)
+        self.assertIn("Merge-base estimate: $0.04", outcome.report)
+        self.assertIn("PR-head estimate: $21.33", outcome.report)
+        self.assertNotIn("Base branch:", outcome.report)
 
     def test_base_deletion_does_not_turn_pr_modification_into_addition(self):
         self.write("config.yaml", RISKY)
@@ -285,7 +288,7 @@ class GitIntegrationTests(unittest.TestCase):
             outcome = self.analyze(pattern)
             self.assertEqual(outcome.status, "skipped")
             self.assertIn("Deleted config excluded", outcome.report)
-            self.assertNotIn("- This PR:", outcome.report)
+            self.assertNotIn("- PR-head estimate:", outcome.report)
             self.assertNotIn("unchanged.yaml", outcome.report)
 
     def test_no_changes_and_no_glob_matches(self):
@@ -355,7 +358,7 @@ class GitIntegrationTests(unittest.TestCase):
                     self.assertEqual(stderr, "")
                     self.assertIn("analysis-status=partial", outputs)
                     self.assertIn("comment-posted=false", outputs)
-                    self.assertIn("This PR: $21.33", report)
+                    self.assertIn("PR-head estimate: $21.33", report)
                     self.assertIn("Excluded configs: 1", report)
                     self.assertIn("Costs cover analyzed configs only", report)
                     self.assertIn("Invalid YAML value at line 2", report)
@@ -365,7 +368,7 @@ class GitIntegrationTests(unittest.TestCase):
         outcome = self.analyze(base="0" * 40)
         self.assertEqual(outcome.status, "error")
         self.assertIn("fetch-depth: 0", outcome.report)
-        self.assertNotIn("- This PR:", outcome.report)
+        self.assertNotIn("- PR-head estimate:", outcome.report)
 
     def test_oversized_utf8_config_is_excluded(self):
         self.write("config.yaml", "model: " + "\ud55c" * 400_000)
@@ -385,7 +388,7 @@ class GitIntegrationTests(unittest.TestCase):
         with patch.object(action, "read_git_file", side_effect=action.ConfigError("Unreadable Git blob.")):
             outcome = self.analyze()
         self.assertEqual(outcome.status, "error")
-        self.assertNotIn("- This PR:", outcome.report)
+        self.assertNotIn("- PR-head estimate:", outcome.report)
 
     def test_git_failure_does_not_become_partial_success(self):
         self.write("config.yaml", RISKY)
@@ -399,7 +402,7 @@ class GitIntegrationTests(unittest.TestCase):
         with patch.object(action, "read_git_file", side_effect=fail_one):
             outcome = self.analyze("*.yaml")
         self.assertEqual(outcome.status, "error")
-        self.assertNotIn("- This PR:", outcome.report)
+        self.assertNotIn("- PR-head estimate:", outcome.report)
 
     def test_missing_blob_raises_git_error(self):
         with self.assertRaises(action.GitError):

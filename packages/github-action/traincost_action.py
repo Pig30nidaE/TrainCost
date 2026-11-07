@@ -25,6 +25,7 @@ if CORE_SRC.exists():
 from traincost_ci_core import analyze_configs, normalize_training_config, parse_config_text
 from traincost_ci_core.models import AnalysisResult
 from traincost_ci_core.output_safety import OutputPathError, validate_report_paths, write_report_files
+from traincost_ci_core.report import generate_markdown_report
 from traincost_ci_core.safety import ConfigError, MAX_CONFIG_BYTES, looks_sensitive, markdown, number, safe_text
 
 SUPPORTED_SUFFIXES = {".yaml", ".yml", ".json", ".py"}
@@ -335,7 +336,8 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
                 notes.append(f"Added config: {safe_text(change.path)}; no base file exists, so base defaults are illustrative.")
             elif change.base_path != change.path:
                 notes.append(f"Detected rename: {safe_text(change.base_path)} -> {safe_text(change.path)}.")
-            reports.append(ConfigReport(change.path, result.markdown_report, result))
+            report = generate_markdown_report(result, base_label="Merge-base estimate", pr_label="PR-head estimate")
+            reports.append(ConfigReport(change.path, report, result))
         except GitError as exc:
             return error_run(str(exc), [c.path for c in selected], protected_paths=[c.path for c in selected])
         except ConfigError as exc:
@@ -500,7 +502,7 @@ def render_combined_totals(reports):
         raise ConfigError("Combined estimate arithmetic overflow.")
     base_display, head_display = format_money_pair(base, head)
     return ["### Combined estimated cost", "", "- Sum of analyzed configs only; this is not a scheduled workload forecast.",
-            f"- Base branch total: {base_display}", f"- This PR total: {head_display}", ""]
+            f"- Merge-base estimate total: {base_display}", f"- PR-head estimate total: {head_display}", ""]
 
 
 def insert_config_path(report, path):
