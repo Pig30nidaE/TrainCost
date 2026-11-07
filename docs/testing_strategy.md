@@ -20,6 +20,8 @@ See [the current upgrade record](upgrade_validation.md) for measured results.
 .venv/bin/python scripts/verify_hf_corpus.py
 .venv/bin/python scripts/verify_external_consumer.py
 .venv/bin/python -m unittest discover examples/huggingface-demo/tests
+.venv/bin/python -m unittest discover examples/hf-model-matrix/tests
+.venv/bin/python scripts/verify_hf_evidence.py
 python3 -I -S scripts/verify_no_yaml.py
 .venv/bin/python -m build packages/core --no-isolation --outdir /tmp/traincost-dist
 .venv/bin/python scripts/verify_wheel.py /tmp/traincost-dist
@@ -47,6 +49,15 @@ permissions or claim a copied local Action is equivalent evidence.
 
 Coverage is reported as measured, including branches. It does not replace scenario acceptance.
 No coverage percentage alone approves publication.
+
+## Real pretrained models
+
+The [HF matrix](../examples/hf-model-matrix/README.md) keeps actual local MPS
+fine-tuning separate from offline CI tests. It binds model revisions, subset hashes,
+actual Trainer arguments, and calibration before held-out execution. Report
+correctness and time-extrapolation accuracy have separate outcomes. Both failed
+and successful measurements belong in the evidence; no automatic retry selects a
+preferred result. [Current measurements](hf_model_matrix.md).
 
 ## Fixture and image updates
 

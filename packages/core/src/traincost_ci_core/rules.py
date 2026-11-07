@@ -171,16 +171,17 @@ def detect_warnings(
             )
         )
 
-    batch_size = pr_config.effective_batch_size
+    per_device_batch = pr_config.config_adapter == "huggingface" and pr_config.batch_size is not None
+    batch_size = pr_config.batch_size if per_device_batch else pr_config.effective_batch_size
     if batch_size is not None and (batch_size <= 4 or (batch_size <= 8 and _is_large_model(pr_config))):
         warnings.append(
             RiskWarning(
                 code="small_batch_size",
                 title="Batch size is unusually small",
-                what_changed=f"Batch size is {batch_size}.",
+                what_changed=f"{'Per-device batch size' if per_device_batch else 'Batch size'} is {batch_size}.",
                 why_it_matters="Very small batches can reduce GPU utilization and extend runtime.",
-                how_to_reduce_risk="Increase batch size, use gradient accumulation, or validate utilization with a dry run.",
-                recommendation="Check GPU utilization and consider a larger effective batch size.",
+                how_to_reduce_risk="Measure GPU utilization with a dry run and increase the batch size if GPU memory allows.",
+                recommendation="Check GPU utilization and consider a larger batch that fits in memory.",
             )
         )
 

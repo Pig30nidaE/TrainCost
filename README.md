@@ -18,6 +18,9 @@ candidate SHA in this same private repository. These links require repository ac
 Independent cross-repository and real fork validation remain release gates because
 the user retained the current Action access restriction. See the
 [release-readiness record](docs/release_readiness.md) for evidence and limits.
+The later [multi-model validation upgrade](docs/hf_model_matrix.md) is local;
+those hosted runs do not cover its changes. Its training/report checks passed for
+three real architectures, while the combined timing-repeatability gate failed.
 
 ## See the three outcomes
 
@@ -33,6 +36,13 @@ These are deterministic config examples, not measured training runs.
 [All report images and reproduction steps](docs/demo_script.md) cover the three scenarios.
 
 ## Opt-in model validation
+
+The [real-model matrix](examples/hf-model-matrix/README.md) adds profile-driven
+DistilBERT, BERT, and ALBERT sequence-classification verification on Apple Silicon.
+It checks actual Trainer arguments against the HF adapter, runs independent
+calibration and held-out repetitions, and keeps report correctness separate from
+time-extrapolation accuracy. This is a bounded text-classification study, not
+support for all Hugging Face tasks. [Measured results](docs/hf_model_matrix.md).
 
 The [DistilBERT validation example](examples/huggingface-demo/README.md) connects one canonical
 config to a real text-classification training run on a user-operated RTX 3060 12GB under WSL2.

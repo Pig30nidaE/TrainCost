@@ -2,6 +2,11 @@
 
 Updated: 2026-11-07. Target: `v0.2.0-beta.1`, not published.
 
+This is the PR #11 candidate record. The subsequent local
+[multi-model upgrade](hf_model_matrix.md) changes code and tooling and needs its
+own candidate review and hosted checks. Do not apply the completion decision
+below to that newer worktree. Publication and Action access remain unchanged.
+
 This record supersedes the earlier review-driven upgrade's local result. The
 release-readiness branch preserves the previous implementation and Mac evidence,
 and incorporates the user's current main branch, including its AGENTS.md deletion.

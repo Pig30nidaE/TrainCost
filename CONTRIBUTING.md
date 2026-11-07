@@ -24,6 +24,8 @@ python -m unittest discover -s examples/hf-config-corpus/tests
 python scripts/verify_release.py
 python scripts/verify_hf_demo.py
 python scripts/verify_hf_corpus.py
+python -m unittest discover -s examples/hf-model-matrix/tests
+python scripts/verify_hf_evidence.py
 ```
 
 The Hugging Face demo tests and corpus evaluator run offline without downloading models or starting training. GPU measurement is a separate, opt-in workflow. See [the demo README](examples/huggingface-demo/README.md) for its limits and prerequisites.
@@ -33,6 +35,15 @@ Include a short description of the problem, the change, and the checks run in th
 ## Config corpus changes
 
 Add only minimized, labeled cases with a source repository, immutable commit, file path, license, and a description of every mutation. Mark hypothetical settings and synthetic cases. Do not describe the corpus as measured adoption or production accuracy. Run `python scripts/verify_hf_corpus.py` after editing it.
+
+For real pretrained models, use the [model-matrix contribution procedure](examples/hf-model-matrix/README.md#contribute-another-model).
+Keep offline contract tests separate from opt-in local training. Submit immutable
+model revisions and metadata-only evidence, including failures. Do not commit
+weights, raw datasets, tokens, or claim a new task is supported from its model name.
+Register a study in `examples/hf-model-matrix/evidence-index.json` with the bundle
+manifest hash, measured source identity, exact model coverage, and its real
+outcome. Failed timing must remain failed. The replay gate checks all registered
+artifacts and rejects unlisted files; it never starts a GPU job.
 
 ## Security reports
 

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_EVEN, localcontext
 import importlib.util
 import json
 import math
 import os
 from pathlib import Path
+import re
 import shutil
 import signal
 import subprocess
@@ -158,7 +159,7 @@ def action_report(base, pr):
     for config, estimate in ((base_config, comparison.base_estimate), (pr_config, comparison.pr_estimate)):
         expected = decimal_cost(config["epochs"], config["estimated_minutes_per_epoch"], config["gpu_count"], "1.00")
         expected_costs.append(expected)
-        if not math.isclose(estimate.estimated_cost_usd, float(expected), rel_tol=1e-12, abs_tol=1e-15):
+        if not math.isclose(estimate.estimated_cost_usd, float(expected), rel_tol=1e-12, abs_tol=0):
             raise DemoError("Independent cost calculation does not match the core engine.")
     if not {"budget_exceeded", "precision_risk", "cost_increase"}.issubset({w.code for w in comparison.warnings}):
         raise DemoError("Expected TrainCost warnings are missing.")
@@ -173,10 +174,48 @@ def action_report(base, pr):
         os.chdir(previous)
     if result.status != "complete":
         raise DemoError("TrainCost could not generate a complete report.")
-    for label, cost in zip(("Base branch", "This PR"), expected_costs):
-        if f"{label}: ${float(cost):,.2f}" not in result.report:
-            raise DemoError("Report rounding does not match the independent cost calculation.")
+    try:
+        document = module.report_envelope(result)
+        if document["schema_version"] != "1.0" or document["analysis_status"] != "complete" or len(document["analyses"]) != 1:
+            raise ValueError
+        if (document["summary"]["analyzed_count"] != 1 or document["summary"]["excluded_count"] != 0
+                or document["summary"]["scope"] != "analyzed_configs_only"):
+            raise ValueError
+        item = document["analyses"][0]
+        machine_costs = [item[side]["estimate"]["estimated_cost_usd"] for side in ("base", "pr")]
+        totals = [document["summary"][name] for name in ("base_cost_usd", "pr_cost_usd")]
+        for expected, actual, total in zip(expected_costs, machine_costs, totals):
+            if (any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+                    for value in (actual, total))
+                    or (expected > 0 and (actual <= 0 or total <= 0))
+                    or not math.isclose(actual, float(expected), rel_tol=1e-12, abs_tol=0)
+                    or not math.isclose(total, float(expected), rel_tol=1e-12, abs_tol=0)):
+                raise ValueError
+        _verify_cost_display(result.report, machine_costs)
+    except (KeyError, IndexError, TypeError, ValueError, OverflowError):
+        raise DemoError("Report or JSON cost does not match the independent calculation.") from None
     return result.report
+
+
+def _verify_cost_display(report, machine_costs):
+    """Check exact report rows using an independent Decimal display contract."""
+    amounts = [Decimal(str(value)) for value in machine_costs]
+    with localcontext() as context:
+        context.prec = max(28, *(len(amount.as_tuple().digits) + abs(amount.adjusted()) + 4 for amount in amounts))
+        displayed = [amount if amount and abs(amount) < Decimal("0.01")
+                     else amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN) for amount in amounts]
+    disambiguate = amounts[0] != amounts[1] and displayed[0] == displayed[1]
+    if disambiguate:
+        displayed = amounts
+    for label, amount, expected in zip(("Base branch", "This PR"), amounts, displayed):
+        rows = [line for line in report.splitlines() if line.startswith(f"- {label}: ")]
+        if len(rows) != 1:
+            raise ValueError
+        match = re.fullmatch(r"- " + re.escape(label) + r": \$((?:\d+|\d{1,3}(?:,\d{3})+)\.\d{2,})", rows[0])
+        if (not match or Decimal(match.group(1).replace(",", "")) != expected
+                or (not disambiguate and (not amount or abs(amount) >= Decimal("0.01"))
+                    and len(match.group(1).rsplit(".", 1)[1]) != 2)):
+            raise ValueError
 
 
 def write_new(path, text):

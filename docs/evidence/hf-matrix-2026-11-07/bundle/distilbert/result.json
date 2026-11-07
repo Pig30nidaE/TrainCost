@@ -1,0 +1,31 @@
+{
+  "compatibility_status": "PASS",
+  "condition_sha256": "181e26f8f7de86ba9c3ef06745242ac7bfb51c2ab6b888a04e58efbb5c65fadb",
+  "model_id": "distilbert/distilbert-base-uncased",
+  "price_note": "Hypothetical $1/unit-hour; not billed or electricity cost.",
+  "report_status": "PASS",
+  "revision": "12040accade4e8a0f71eabdb258fecc2e7e948be",
+  "timing": {
+    "calibration_median_seconds": 5.906901750000543,
+    "observed_median_seconds": {
+      "base": 5.951075833007053,
+      "pr": 14.950309209001716
+    },
+    "predicted_seconds": {
+      "base": 5.906901750000543,
+      "pr": 17.72070525000163
+    },
+    "relative_errors": {
+      "base": 0.00742287348474083,
+      "pr": 0.18530693929272263
+    },
+    "repeatable": {
+      "base": false,
+      "calibration": false,
+      "pr": false
+    },
+    "status": "FAIL"
+  },
+  "timing_status": "FAIL",
+  "training_runs": 9
+}

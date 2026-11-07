@@ -15,5 +15,6 @@ __pycache__/
 
 # Local, opt-in GPU validation artifacts must not be committed.
 /.venv-hf/
+/.venv-hf-matrix/
 /.hf-validation*/
 /hf-validation-output/

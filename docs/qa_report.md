@@ -1,5 +1,70 @@
 # Beta QA evidence
 
+## Multi-model upgrade (2026-11-07)
+
+The current local branch is `codex/hf-model-matrix`. See
+[the measured study](hf_model_matrix.md) for immutable model revisions and the
+metadata-only bundle. DistilBERT, BERT, and ALBERT completed 27 real MPS training
+runs. All actual Trainer settings, encoder-update/gradient checks, Decimal cost
+checks, Action outputs and Step Summary comparisons passed. Timing repeatability
+failed for DistilBERT and BERT; ALBERT passed. Overall timing remains FAIL.
+
+Local Python 3.11-3.14 each passed 266 tests with one Linux-only skip, plus the
+50-case labeled corpus and static/consumer checks. New regressions cover physical
+HF microbatch warning semantics, subcent calibration, model-profile safety,
+parent watchdog termination, calibration freeze, condition hashes, exact Action
+outputs, incomplete statuses, and nested bundle metadata rejection. QAReview
+identified the status/bundle issues; PM added and ran their regressions. The
+post-measurement export hardening does not replace the recorded training source
+fingerprint with the final source fingerprint.
+
+No new hosted PR, external-consumer permission test, CUDA run, release, tag push,
+public transition, or Action access change occurred. Earlier results below are
+historical and do not supply those missing gates for this worktree.
+
+## Final MVP demo QA (2026-11-07)
+
+The canonical config-only demo passed local QA in an existing Python 3.12.8
+environment with PyYAML 6.0.3 and jsonschema 4.25.1. The worktree contained
+pre-existing code and fixture changes; this result applies to that worktree,
+not to an independently identified release commit.
+
+- `python3 -m unittest discover packages/core/tests`: 113 tests passed.
+- `python3 -m unittest discover packages/github-action/tests`: 71 tests passed,
+  including local Git-based PR-path cases.
+- The requested Action dry run returned exit 0 and `analysis-status: complete`.
+  `cmp /private/tmp/traincost-qa-demo-report.md examples/pytorch-demo/expected-report.md`
+  returned 0: the files match byte-for-byte.
+- The initial commands under system Python 3.14 failed because PyYAML and
+  jsonschema were absent. The core run reported 19 failures and 7 errors; the
+  Action run reported 25 failures and 9 errors; the dry run returned exit 2.
+  The successful reruns used `/private/tmp/traincost-hf-tests/bin` on `PATH`.
+- `examples/pytorch-demo/config.yaml` matches the base fixture byte-for-byte.
+  The in-repository example selects that path; the standalone workflow selects
+  `config.yaml` at the consumer repository root.
+- `OWNER/traincost-ci@v1` does not appear in the repository. The standalone
+  workflow uses a full historical candidate SHA, not that placeholder. The
+  reviewed demo wording calls costs estimates and distinguishes input confidence
+  from billing accuracy.
+- Inspection of the Action and CLI log statements found no direct token or
+  environment dump. The suites include synthetic-secret cases. This is not a
+  guarantee that all possible secrets or logging paths are covered.
+
+No new live GitHub PR was run for this worktree. Historical same-repository
+PR smoke evidence appears below and in the current release-readiness record;
+it does not verify the present uncommitted changes or an external consumer.
+The source repository is private with Action access set to `none`, so an
+independent external consumer or real fork remains unvalidated. Human review
+and separate publication approval also remain open. The historical v0.1.0 tag
+already exists and must not be moved. Recommendation: **Demo ready** for the
+local config-only scenario, not ready for a new public release.
+
+Scope review: the Action analyzes configs without executing training. The
+repository nevertheless contains a separate opt-in real-training validation
+example, and its Mac smoke has run; therefore a claim that the entire repository
+contains no real GPU training would be false. This QA did not add, launch, or
+verify that experiment. No dashboard or SaaS backend was identified in this review.
+
 Updated: 2026-11-07. Current candidate: local and same-repository hosted checks PASS.
 Independent external/fork gates NOT RUN. Publication: HOLD.
 

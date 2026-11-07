@@ -1,8 +1,48 @@
 # TrainCost CI PM status
 
-Updated: 2026-11-07.
+Updated: 2026-11-08.
 
 ## Decision
+
+The active user goal now includes an actual release after meeting the open-source,
+multi-model validation, and portfolio requirements. It is not achieved yet.
+The preceding goal turn made progress by implementing and measuring the matrix;
+its final compatibility result is not the whole release objective.
+
+Current release gates are a reviewed immutable candidate, current hosted CI,
+commit-bound real-model evidence, documented support/limitations, independent
+installation/fork evidence, confidentiality review, and publication. Private
+Action access remains `none`; permission/visibility changes have not been
+authorized. The current local changes are being prepared for a review PR and
+hosted CI. The old failed timing study remains preserved and cannot be relabeled
+or used as proof of stable runtime prediction.
+
+The historical matrix now has a registered evidence replay in CI. This verifies
+all three models and 27 artifacts-backed runs without training, rejects missing
+or extra files, and retains failed outcomes. The portfolio walkthrough now uses
+the actual findings and measurements rather than the outdated claim that no real
+models or HF adapter exist. A committed-source study is still required: the
+temporary measured source snapshot from the initial run is no longer available.
+
+## Earlier matrix snapshot
+
+The current local `codex/hf-model-matrix` upgrade supersedes the candidate snapshot
+below for HF validation. DistilBERT, BERT, and ALBERT each completed nine real MPS
+fine-tuning runs and correct Action reports. The timing study did not fully pass:
+DistilBERT and BERT failed repeatability; ALBERT passed. See the
+[full study and regression evidence](hf_model_matrix.md). This supports a bounded,
+multi-architecture text-classification validation claim, not a general runtime
+predictor or every HF task.
+
+The HF microbatch warning and demo subcent-calibration regressions are fixed.
+CoreEngine, Integration, and QAReview worked on separate files/reviews; no new
+agents were created. The changes remain local on a branch based on PR #11's
+`5983297a22352fe25078cd35a340a930d3663539`. The previous hosted runs do not cover
+this upgrade. Next: review the new diff, then validate the selected candidate in
+hosted CI under existing permissions. Do not merge, publish, push tags, or expand
+Action access as a consequence of this study. Public distribution remains HOLD.
+
+## Previous candidate snapshot
 
 The latest [release-readiness record](release_readiness.md) supersedes the upgrade
 snapshot below. Both reproduced P1 paths and the follow-up glob diagnostic overwrite

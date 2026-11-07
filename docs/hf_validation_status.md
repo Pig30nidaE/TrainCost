@@ -2,6 +2,11 @@
 
 Updated: 2026-11-07. RTX 3060/CUDA validation: **DEFERRED, NOT RUN**. Publication: **HOLD**.
 
+The later [multi-model Mac study](hf_model_matrix.md) completed 27 actual runs
+across DistilBERT, BERT, and ALBERT with separate calibration and held-out runs.
+All training/report checks passed; the combined timing gate failed. That study
+does not replace the deferred CUDA experiment documented here.
+
 The user deferred Windows testing and approved a separate Mac smoke. Real MPS
 fine-tuning and report arithmetic passed on the M1 Mac mini; its one-run-per-condition
 time extrapolation overestimated by 42.965% initially and 7.496% on a verification

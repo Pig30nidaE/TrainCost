@@ -61,6 +61,9 @@ jobs:
         run: |
           python -m unittest discover -s examples/huggingface-demo/tests
           python scripts/verify_hf_demo.py
+          python -m unittest discover -s examples/hf-model-matrix/tests
+          python scripts/verify_hf_matrix.py --list
+          python scripts/verify_hf_evidence.py
       - name: Verify missing YAML dependency diagnostic
         run: python -I -S scripts/verify_no_yaml.py
       - name: Build wheel and verify outside repository

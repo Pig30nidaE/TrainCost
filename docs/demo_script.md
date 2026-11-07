@@ -34,6 +34,8 @@ Expect analysis-status=error, exit 2, no cost estimate, and a value-free epoch v
 
 ## GitHub evidence
 
+For a live demo PR, change `examples/pytorch-demo/config.yaml`. The standalone
+example workflow uses `config.yaml` at the root of its consumer repository.
 Use the candidate SHA and run links in docs/qa_report.md.
 Do not merge risky demo changes into main. Keep the canonical config as the cheap baseline.
 Local images above are rendered from actual fixture text and labeled as excerpts.

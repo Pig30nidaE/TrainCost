@@ -27,7 +27,7 @@ Cost risk detected.
 - GPU type changed to a more expensive option: GPU type changed from T4 \($0.35/hour\) to A100 \($3.20/hour\). Higher hourly GPU prices raise total training cost even if runtime stays flat. Use the smaller GPU when it meets memory and throughput needs.
 - GPU count increased: GPU count changed from 1 to 2. The estimate multiplies runtime by GPU count. Use fewer GPUs or shorten the run when multi-GPU training is not required.
 - Mixed precision appears disabled: precision changed from bf16 to fp32; mixed\_precision changed from True to False. fp32 or disabled mixed precision can increase memory use and runtime. Use bf16/fp16 mixed precision when the model and hardware support it.
-- Batch size is unusually small: Batch size is 8. Very small batches can reduce GPU utilization and extend runtime. Increase batch size, use gradient accumulation, or validate utilization with a dry run.
+- Batch size is unusually small: Batch size is 8. Very small batches can reduce GPU utilization and extend runtime. Measure GPU utilization with a dry run and increase the batch size if GPU memory allows.
 
 ### Recommendations
 
@@ -38,7 +38,7 @@ Cost risk detected.
 - Confirm the more expensive GPU is required for memory, speed, or availability.
 - Confirm the additional GPUs improve throughput enough to justify the cost.
 - Re-enable mixed precision if it is safe for this training job.
-- Check GPU utilization and consider a larger effective batch size.
+- Check GPU utilization and consider a larger batch that fits in memory.
 
 ### Confidence
 

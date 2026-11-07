@@ -1,0 +1,31 @@
+{
+  "compatibility_status": "PASS",
+  "condition_sha256": "0f84644d67619301a0f94fc073f32d25049748f7010626c91b8a6f553de85216",
+  "model_id": "google-bert/bert-base-uncased",
+  "price_note": "Hypothetical $1/unit-hour; not billed or electricity cost.",
+  "report_status": "PASS",
+  "revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+  "timing": {
+    "calibration_median_seconds": 11.240374916997098,
+    "observed_median_seconds": {
+      "base": 12.169331042001431,
+      "pr": 37.933875499998976
+    },
+    "predicted_seconds": {
+      "base": 11.240374916997098,
+      "pr": 33.721124750991294
+    },
+    "relative_errors": {
+      "base": 0.07633584145242811,
+      "pr": 0.11105511086015442
+    },
+    "repeatable": {
+      "base": false,
+      "calibration": true,
+      "pr": false
+    },
+    "status": "FAIL"
+  },
+  "timing_status": "FAIL",
+  "training_runs": 9
+}

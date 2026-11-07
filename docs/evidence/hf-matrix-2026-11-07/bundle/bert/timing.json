@@ -1,0 +1,21 @@
+{
+  "calibration_median_seconds": 11.240374916997098,
+  "observed_median_seconds": {
+    "base": 12.169331042001431,
+    "pr": 37.933875499998976
+  },
+  "predicted_seconds": {
+    "base": 11.240374916997098,
+    "pr": 33.721124750991294
+  },
+  "relative_errors": {
+    "base": 0.07633584145242811,
+    "pr": 0.11105511086015442
+  },
+  "repeatable": {
+    "base": false,
+    "calibration": true,
+    "pr": false
+  },
+  "status": "FAIL"
+}
