@@ -9,6 +9,14 @@ multi-model validation, and portfolio requirements. It is not achieved yet.
 The preceding goal turn made progress by implementing and measuring the matrix;
 its final compatibility result is not the whole release objective.
 
+New blocking finding: optional ML-lock auditing reported 16 advisory entries in
+four packages, 12 distinct vulnerabilities after duplicate-CVE review. The
+original audit is preserved under the committed study's evidence directory.
+Core/Action runtime-build CI does not audit this separate training environment.
+Integration owns lock upgrades, QAReview owns exposure review, and PM owns model
+metadata guards and renewed committed-source compatibility evidence. No blanket
+advisory suppression or new GPU run on the old environment is planned.
+
 Current release gates are a reviewed immutable candidate, current hosted CI,
 commit-bound real-model evidence, documented support/limitations, independent
 installation/fork evidence, confidentiality review, and publication. Private
@@ -26,8 +34,10 @@ training. QAReview identified nested-module and inventory-version issues, and th
 implementation includes their fixes and regressions. Historical evidence remains
 registered, including timing failures and its missing executable snapshot.
 
-The latest evidence-registration edits still require their own hosted CI. Remaining
-release work is final candidate review, a same-repository consumer for the new SHA,
+Evidence registration at `d6fd314` passed hosted CI and the SHA-pinned consumer
+[PR #14](https://github.com/Pig30nidaE/TrainCost/pull/14). Keep that PR unmerged.
+Subsequent dependency/security edits need their own validation. Remaining release
+work is the ML dependency fix and compatibility rerun, final candidate review,
 independent external/fork validation when permitted, confidentiality review, and
 publication approval. Same-repository or local simulations cannot replace the
 external/fork gate. No permission expansion, tag push, release, or merge occurred.

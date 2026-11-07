@@ -1,5 +1,22 @@
 # Beta QA evidence
 
+## Optional ML dependency audit follow-up
+
+The preserved [pip-audit 2.10.1 result](evidence/hf-matrix-2026-11-08/ml-dependency-audit.json)
+reports 16 entries in datasets 4.8.5, fsspec 2026.2.0, torch 2.9.1, and
+transformers 4.57.6. QAReview found 12 distinct vulnerabilities after duplicate-CVE
+review. Some concern APIs outside the pinned sequence-classification workflow;
+this is not a blanket no-impact conclusion. Dependencies and pre-load metadata
+guards are being updated. The successful training and hosted reports below do
+not approve the old optional ML environment for release.
+
+See [exposure review](ml_dependency_security.md) for the distinct advisories and
+assessment limits. QAReview inspected the new metadata boundary and compared its
+six upstream fixtures with the reviewed hashes; it found no further blocking issue
+in that narrow review. The [local boundary regression record](evidence/hf-matrix-2026-11-08/metadata-boundary-python312.json)
+contains 294 methods: 293 pass, one Linux-only skip. It still uses the old lock and
+does not establish compatibility with the planned dependency upgrades.
+
 ## Commit-bound matrix (2026-11-08)
 
 The new [study](hf_committed_study.md) measured commit

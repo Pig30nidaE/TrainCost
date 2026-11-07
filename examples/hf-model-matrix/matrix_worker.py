@@ -22,6 +22,7 @@ sys.path.insert(1, str(ROOT))
 import matrix_common as common
 from scripts.verify_hf_macos import check_environment, balanced_indices, dataset_hash
 from worker import text_hash
+from model_safety import validate_local_model
 
 PHASE_PATTERN = re.compile(r"^(calibration|base|pr)-([123])$")
 ALLOWED_MODEL_FILES = {"config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json",
@@ -243,6 +244,7 @@ def train(workspace, model_dir, profile, profiles, phase, epochs, source_sha256)
     config, settings = checked_config(profile, protocol, epochs)
     set_seed(protocol["seed"])
     load_start = time.monotonic()
+    validate_local_model(cache / "model", profile["model_type"], hashes=profile["metadata_sha256"])
     tokenizer = AutoTokenizer.from_pretrained(str(cache / "model"), local_files_only=True, token=False,
                                               trust_remote_code=False, use_fast=True)
     if not tokenizer.is_fast:

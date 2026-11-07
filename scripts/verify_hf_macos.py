@@ -20,6 +20,7 @@ sys.path.insert(0, str(DEMO))
 from common import digest, file_digest, input_contract, read_json, source_fingerprint
 from run_validation import worker_env
 from worker import balanced_indices, dataset_hash, prepare
+from model_safety import DISTILBERT_METADATA, validate_local_model
 
 
 def write_json(path, value):
@@ -121,6 +122,7 @@ def train(workspace, device, epochs):
     data_hashes = {split: dataset_hash(value) for split, value in data.items()}
     set_seed(42)
     start_load = time.monotonic()
+    validate_local_model(model_dir, "distilbert", hashes=DISTILBERT_METADATA)
     tokenizer = AutoTokenizer.from_pretrained(str(model_dir), local_files_only=True, token=False, trust_remote_code=False)
     model = AutoModelForSequenceClassification.from_pretrained(str(model_dir), num_labels=2,
         local_files_only=True, token=False, trust_remote_code=False, use_safetensors=True)

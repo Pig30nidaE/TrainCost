@@ -22,7 +22,7 @@ class ProvenanceTests(unittest.TestCase):
         self.git("init", "-q")
         self.git("config", "user.email", "test@example.invalid")
         self.git("config", "user.name", "Synthetic provenance test")
-        names = common.SOURCE_FIXED | {"examples/hf-model-matrix/matrix_common.py",
+        names = common.SOURCE_POLICIES[common.SOURCE_POLICY_VERSION][0] | {"examples/hf-model-matrix/matrix_common.py",
                                        "packages/core/src/traincost_ci_core/core.py"}
         files = {}
         for name in names:
@@ -32,7 +32,7 @@ class ProvenanceTests(unittest.TestCase):
             files[name] = hashlib.sha256(path.read_bytes()).hexdigest()
         self.git("add", ".")
         self.git("-c", "commit.gpgsign=false", "commit", "-qm", "Synthetic source")
-        self.snapshot = {"schema": 1, "inventory_version": 1, "commit": self.git("rev-parse", "HEAD"),
+        self.snapshot = {"schema": 1, "inventory_version": common.SOURCE_POLICY_VERSION, "commit": self.git("rev-parse", "HEAD"),
                          "files": files, "source_sha256": common.digest(files)}
 
     def git(self, *args):
@@ -106,13 +106,19 @@ class ProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "differs"):
             provenance.verify_snapshot(self.snapshot, root=self.root)
         self.assertNotIn("examples/hf-model-matrix/tests/example.py", common.execution_paths(
-            common.SOURCE_FIXED | {"examples/hf-model-matrix/tests/example.py"}))
+            set(self.snapshot["files"]) | {"examples/hf-model-matrix/tests/example.py"}))
 
     def test_future_inventory_policy_does_not_invalidate_old_snapshot(self):
-        with patch.dict(common.SOURCE_POLICIES, {2: (common.SOURCE_FIXED | {"future.py"}, common.SOURCE_DIRS)}):
+        with patch.dict(common.SOURCE_POLICIES, {99: (common.SOURCE_FIXED | {"future.py"}, common.SOURCE_DIRS)}):
             provenance.verify_snapshot(self.snapshot, root=self.root)
             with self.assertRaises(ValueError):
-                common.execution_paths(self.snapshot["files"], version=2)
+                common.execution_paths(self.snapshot["files"], version=99)
+
+    def test_inventory_v1_survives_v2_helper_addition(self):
+        self.snapshot["inventory_version"] = 1
+        del self.snapshot["files"]["examples/huggingface-demo/model_safety.py"]
+        self.snapshot["source_sha256"] = common.digest(self.snapshot["files"])
+        provenance.verify_snapshot(self.snapshot, root=self.root)
 
     def test_symlinked_module_directory_cannot_hide_sources(self):
         target = self.root / "external"

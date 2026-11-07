@@ -17,6 +17,11 @@ interface. Adding an architecture does not require a hard-coded encoder attribut
 All downloads are pinned; training uses local Safetensors with
 `trust_remote_code=False` and network access disabled through Hub offline mode.
 No remote model code, external tracking, or Hub upload is enabled.
+Before calling Transformers, the runner checks model and tokenizer metadata against
+reviewed SHA-256 values. It rejects remote-code, custom-kernel, template, and
+external-file fields, duplicate/nonfinite JSON, and unreviewed model dimensions.
+This boundary does not make vulnerable third-party libraries safe; the optional
+ML dependency audit must be reviewed separately before running an environment.
 
 ## Reproduce on Apple Silicon
 
@@ -116,7 +121,9 @@ cryptographic attestation that training occurred.
    with Safetensors and a fast tokenizer. Review the upstream license and model
    card. Record an immutable Hub commit, not `main` or a mutable tag.
 2. Add its profile to `profiles.json`. Permit only the required model/tokenizer
-   filenames. Do not add Python or pickle files. Keep the existing study protocol.
+   filenames. Add reviewed `config.json` and `tokenizer_config.json` hashes plus
+   byte-preserved regression fixtures with license attribution. Do not add Python
+   or pickle files. Keep the existing study protocol.
 3. Run the offline tests and then the opt-in study on the supported device. Record
    failures as well as successes. Do not reuse calibration across models or settings.
 4. Submit metadata evidence, its committed source revision, and file hashes. Do not commit weights,

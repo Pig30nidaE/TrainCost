@@ -81,7 +81,7 @@ class ContractTests(unittest.TestCase):
             action = root / "packages/github-action"
             for directory in (demo / "fixtures", core, action):
                 directory.mkdir(parents=True, exist_ok=True)
-            files = [demo / name for name in ("run_validation.py", "worker.py", "common.py", "oracle.py", "manifest.json", "requirements.in", "requirements.lock")]
+            files = [demo / name for name in ("run_validation.py", "worker.py", "common.py", "oracle.py", "model_safety.py", "manifest.json", "requirements.in", "requirements.lock")]
             files += [core / "engine.py", action / "traincost_action.py"]
             for path in files:
                 path.write_text("original")

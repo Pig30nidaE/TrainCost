@@ -8,6 +8,9 @@ TrainCost CI compares training configs, estimates GPU-hours and cost, and explai
 Think **Infracost for ML experiments**.
 
 **Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
+Publication is currently blocked by the optional training dependency audit;
+the measured ML lock has known advisories and is being upgraded. Do not treat
+successful model runs or Core/Action CI as a clean audit of that environment.
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
 The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
 subcent amounts, an installed CLI, and versioned JSON.

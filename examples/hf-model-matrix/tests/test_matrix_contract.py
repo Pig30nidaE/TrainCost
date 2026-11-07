@@ -59,6 +59,18 @@ class ProfileTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     common.read_json(path)
 
+    def test_new_execution_requires_reviewed_metadata_but_history_can_replay(self):
+        legacy = common.load_profiles()
+        for profile in legacy["models"]:
+            del profile["metadata_sha256"]
+        common.validate_profiles(legacy)
+        with patch.object(common, "read_json", return_value=legacy), self.assertRaises(ValueError):
+            common.load_profiles()
+        invalid = common.load_profiles()
+        invalid["models"][0]["metadata_sha256"]["config.json"] = "not-a-hash"
+        with self.assertRaises(ValueError):
+            common.validate_profiles(invalid)
+
 
 class ControllerTests(unittest.TestCase):
     def test_workspace_is_exclusive_and_rejects_symlinks(self):

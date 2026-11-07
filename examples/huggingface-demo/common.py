@@ -82,7 +82,7 @@ def input_contract():
 
 
 def source_fingerprint():
-    paths = [HERE / name for name in ("run_validation.py", "worker.py", "common.py", "oracle.py",
+    paths = [HERE / name for name in ("run_validation.py", "worker.py", "common.py", "oracle.py", "model_safety.py",
              "manifest.json", "requirements.in", "requirements.lock")]
     paths += sorted((ROOT / "packages/core/src/traincost_ci_core").glob("*.py"))
     paths.append(ROOT / "packages/github-action/traincost_action.py")

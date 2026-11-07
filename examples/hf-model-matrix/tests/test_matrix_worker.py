@@ -128,10 +128,13 @@ class MatrixWorkerTests(unittest.TestCase):
         transformers.set_seed = lambda seed: captured.update(seed=seed)
         modules = {"numpy": numpy, "torch": torch, "psutil": psutil, "datasets": datasets, "transformers": transformers}
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
+            root = Path(temp).resolve()
             model_dir = root / key
             cache = model_dir / "cache"
             (cache / "model").mkdir(parents=True)
+            for name in ("config.json", "tokenizer_config.json"):
+                fixture = HERE.parent / "huggingface-demo/tests/fixtures/model-metadata" / key / name
+                (cache / "model" / name).write_bytes(fixture.read_bytes())
             for split in ("train", "test"):
                 (cache / ("selected-" + split)).mkdir()
             (model_dir / "prepare.json").write_text("{}")

@@ -17,6 +17,7 @@ import time
 from urllib.parse import unquote, urlparse
 
 from common import HERE, digest, file_digest, input_contract, read_json, validate_config, write_json
+from model_safety import DISTILBERT_METADATA, validate_local_model
 
 
 def arm_parent_death_signal(parent_pid):
@@ -180,6 +181,7 @@ def train(workspace, request, manifest):
         if [labels.count(label) for label in (0, 1)] != [32, 32]:
             raise ValueError("smoke subset is not balanced")
     model_dir = str(workspace / "cache/model")
+    validate_local_model(model_dir, "distilbert", hashes=DISTILBERT_METADATA)
     tokenizer = AutoTokenizer.from_pretrained(model_dir, local_files_only=True, token=False, trust_remote_code=False)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2, local_files_only=True,
                                                                token=False, trust_remote_code=False,

@@ -37,7 +37,7 @@ def file_digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def validate_profiles(data):
+def validate_profiles(data, *, require_metadata=False):
     if (not isinstance(data, dict) or set(data) != {"schema", "dataset", "protocol", "models"}
             or type(data["schema"]) is not int or data["schema"] != 1):
         raise ValueError("Invalid matrix schema")
@@ -59,8 +59,15 @@ def validate_profiles(data):
                "vocab.txt", "vocab.json", "merges.txt", "spiece.model", "special_tokens_map.json"}
     required = {"config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json"}
     for profile in data["models"]:
-        if not isinstance(profile, dict) or set(profile) != {"key", "model_id", "revision", "model_type", "license", "files"}:
+        fields = {"key", "model_id", "revision", "model_type", "license", "files"}
+        if (not isinstance(profile, dict) or set(profile) not in (fields, fields | {"metadata_sha256"})
+                or (require_metadata and "metadata_sha256" not in profile)):
             raise ValueError("Invalid model profile")
+        if "metadata_sha256" in profile:
+            hashes = profile["metadata_sha256"]
+            if (not isinstance(hashes, dict) or set(hashes) != {"config.json", "tokenizer_config.json"}
+                    or any(not isinstance(h, str) or not re.fullmatch(r"[a-f0-9]{64}", h) for h in hashes.values())):
+                raise ValueError("Invalid reviewed metadata hashes")
         for key in ("key", "model_type"):
             if not isinstance(profile[key], str) or not re.fullmatch(r"[a-z][a-z0-9_-]{0,63}", profile[key]):
                 raise ValueError("Invalid model key/type")
@@ -79,7 +86,7 @@ def validate_profiles(data):
 
 
 def load_profiles():
-    return validate_profiles(read_json(HERE / "profiles.json"))
+    return validate_profiles(read_json(HERE / "profiles.json"), require_metadata=True)
 
 
 def profile_for(key):
@@ -117,8 +124,9 @@ SOURCE_FIXED = frozenset({
 })
 SOURCE_DIRS = frozenset({"examples/hf-model-matrix", "packages/core/src/traincost_ci_core"})
 # Keep old policies unchanged so later file moves do not invalidate recorded studies.
-SOURCE_POLICY_VERSION = 1
-SOURCE_POLICIES = {1: (SOURCE_FIXED, SOURCE_DIRS)}
+SOURCE_POLICY_VERSION = 2
+SOURCE_POLICIES = {1: (SOURCE_FIXED, SOURCE_DIRS),
+                   2: (SOURCE_FIXED | {"examples/huggingface-demo/model_safety.py"}, SOURCE_DIRS)}
 
 
 def execution_paths(names, version=SOURCE_POLICY_VERSION):
@@ -134,8 +142,9 @@ def execution_paths(names, version=SOURCE_POLICY_VERSION):
 
 
 def source_manifest():
-    paths = [ROOT / name for name in SOURCE_FIXED]
-    for directory in SOURCE_DIRS:
+    fixed, directories = SOURCE_POLICIES[SOURCE_POLICY_VERSION]
+    paths = [ROOT / name for name in fixed]
+    for directory in directories:
         entries = list((ROOT / directory).rglob("*"))
         if any(path.is_symlink() for path in entries):
             raise ValueError("Execution source cannot contain symlinks")

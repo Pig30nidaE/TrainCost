@@ -44,13 +44,15 @@ class WorkerMockTests(unittest.TestCase):
         config = {**base, "epochs": 3 if kind == "pr" else 1}
         captured = {"syncs": 0, "tokenizer": []}
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp)
+            root = Path(temp).resolve()
             model_dir = root / "cache/model"
             model_dir.mkdir(parents=True)
             model_file = model_dir / "model.safetensors"
             model_file.write_bytes(b"fake-not-a-real-model")
+            for name in ("config.json", "tokenizer_config.json"):
+                (model_dir / name).write_bytes((DEMO / "tests/fixtures/model-metadata/distilbert" / name).read_bytes())
             (root / "preflight.json").write_text('{"environment": "mock"}')
-            selection = {"model_files_sha256": {model_file.name: worker.file_digest(model_file)},
+            selection = {"model_files_sha256": {path.name: worker.file_digest(path) for path in model_dir.iterdir()},
                          "train": {"content_sha256": "mock-hash"}, "test": {"content_sha256": "mock-hash"},
                          "smoke": {"indices": list(range(64))}}
             (root / "selection.json").write_text(json.dumps(selection))
