@@ -22,6 +22,10 @@ CHECKS = (
     ("hf_registered_evidence", ["scripts/verify_hf_evidence.py"]),
     ("corpus_evaluator", ["-m", "unittest", "discover", "examples/hf-config-corpus/tests"]),
     ("release_fixtures", ["scripts/verify_release.py"]),
+    ("hosted_archives", ["docs/evidence/external-consumer-2026-11-08/verify.py"]),
+    ("fixed_hosted_archives", ["docs/evidence/final-consumer-2026-11-08/verify.py"]),
+    ("hosted_archive_regressions", ["-m", "unittest", "discover", "-s", "docs/evidence/external-consumer-2026-11-08", "-p", "test_verify.py"]),
+    ("verification_fingerprint", ["-m", "unittest", "discover", "-s", "scripts/tests"]),
     ("hf_static_demo", ["scripts/verify_hf_demo.py"]),
     ("hf_corpus", ["scripts/verify_hf_corpus.py"]),
     ("independent_consumer", ["scripts/verify_external_consumer.py", "--direct-only"]),
@@ -35,20 +39,38 @@ def fingerprint():
     for raw in sorted(set(output.split(b"\0")) - {b""}):
         relative = raw.decode("utf-8")
         path = ROOT / relative
-        if relative.startswith("docs/evidence/") or not path.is_file():
+        if not path.is_file():
             continue
-        if path.suffix not in {".py", ".json", ".yaml", ".yml", ".toml", ".txt", ".lock"}:
+        if not relative.startswith("docs/evidence/") and path.suffix not in {".py", ".json", ".yaml", ".yml", ".toml", ".txt", ".lock"}:
             continue
         files[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
     encoded = json.dumps(files, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(encoded).hexdigest(), files
 
 
+def validate_destination(value):
+    path = Path(value).absolute()
+    if path.exists() or path.is_symlink():
+        raise ValueError("Verification output must be a new file.")
+    # Keep generated records outside the checkout instead of excluding inputs.
+    # samefile also catches case aliases on case-insensitive filesystems.
+    if any(parent.exists() and parent.samefile(ROOT) for parent in path.parents):
+        raise ValueError("Verification output must be outside the source checkout.")
+    resolved = path.resolve()
+    if resolved.is_relative_to(ROOT.resolve()):
+        raise ValueError("Verification output must be outside the source checkout.")
+    return resolved
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--python", default=sys.executable)
-    parser.add_argument("--output", required=True)
+    parser.add_argument("--output", required=True, help="New JSON file outside the source checkout; existing files are never replaced.")
     args = parser.parse_args()
+    try:
+        destination = validate_destination(args.output)
+    except (ValueError, OSError, RuntimeError) as error:
+        parser.error(str(error))
     started_hash, files = fingerprint()
     version = subprocess.check_output([args.python, "-I", "-c", "import platform; print(platform.python_version())"], text=True).strip()
     records = []
@@ -81,9 +103,9 @@ def main():
         "checks": records, "passed": success,
         "scope": "Local offline checks; no hosted PR permissions, model training, or release validation.",
     }
-    destination = Path(args.output)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with destination.open("x", encoding="utf-8") as stream:
+        stream.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print("Source unchanged:", started_hash == ended_hash)
     return 0 if success else 1
 

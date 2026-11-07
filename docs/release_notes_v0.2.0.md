@@ -21,7 +21,7 @@ Unpublished report-only beta candidate.
 - Install Action dependencies in a disposable isolated venv without a token in report-only mode.
 - Verify Python 3.11-3.14 in CI, build/install the wheel independently, and publish three reproducible demo outcomes.
 - Add MIT licensing and portfolio documentation.
-- Add reviewed DistilBERT, BERT, and ALBERT MPS validation profiles, committed-source replay, and metadata-only evidence. Preserve all 81 observations across three studies, including historical failures.
+- Add reviewed DistilBERT, BERT, and ALBERT MPS validation profiles, committed-source replay, and metadata-only evidence. Preserve all 108 observations across four studies, including historical failures.
 - Upgrade optional ML locks, audit both complete locks in CI, and validate pinned model/tokenizer metadata before loading. The replacement environment has its own 27-run study; old vulnerable locks remain historical evidence only.
 
 ## Compatibility
@@ -46,9 +46,9 @@ Prices are illustrative unless overridden, runtime is supplied or assumed, and G
 An added file uses illustrative absent-base assumptions; it is not compared with a measured earlier run.
 `complete` means the selected configs were analyzed, not that every training setting was modeled.
 Report-only mode is the beta target. Comment mode remains experimental and is not a release gate.
-Real-model evidence covers small IMDb sequence-classification runs on MPS, not general HF tasks or runtime prediction. See the [current study](hf_security_upgrade_study.md).
-The user made the source public. Candidate `28b4c54` passed CI and a separate
+Real-model evidence covers small IMDb sequence-classification runs on MPS, not general HF tasks or runtime prediction. See the [final review and study](final_review.md).
+The user made the source public. Corrected runtime candidate `a907b78` passed CI and a separate
 [external consumer](external_consumer_validation.md) using both Action entrypoints.
-The real fork report-only test also passed. Candidate PR #13 is unmerged, and tag push
+The real fork report-only test also passed against that same SHA. Candidate PR #13 is unmerged, and tag push
 and release publication require separate approval. See [PM status](pm_status.md).
 The v0.1.0 tag remains unchanged.

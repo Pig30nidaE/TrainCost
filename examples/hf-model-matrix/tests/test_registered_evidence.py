@@ -102,6 +102,7 @@ class RegisteredEvidenceTests(unittest.TestCase):
         self.assertEqual({study["measured_commit"] for study in committed}, {
             "01ddafcda9a2545460f067dbb7c154f9661c2b97",
             "26613f604b9a25cecd65a6f8835dfd3ca8f5997e",
+            "a907b78423cd18b5e7a8f53f5d092fcba6df77e9",
         })
         for study in committed:
             self.assertEqual(study["training_runs"], 27)

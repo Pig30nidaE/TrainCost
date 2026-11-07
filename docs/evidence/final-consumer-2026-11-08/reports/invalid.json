@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "analysis_status": "error",
+  "analyses": [],
+  "diagnostics": [
+    "Comparison baseline: merge base bb0b5b974e7e702a9232ea3434dfb62da30b3c70.",
+    "Skipped examples/release-consumer/invalid.json: Positive max_steps overrides epochs; step-based runtime is unsupported."
+  ],
+  "summary": {
+    "analyzed_count": 0,
+    "excluded_count": 1,
+    "base_cost_usd": null,
+    "pr_cost_usd": null,
+    "scope": "analyzed_configs_only"
+  }
+}

@@ -1,25 +1,35 @@
 # Report-only beta checklist
 
-## Implemented and locally verified
+Updated 2026-11-08. Runtime candidate `a907b78423cd18b5e7a8f53f5d092fcba6df77e9`.
+See [final review](final_review.md) and [QA evidence](qa_report.md) for the checks
+behind these marks. Historical candidates do not substitute for this source.
 
-- [x] Canonical YAML, JSON, and Python literal analysis.
+## Implementation and verification
+
+- [x] Canonical YAML, JSON, and Python literal analysis; explicit bounded HF adapter.
 - [x] Safe numeric validation, conflict rejection, and sensitive-value exclusion.
 - [x] Explicit assumptions, input paths, and illustrative price sources.
-- [x] Actual Git modifications, additions, deletions, and renames.
+- [x] Actual Git changes, renames, and divergent-branch merge-base comparisons.
 - [x] Complete, partial, skipped, and error outputs.
 - [x] Automatic Step Summary and isolated dependencies.
 - [x] Three deterministic demo fixtures and local report images.
-- [x] Wheel build and installation outside the repository.
+- [x] Wheel and sdist build and installation outside the repository.
+- [x] Three actual model profiles; 108 preserved observations across four studies.
 - [x] Unit and integration tests with measured coverage.
 - [x] Local known-credential pattern scan.
 
-## Evidence required before publication
+- [x] Candidate Python 3.11-3.14 hosted CI and complete dependency audits.
+- [x] Separate public consumer and actual fork PR at the exact candidate SHA.
+- [x] Read-only fork permissions and report/Summary equality.
+- [x] Source made public by the user; no agent-initiated visibility/access change.
 
-- [x] Python 3.11-3.14 GitHub-hosted CI verified for 45f6652ebbff1a48162b58738e4ef1974c244232.
-- [x] YAML constructor-error review finding fixed and covered by safe CLI and partial-result regressions.
-- [x] Consumer workflow pinned to that candidate SHA verified, including Step Summary.
-- [ ] Human review of the hardening PR and confidential repository content.
-- [ ] Explicit approval to change repository visibility and publish the beta.
+## Before publication
 
-Live comment posting is experimental and not a checked-off capability.
-See docs/qa_report.md for the current evidence rather than inferring readiness from this checklist.
+- [ ] Final evidence-registration CI at the PR head.
+- [ ] Human review and explicit approval to merge PR #13.
+- [ ] Select and verify the release commit without changing tested runtime files.
+- [ ] Explicit approval for the annotated beta tag push and GitHub prerelease.
+
+Keep consumer PRs unmerged and the existing `v0.1.0` tag unchanged. No PyPI upload
+is included. Live comments, CUDA/WSL2 execution, and general HF task coverage are
+not checked-off capabilities. A known-pattern scan is not a general confidentiality guarantee.

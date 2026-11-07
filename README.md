@@ -16,10 +16,9 @@ This beta focuses on reports and GitHub Step Summary. PR commenting is experimen
 The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
 subcent amounts, an installed CLI, and versioned JSON.
 [Candidate PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) includes the
-multi-model upgrade. Its measured source commit `26613f6` passed
-[Python 3.11-3.14 and dependency CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42400274167).
-The source is now public. Candidate `28b4c54` passed all eight
-[CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42402097394) and an
+multi-model upgrade. Corrected runtime candidate `a907b78` passed all eight
+[Python 3.11-3.14 and dependency CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42406869566).
+The source is now public. The same candidate passed an
 [external consumer PR](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/1)
 using SHA-pinned root and package Actions. See the
 [external validation record](docs/external_consumer_validation.md).
@@ -27,9 +26,9 @@ A [real fork PR](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pul
 also passed the same report contracts with read-only permissions.
 Candidate PR #13 is not merged, and release publication is not approved.
 See [PM status](docs/pm_status.md) for remaining gates.
-The [security-upgraded model study](docs/hf_security_upgrade_study.md) completed 27 real runs
-with all training, report, and timing checks passing. The prior study's timing
-failures remain recorded across 81 total observations; these studies do not establish general runtime accuracy.
+The [final candidate study](docs/final_review.md) completed 27 new real runs
+with all training, report, and timing checks passing. Prior timing failures remain
+recorded across 108 observations in four studies; these do not establish general runtime accuracy.
 
 ## See the three outcomes
 
@@ -51,7 +50,7 @@ DistilBERT, BERT, and ALBERT sequence-classification verification on Apple Silic
 It checks actual Trainer arguments against the HF adapter, runs independent
 calibration and held-out repetitions, and keeps report correctness separate from
 time-extrapolation accuracy. This is a bounded text-classification study, not
-support for all Hugging Face tasks. [Measured results](docs/hf_committed_study.md).
+support for all Hugging Face tasks. [Current measured results](docs/final_review.md).
 
 The [DistilBERT validation example](examples/huggingface-demo/README.md) connects one canonical
 config to a real text-classification training run on a user-operated RTX 3060 12GB under WSL2.
@@ -87,7 +86,7 @@ Dependency installation downloads PyYAML; experimental comment mode sends the sa
 
 The [external consumer template](examples/external-consumer/README.md) uses a
 separate consumer repository and requires a reviewed upgrade commit SHA. The source
-is public. Full SHA `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed the
+is public. Full SHA `a907b78423cd18b5e7a8f53f5d092fcba6df77e9` passed the
 [hosted external consumer test](docs/external_consumer_validation.md).
 No existing tag contains the upgrade. Replace the template's placeholder with a
 reviewed full SHA before use.
@@ -117,6 +116,8 @@ jobs:
 ~~~
 
 The action writes report-path, report-json-path, comment-posted, and analysis-status outputs, and appends Markdown to Step Summary.
+PR reports compare the merge base with the PR head, not the current target tip or
+a simulated merge result. They record the exact comparison SHA.
 Cost risk does not fail the job. Invalid inputs or an entirely failed analysis return exit 2.
 For an added config, the Action compares the new file to explicit illustrative base assumptions;
 that base estimate is not a measurement of a previous run.

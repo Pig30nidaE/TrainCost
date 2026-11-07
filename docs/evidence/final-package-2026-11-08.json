@@ -1,0 +1,31 @@
+{
+  "record_type": "operator-observed local verification, not an independent attestation",
+  "candidate": "a907b78423cd18b5e7a8f53f5d092fcba6df77e9",
+  "recorded_date_kst": "2026-11-08",
+  "python": "3.12.8",
+  "platform": "macOS arm64",
+  "source_date_epoch": 1794080035,
+  "build_command": "env SOURCE_DATE_EPOCH=1794080035 .venv/bin/python -m build packages/core --no-isolation --outdir packages/core/dist/a907b78",
+  "artifacts": [
+    {
+      "name": "traincost_ci_core-0.2.0b1-py3-none-any.whl",
+      "bytes": 29876,
+      "sha256": "9c45f78f83ecad751c6bee7373420ae80ed99226856164fd56e8f341b57b4944",
+      "fresh_external_venv_install": "PASS"
+    },
+    {
+      "name": "traincost_ci_core-0.2.0b1.tar.gz",
+      "bytes": 40625,
+      "sha256": "255e95dc8c8776984bb03cdaeddf4ca657f742a71d943a982a820b3453327253",
+      "fresh_external_venv_install": "PASS"
+    }
+  ],
+  "checks": {
+    "packaged_modules_equal_candidate_git_blobs": 15,
+    "metadata_and_mit_license": "PASS",
+    "sdist_has_no_links_or_escaping_paths": "PASS",
+    "import_and_fractional_epochs_outside_checkout": "PASS",
+    "installed_cli_hf_adapter_subcent_markdown_json": "PASS"
+  },
+  "limits": "Local unpublished distributions. No PyPI upload, GitHub asset upload, full sdist developer-test run, or cross-platform binary reproducibility claim."
+}

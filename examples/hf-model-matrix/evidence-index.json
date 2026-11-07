@@ -45,6 +45,21 @@
         "report_status": "PASS",
         "timing_status": "PASS"
       }
+    },
+    {
+      "id": "macos-final-review-2026-11-08",
+      "bundle": "docs/evidence/hf-matrix-final-review-2026-11-08/bundle",
+      "manifest_sha256": "a857852c06a7984d4adf2e90bd59f5b6c095fafa78598b9547b39cb05aa8f033",
+      "measured_source_sha256": "4703409d434d365efc4fe24289c9c9eaa1a72e9c799f27f7f64734d84e54e107",
+      "measured_commit": "a907b78423cd18b5e7a8f53f5d092fcba6df77e9",
+      "source_snapshot_available": true,
+      "models": ["distilbert", "bert", "albert"],
+      "expected_status": {
+        "status": "PASS",
+        "compatibility_status": "PASS",
+        "report_status": "PASS",
+        "timing_status": "PASS"
+      }
     }
   ]
 }

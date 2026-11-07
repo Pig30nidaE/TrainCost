@@ -5,7 +5,50 @@ visibility change. The user approved creating a public validation repository and
 running test PRs. Source PR merges, tag pushes, and release publication remain
 outside that approval.
 
-## Tested identity
+## Corrected candidate follow-up
+
+Runtime candidate `a907b78423cd18b5e7a8f53f5d092fcba6df77e9` fixes PR merge-base
+selection, report baseline labels, and explicit precision precedence. The old
+candidate results below are retained as history, not substituted for this rerun.
+
+With the user's explicit approval, the existing ordinary and fork test branches
+were updated from `01e73957f09b473cc0d133e7bc67c333530030f0` to
+`fe7e9778257a24a5efa884c94fb08d7b5068281d`. The only diff was six SHA replacements
+in the workflow: five Action references and the recorded candidate field. Test
+assertions, config inputs, permissions, and repository policy were unchanged.
+
+| Field | Ordinary PR #1 | Actual fork PR #2 |
+| --- | --- | --- |
+| Run | [42406963444](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42406963444) | [42406970081](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42406970081/attempts/2) |
+| Attempt / result | 1 / success | 2 / success |
+| Head repository ID | `1449646378` | `1449662675`, `anyhogs/TrainCost-consumer-validation` |
+| Event | `pull_request` | `pull_request` |
+| Python | 3.12.16 | 3.12.16 |
+
+Both use base `bb0b5b974e7e702a9232ea3434dfb62da30b3c70` and the new head above.
+The reviewed workflow Git blob is `dbd81fc78d2599db80973b1179041cd8f8856cc8`.
+Fork attempt 1 required approval. The specific run was approved after reviewing
+that SHA-only diff; no approval policy was relaxed. Actual token permissions were
+Contents read and Metadata read. No checkout or permissions error occurred after
+approval. The expected negative-step failures and third-party Action deprecation
+notices remain distinguishable from unexpected failures.
+
+Every contract in the table below passed again. All four comment outputs were
+false and reports matched runner Step Summary files byte-for-byte. The modified
+report contains `Merge-base estimate: $0.10`, `PR-head estimate: $0.30`, and the
+exact merge-base SHA in diagnostics. The new reports and reduced identity records
+are in [the final archive](evidence/final-consumer-2026-11-08/reports/verification.json)
+and [its fork archive](evidence/final-consumer-2026-11-08/fork/reports/verification.json).
+
+```bash
+.venv/bin/python docs/evidence/final-consumer-2026-11-08/verify.py
+```
+
+Both old and corrected archive replays run in CI. They check recorded evidence,
+not a new hosted execution or the browser-rendered Summary. No source PR or
+consumer PR was merged, and no tag or release was published.
+
+## Earlier tested identity, preserved
 
 | Field | Observed value |
 | --- | --- |

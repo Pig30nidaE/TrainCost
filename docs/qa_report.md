@@ -1,6 +1,51 @@
 # Beta QA evidence
 
-## Resumed final review
+## Corrected candidate evidence, 2026-11-08
+
+Runtime candidate `a907b78423cd18b5e7a8f53f5d092fcba6df77e9` passed all eight
+[CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42406869566).
+The new [ordinary consumer run](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42406963444)
+and [real fork run, attempt 2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42406970081/attempts/2)
+use that exact candidate. Both root and package Action contracts, complete/partial/
+error outputs, unsafe-output rejection, false comment outputs, and report/Summary
+equality passed. Fork permissions were Contents read and Metadata read. User
+approval allowed a six-SHA-string workflow update and rerun, not assertion or
+permission changes. Exact identities are in the [consumer record](external_consumer_validation.md).
+
+The [fourth real-model study](final_review.md) adds 27 actual MPS training runs
+at the same candidate. All three models passed training, report, and fixed timing
+criteria. All 108 observations are registered, with historical failures preserved.
+QAReview independently replayed the new and old consumer archives and all four
+model studies, checked immutable-source binding, and found no additional runtime
+defect. Replay is an integrity check, not independent execution attestation.
+
+Both candidate wheel and sdist passed separate fresh-environment installations,
+import, fractional epochs, CLI/HF adapter, and subcent Markdown/JSON checks outside
+the repository. All 15 packaged modules match Git blobs. The [package record](evidence/final-package-2026-11-08.json)
+retains exact hashes. No package or release asset has been published.
+
+QAReview found that `verify_upgrade.py` omitted executed archive code and inputs
+from its fingerprint. A first correction excluded the requested output, which
+could conceal and overwrite an input when misconfigured. The verifier now includes
+all evidence inputs and requires a new output outside the checkout, with exclusive
+creation and no fingerprint exclusions. Four tests cover archive/previous-record
+mutation and output paths, including symlink, hardlink, and parent aliases.
+The [intermediate local result](evidence/final-review-before-output-guard-2026-11-08.json)
+is retained as history, not the final acceptance record. These corrections affect
+verification records, not product behavior; no extra model rerun is needed.
+
+The [final guarded local verification](evidence/final-review-local-2026-11-08.json)
+passed 322 of 323 unittest methods, with one Linux-only skip on macOS. Counts:
+Core 115, Action 77, HF demo 76, matrix 43, corpus evaluator 6, archive tests 2,
+verification guard tests 4. The 50-case corpus and all non-unittest checks passed.
+The final guard received QAReview's static follow-up with no additional actionable
+finding. The result was created outside the checkout and archived after completion.
+The local known-pattern scan then checked 674 reachable blobs and 553 worktree
+entries with zero findings. It does not prove arbitrary credentials or confidential
+content are absent. The real verifier CLI also rejected an attempted archive-output
+collision before running checks, leaving the input unchanged.
+
+## Earlier resumed review, before candidate verification
 
 QAReview reproduced two findings at `50ce946`. A direct base-tip/head diff selected
 configs changed only on the target branch. Canonical `precision=fp32` with
@@ -15,8 +60,8 @@ target-side deletion, PR rename, unrelated histories, and multiple merge bases.
 Two precision tests cover enabled, disabled, and unspecified flags. The aggregate
 overflow test now mocks the new boundary and asserts its actual overflow diagnostic,
 so an unrelated Git error cannot satisfy it. Local full regression passed with
-317 methods, one Linux-only skip. Hosted evidence below applies to earlier SHAs
-until the corrected candidate is verified separately.
+317 methods, one Linux-only skip. That was the pre-registration suite; the corrected
+candidate has its own hosted evidence above. Older records below retain their SHAs.
 
 ## Real fork consumer follow-up, 2026-11-08
 

@@ -4,6 +4,32 @@ Updated: 2026-11-08.
 
 ## Current decision
 
+The corrected runtime candidate `a907b78423cd18b5e7a8f53f5d092fcba6df77e9`
+has passed all eight [hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42406869566),
+new ordinary and actual fork consumer runs, and 27 fresh real-model measurements.
+The [final review](final_review.md) records the exact source, outputs, timings,
+package hashes, and limitations. External/fork installation is no longer blocked.
+The user's authorization covered only the fork test branch's Action SHA update
+and rerun; no policy, access, source merge, tag, or release was changed.
+
+DistilBERT, BERT, and ALBERT passed training, report, and unchanged timing criteria.
+All 108 observations across four studies remain registered, including the original
+timing failures. Both wheel and sdist install and run outside the source checkout.
+This supports a report-focused beta with bounded HF sequence-classification
+profiles, not arbitrary HF tasks or general runtime/billing prediction.
+
+The final local regression passed 322 of 323 methods, with one Linux-only skip on
+macOS. QAReview's archive-fingerprint/output finding is fixed with four regressions
+and its final static follow-up found no additional actionable issue. The measured
+Core, Action, and training source remain unchanged. Evidence registration is
+receiving its own hosted CI checks.
+Next: confirm registration CI, then obtain explicit human approval for PR #13
+merge and a release commit/tag. Until approval, keep source and consumer PRs
+unmerged, `v0.1.0` unchanged, and `v0.2.0-beta.1` unpublished. No PyPI publication
+is included. CUDA/WSL2 and live comment posting remain unverified.
+
+## Earlier final-review snapshots, superseded
+
 Resumed final review found two additional defects in `50ce946`: target-branch-only
 changes were included by a base-tip/head diff, and canonical FP32 with explicit
 mixed precision enabled produced a disabled warning. Both are fixed locally with

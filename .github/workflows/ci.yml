@@ -67,6 +67,12 @@ jobs:
           python -m coverage report --omit='*/tests/*'
       - name: Metadata and all demo fixtures
         run: python scripts/verify_release.py
+      - name: Replay archived public and real fork consumers
+        run: |
+          python docs/evidence/external-consumer-2026-11-08/verify.py
+          python docs/evidence/final-consumer-2026-11-08/verify.py
+          python -m unittest discover -s docs/evidence/external-consumer-2026-11-08 -p test_verify.py
+          python -m unittest discover -s scripts/tests
       - name: Labeled HF configuration corpus
         run: |
           python -m unittest discover examples/hf-config-corpus/tests

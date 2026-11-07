@@ -4,6 +4,10 @@ Date: 2026-11-08. Measured commit:
 `26613f604b9a25cecd65a6f8835dfd3ca8f5997e`, in
 [PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13).
 
+This is the third study's historical record. The [final review](final_review.md)
+adds a fourth study at corrected runtime candidate `a907b78`; current replay
+checks 108 observations. The measurements below remain tied to `26613f6`.
+
 DistilBERT, BERT, and ALBERT each completed nine fresh MPS fine-tuning runs with
 the replacement dependency lock. All training contracts, report checks, and
 preregistered timing criteria passed. This closes the discovered optional-lock
@@ -67,8 +71,8 @@ estimate by 200%.
   --check-bundle docs/evidence/hf-matrix-security-2026-11-08/bundle
 ```
 
-The first command needs a full Git checkout. It replays all three registered
-studies, 81 observations, and verifies available source snapshots against Git
+The first command needs a full Git checkout. It now replays all four registered
+studies, 108 observations, and verifies available source snapshots against Git
 blobs, preserving the original timing failures and provenance limitation. The
 second command checks only the specified 27-run bundle's internal consistency;
 it does not compare source to Git blobs. Neither command needs ML packages,

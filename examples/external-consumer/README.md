@@ -24,7 +24,7 @@ If the config is first added in the PR, the report uses illustrative defaults fo
 Run `python scripts/verify_external_consumer.py` from TrainCost CI to exercise both the direct Action entrypoint and the isolated bootstrap against an unrelated local Git repository. The bootstrap installs its pinned dependency and needs package-index access. Use `--direct-only` to skip the bootstrap when that access is unavailable. These normal and fork-style event payloads simulate GitHub locally; they do not verify hosted permissions or private cross-repository access.
 
 The user made the source repository public. A separate hosted consumer verified
-root and package Actions at `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` without
+root and package Actions at `a907b78423cd18b5e7a8f53f5d092fcba6df77e9` without
 copying the implementation. See the [run and archived reports](../../docs/external_consumer_validation.md).
 The first run was an ordinary branch PR in a separate repository. A subsequent
 real fork PR passed the same contracts with read-only permissions. These hosted

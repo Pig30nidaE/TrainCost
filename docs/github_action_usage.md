@@ -95,11 +95,12 @@ After the upgrade is reviewed, replace the placeholder below with its full commi
 ~~~
 
 The placeholder is not a runnable reference or a published beta tag. The source is
-public. Candidate `28b4c541ab98a840a814f6bed8d3b205ece3d4ca` passed a separate
+public. Corrected candidate `a907b78423cd18b5e7a8f53f5d092fcba6df77e9` passed a separate
 [hosted consumer test](external_consumer_validation.md) for both Action entrypoints.
 Its follow-up real fork PR passed with Contents read and Metadata read permissions.
 This covers report-only mode, not live comment posting. For private copies of the source,
 cross-repository Action access requires separate repository settings.
-The historical v0.1.0 tag and earlier candidate SHA lack the HF adapter and JSON output described here.
+The historical v0.1.0 tag lacks the HF adapter and JSON output described here.
+Candidates before the final review do not include its merge-base and precision fixes.
 
 The locally reproducible unrelated-consumer and fork-payload checks are in `scripts/verify_external_consumer.py`. They do not establish GitHub-hosted fork permissions or private cross-repository Action access. An example consumer workflow is in `examples/external-consumer/`.
