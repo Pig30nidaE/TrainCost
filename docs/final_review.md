@@ -24,6 +24,10 @@ Public inputs, structured JSON, and the numeric formula are unchanged.
 All eight [candidate CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42406869566)
 passed, including Python 3.11-3.14, isolated Action installation, runtime/build
 audit, and both complete optional ML-lock audits.
+Evidence registration commit `59ceb45c3b224c471ab4708b41e2e9c79fbac78d` also passed
+all eight [CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42408642946),
+including the added archive replay and verification-record guards. It changes
+verification, evidence, and documentation, not the measured runtime.
 
 The ordinary [external PR run](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42406963444)
 and the [real fork run, attempt 2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/actions/runs/42406970081/attempts/2)
@@ -118,8 +122,9 @@ in the package README. No PyPI release is claimed.
 ## Decision boundary
 
 The corrected report-only implementation has candidate-bound hosted, fork,
-real-model, and package evidence. Final registration CI and human approval must
-precede publication. PR #13 and consumer PRs remain unmerged. No tag was moved or
+real-model, and package evidence, and registration CI passed. PM recommends a
+report-only beta candidate within the documented limits. Human merge/tag/release
+approval must precede publication. PR #13 and consumer PRs remain unmerged. No tag was moved or
 pushed and no GitHub Release was published. The remaining unsupported scope is
 explicit: live comments, CUDA/WSL2 execution, generation, vision, speech, PEFT,
 distributed training, arbitrary HF settings, and production prediction accuracy.

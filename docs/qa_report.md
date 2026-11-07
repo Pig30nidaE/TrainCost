@@ -45,6 +45,13 @@ entries with zero findings. It does not prove arbitrary credentials or confident
 content are absent. The real verifier CLI also rejected an attempted archive-output
 collision before running checks, leaving the input unchanged.
 
+Evidence registration commit `59ceb45c3b224c471ab4708b41e2e9c79fbac78d` then passed
+all eight [hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42408642946).
+Python 3.11-3.14 each ran the new archive replay and verification guards, along
+with the existing tests, wheel installation, evidence replay, and safety checks.
+The isolated Action and all three dependency-audit jobs also passed. Later
+documentation-only edits do not change the candidate runtime or measurement source.
+
 ## Earlier resumed review, before candidate verification
 
 QAReview reproduced two findings at `50ce946`. A direct base-tip/head diff selected

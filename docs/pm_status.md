@@ -21,10 +21,13 @@ profiles, not arbitrary HF tasks or general runtime/billing prediction.
 The final local regression passed 322 of 323 methods, with one Linux-only skip on
 macOS. QAReview's archive-fingerprint/output finding is fixed with four regressions
 and its final static follow-up found no additional actionable issue. The measured
-Core, Action, and training source remain unchanged. Evidence registration is
-receiving its own hosted CI checks.
-Next: confirm registration CI, then obtain explicit human approval for PR #13
-merge and a release commit/tag. Until approval, keep source and consumer PRs
+Core, Action, and training source remain unchanged. Evidence registration commit
+`59ceb45c3b224c471ab4708b41e2e9c79fbac78d` passed all eight
+[hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42408642946),
+including the new archive and verification-guard checks.
+PM assessment: eligible for a report-only beta release candidate within the
+documented limits. Next: obtain explicit human approval for PR #13 merge and a
+release commit/tag. Until approval, keep source and consumer PRs
 unmerged, `v0.1.0` unchanged, and `v0.2.0-beta.1` unpublished. No PyPI publication
 is included. CUDA/WSL2 and live comment posting remain unverified.
 

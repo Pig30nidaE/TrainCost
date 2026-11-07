@@ -2,7 +2,10 @@
 
 Copy `examples/external-consumer/.github/workflows/traincost.yml` into `.github/workflows/traincost.yml` in a separate consumer repository. Replace `REVIEWED_UPGRADE_COMMIT_SHA` with the reviewed full upgrade commit SHA. The placeholder is not runnable. Private repositories need cross-repository Action access configured by their owners.
 
-Add a training config at the consumer repository root, for example:
+Add the following training config as `config.json` at the consumer repository
+root. The template watches that exact path and passes it to the Action. If you
+choose another path, update both `on.pull_request.paths` and `config-path` in the
+workflow.
 
 ```json
 {

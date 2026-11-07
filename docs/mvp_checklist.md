@@ -25,7 +25,7 @@ behind these marks. Historical candidates do not substitute for this source.
 
 ## Before publication
 
-- [ ] Final evidence-registration CI at the PR head.
+- [x] Evidence-registration CI at `59ceb45`: all eight jobs passed.
 - [ ] Human review and explicit approval to merge PR #13.
 - [ ] Select and verify the release commit without changing tested runtime files.
 - [ ] Explicit approval for the annotated beta tag push and GitHub prerelease.
