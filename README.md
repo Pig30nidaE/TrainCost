@@ -9,23 +9,24 @@ Think **Infracost for ML experiments**.
 
 **Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
 The old measured ML lock has known advisories. Its replacement passes the complete
-dependency audit; fresh training verification is pending. Do not treat successful
-historical model runs as approval of another environment. See the
+dependency audit and a fresh 27-run real-model study. Historical records remain
+available and are not recommended installation environments. See the
 [dependency security record](docs/ml_dependency_security.md).
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
 The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
 subcent amounts, an installed CLI, and versioned JSON.
 [Candidate PR #13](https://github.com/Pig30nidaE/TrainCost/pull/13) includes the
-multi-model upgrade. Its measured source commit `01ddafc` passed
-[Python 3.11-3.14 CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42396945740).
-These links require repository access. The older consumer PR #12 tests an earlier
-candidate and does not establish consumer behavior for this revision.
+multi-model upgrade. Its measured source commit `26613f6` passed
+[Python 3.11-3.14 and dependency CI](https://github.com/Pig30nidaE/TrainCost/actions/runs/42400274167).
+The SHA-pinned [consumer PR #14](https://github.com/Pig30nidaE/TrainCost/pull/14)
+also [passed](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401267868).
+These links require repository access.
 Independent cross-repository and real fork validation remain release gates because
 the user retained the current Action access restriction. See the
 [PM status](docs/pm_status.md) for remaining gates.
-The [commit-bound model study](docs/hf_committed_study.md) completed 27 real runs
+The [security-upgraded model study](docs/hf_security_upgrade_study.md) completed 27 real runs
 with all training, report, and timing checks passing. The prior study's timing
-failures remain recorded; neither study establishes general runtime accuracy.
+failures remain recorded across 81 total observations; these studies do not establish general runtime accuracy.
 
 ## See the three outcomes
 

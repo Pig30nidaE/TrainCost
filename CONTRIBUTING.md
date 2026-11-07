@@ -45,6 +45,18 @@ manifest hash, measured source identity, exact model coverage, and its real
 outcome. Failed timing must remain failed. The replay gate checks all registered
 artifacts and rejects unlisted files; it never starts a GPU job.
 
+Optional training dependencies are not Core/Action requirements. Audit both full
+locks before a new experiment, using `pip-audit==2.10.1` in a separate environment:
+
+```bash
+python scripts/audit_ml_dependencies.py --lock macos --output /tmp/traincost-macos-audit.json
+python scripts/audit_ml_dependencies.py --lock cuda --output /tmp/traincost-cuda-audit.json
+```
+
+These checks query public advisory data without installing GPU packages. Do not
+suppress advisories to keep CI green. A lock change requires fresh compatibility
+evidence, not relabeling a previous model study.
+
 ## Security reports
 
 Follow [SECURITY.md](SECURITY.md) for suspected vulnerabilities. Do not include secrets in public issues or pull requests.

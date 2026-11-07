@@ -7,7 +7,8 @@ Date: 2026-11-08. Measured source commit:
 Security follow-up: the [ML dependency audit](evidence/hf-matrix-2026-11-08/ml-dependency-audit.json)
 found known advisories in the measured optional training environment. These
 measurements remain historical evidence, not approval to publish that lock.
-Dependency upgrades and renewed compatibility verification are in progress.
+The [replacement environment](hf_security_upgrade_study.md) has its own completed
+27-run study. Do not relabel the results below as measurements of that new lock.
 
 DistilBERT, BERT, and ALBERT each completed nine real MPS fine-tuning runs. All
 training-contract checks, Action reports, and the predefined timing gates passed.

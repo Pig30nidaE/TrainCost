@@ -99,11 +99,14 @@ class RegisteredEvidenceTests(unittest.TestCase):
         with redirect_stdout(io.StringIO()):
             studies = evidence.verify()
         committed = [study for study in studies if study["measured_commit"]]
-        self.assertEqual(len(committed), 1)
-        self.assertEqual(committed[0]["measured_commit"], "01ddafcda9a2545460f067dbb7c154f9661c2b97")
-        self.assertEqual(committed[0]["training_runs"], 27)
-        self.assertEqual(committed[0]["timing_status"], "PASS")
-        self.assertTrue(committed[0]["source_snapshot_available"])
+        self.assertEqual({study["measured_commit"] for study in committed}, {
+            "01ddafcda9a2545460f067dbb7c154f9661c2b97",
+            "26613f604b9a25cecd65a6f8835dfd3ca8f5997e",
+        })
+        for study in committed:
+            self.assertEqual(study["training_runs"], 27)
+            self.assertEqual(study["timing_status"], "PASS")
+            self.assertTrue(study["source_snapshot_available"])
 
 
 if __name__ == "__main__":

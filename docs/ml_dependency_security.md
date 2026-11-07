@@ -1,6 +1,6 @@
 # Optional training dependency security
 
-Status on 2026-11-08: replacement locks audited; fresh training pending. Core and Action do not import Torch,
+Status on 2026-11-08: replacement locks audited; fresh training verified. Core and Action do not import Torch,
 Transformers, or datasets. The optional model experiment does. Successful
 training does not substitute for dependency security review.
 
@@ -60,7 +60,8 @@ historical Git replay. Old profiles remain readable for evidence replay; new
 execution requires reviewed metadata hashes. Do not relabel old measurements as
 runs of the new dependencies or loading boundary.
 
-Next: commit the new source and rerun the preregistered bounded model study.
-Preserve all earlier observations. The new dependencies cannot inherit the old
-study's timing or training results.
+The [replacement-environment study](hf_security_upgrade_study.md) measured commit
+`26613f6`: 27 fresh runs, all training/report/timing checks passed. The committed
+source includes the loading boundary. All earlier observations remain preserved;
+new dependencies did not inherit the old study's timing or training results.
 CUDA execution remains deferred to the user-operated WSL2 machine.

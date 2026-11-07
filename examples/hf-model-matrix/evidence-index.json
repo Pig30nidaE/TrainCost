@@ -30,6 +30,21 @@
         "report_status": "PASS",
         "timing_status": "PASS"
       }
+    },
+    {
+      "id": "macos-security-upgrade-2026-11-08",
+      "bundle": "docs/evidence/hf-matrix-security-2026-11-08/bundle",
+      "manifest_sha256": "00f943c29c0f58cdf4abc83e2e40cac4421a6cb2da8c8e436e1affda467ee672",
+      "measured_source_sha256": "b18e1a307d31b15cf83b5333eea55e5f50558a377164633b3495e2f7b2b2a3da",
+      "measured_commit": "26613f604b9a25cecd65a6f8835dfd3ca8f5997e",
+      "source_snapshot_available": true,
+      "models": ["distilbert", "bert", "albert"],
+      "expected_status": {
+        "status": "PASS",
+        "compatibility_status": "PASS",
+        "report_status": "PASS",
+        "timing_status": "PASS"
+      }
     }
   ]
 }

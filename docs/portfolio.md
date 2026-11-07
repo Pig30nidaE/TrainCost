@@ -12,11 +12,12 @@ It is not a learned runtime predictor or a claim of guaranteed savings.
 2. Show the [missing-input](../examples/pytorch-demo/expected-missing-report.md)
    and [invalid-input](../examples/pytorch-demo/expected-invalid-report.md) reports.
    A missing value is an assumption; an invalid value is not a trustworthy estimate.
-3. Open the [commit-bound model study](hf_committed_study.md). DistilBERT, BERT, and ALBERT
+3. Open the [security-upgraded model study](hf_security_upgrade_study.md). DistilBERT, BERT, and ALBERT
    completed 27 MPS fine-tuning runs. Compare actual Trainer arguments, normalized
    fields, the independent Decimal calculation, and the generated reports.
-4. Compare both studies. The original DistilBERT and BERT repeatability failures
-   remain recorded; the commit-bound follow-up passed the unchanged criteria.
+4. Compare all three studies. The original DistilBERT and BERT repeatability failures
+   remain recorded; both commit-bound follow-ups passed the unchanged criteria.
+   Explain why a dependency advisory required a new lock and fresh measurements.
    Explain why these small studies do not establish general runtime accuracy.
 5. Run the evidence replay below, then open a Git/output-safety regression test.
    Finish with the exact candidate's CI record and remaining distribution gates.
@@ -27,8 +28,8 @@ python scripts/verify_hf_corpus.py
 ```
 
 The first command performs no training or downloads. It rechecks recorded files,
-all 54 executions across two studies, common dataset identity, reports, source
-provenance where available, and both timing outcomes. It does not train models.
+all 81 executions across three studies, common dataset identity, reports, source
+provenance where available, and all timing outcomes. It does not train models.
 
 ## Data flow and trust boundaries
 
@@ -68,6 +69,7 @@ unless experimental comment mode is explicitly enabled.
 | A two-decimal assertion rejected a valid short calibration | Compare independent Decimal values and complete display rows | `test_subcent_calibration.py` |
 | A green-looking study could omit failures or models | Register bundle identity and coverage; preserve separate outcomes | `test_registered_evidence.py` |
 | A source hash alone could not reconstruct measured code | Require committed source and versioned file inventory | `test_provenance.py`, real Git-object comparisons |
+| Passing training hid an unaudited optional ML lock | Upgrade both locks, audit all pins in CI, rerun models | `audit_ml_dependencies.py`, security-upgrade study |
 
 These are reproducible engineering results, not claims that the tool is free from
 all defects. Each contract is narrower than supporting every framework setting.
@@ -76,9 +78,11 @@ all defects. Each contract is narrower than supporting every framework setting.
 
 See [QA evidence](qa_report.md) for tests, environments, and run links. The
 [historical study](hf_model_matrix.md) lacked a preserved executable source snapshot.
-The [follow-up](hf_committed_study.md) binds 27 new measurements to commit `01ddafc`
-and verifies its source against Git blobs. The evidence index preserves both
-studies and does not retroactively assign a commit to the original measurements.
+The [first follow-up](hf_committed_study.md) binds 27 measurements to commit `01ddafc`.
+The [security-upgraded follow-up](hf_security_upgrade_study.md) binds another 27 to
+`26613f6`. Both source inventories are verified against Git blobs. The evidence
+index preserves all three studies and does not retroactively assign a commit to
+the original measurements.
 
 There are no verified external adopters, measured cost savings, or production
 prediction-accuracy claims. The current matrix uses only small IMDb subsets for

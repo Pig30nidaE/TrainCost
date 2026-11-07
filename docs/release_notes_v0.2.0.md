@@ -18,6 +18,8 @@ Unpublished report-only beta candidate.
 - Install Action dependencies in a disposable isolated venv without a token in report-only mode.
 - Verify Python 3.11-3.14 in CI, build/install the wheel independently, and publish three reproducible demo outcomes.
 - Add MIT licensing and portfolio documentation.
+- Add reviewed DistilBERT, BERT, and ALBERT MPS validation profiles, committed-source replay, and metadata-only evidence. Preserve all 81 observations across three studies, including historical failures.
+- Upgrade optional ML locks, audit both complete locks in CI, and validate pinned model/tokenizer metadata before loading. The replacement environment has its own 27-run study; old vulnerable locks remain historical evidence only.
 
 ## Compatibility
 
@@ -41,6 +43,7 @@ Prices are illustrative unless overridden, runtime is supplied or assumed, and G
 An added file uses illustrative absent-base assumptions; it is not compared with a measured earlier run.
 `complete` means the selected configs were analyzed, not that every training setting was modeled.
 Report-only mode is the beta target. Comment mode remains experimental and is not a release gate.
+Real-model evidence covers small IMDb sequence-classification runs on MPS, not general HF tasks or runtime prediction. See the [current study](hf_security_upgrade_study.md).
 Publication and public repository visibility require approval. The current candidate's
 CI and same-repository consumer passed; independent external/fork installation remains
 unverified. See [release readiness](release_readiness.md) for the tested SHA and evidence.

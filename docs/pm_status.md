@@ -2,7 +2,27 @@
 
 Updated: 2026-11-08.
 
-## Decision
+## Current decision
+
+The optional ML dependency blocker is resolved for the reviewed replacement locks.
+The [security-upgraded study](hf_security_upgrade_study.md) measured commit
+`26613f604b9a25cecd65a6f8835dfd3ca8f5997e`: 27 fresh runs across DistilBERT, BERT,
+and ALBERT passed training, report arithmetic, and fixed timing criteria. All eight
+[hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42400274167)
+passed, including both complete ML-lock audits. All 81 observations across three
+studies remain registered, including historical failures and limitations.
+
+This supports a report-focused beta with three reviewed sequence-classification
+profiles. It is not support for every HF task or a general runtime predictor.
+QAReview replayed source/evidence and found no additional blocking issue. The
+post-registration local suite passed, and the refreshed SHA-pinned
+[same-repository consumer](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401267868)
+and its eight-job CI passed. Evidence-only changes do not alter the measured
+Core/Action implementation. External/fork validation, publication approval, and public availability
+remain unresolved. The repository is still private and Action access is `none`.
+No remote PR merge, release, tag push, or permission/visibility change occurred.
+
+## Earlier security follow-up, superseded
 
 The active user goal now includes an actual release after meeting the open-source,
 multi-model validation, and portfolio requirements. It is not achieved yet.

@@ -1,0 +1,31 @@
+{
+  "compatibility_status": "PASS",
+  "condition_sha256": "3cb9318012ebe7bf91af71490f18b44551bbae157d0c360ee533ff9e469337c3",
+  "model_id": "albert/albert-base-v2",
+  "price_note": "Hypothetical $1/unit-hour; not billed or electricity cost.",
+  "report_status": "PASS",
+  "revision": "8e2f239c5f8a2c0f253781ca60135db913e5c80c",
+  "timing": {
+    "calibration_median_seconds": 5.585490292000031,
+    "observed_median_seconds": {
+      "base": 5.5924124579996715,
+      "pr": 16.23354129099971
+    },
+    "predicted_seconds": {
+      "base": 5.585490292000031,
+      "pr": 16.756470876000094
+    },
+    "relative_errors": {
+      "base": 0.0012377781595380507,
+      "pr": 0.032212908793370215
+    },
+    "repeatable": {
+      "base": true,
+      "calibration": true,
+      "pr": true
+    },
+    "status": "PASS"
+  },
+  "timing_status": "PASS",
+  "training_runs": 9
+}

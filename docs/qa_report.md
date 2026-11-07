@@ -1,5 +1,31 @@
 # Beta QA evidence
 
+## Security-upgraded real-model study
+
+The [new study](hf_security_upgrade_study.md) measured source `26613f6` with the
+replacement ML lock and metadata boundary. All 27 fresh training runs passed;
+each model's reports and preregistered timing checks passed. Registered evidence
+replay now verifies all 81 observations across three studies, preserving the first
+study's timing failures and unavailable source snapshot. The measured source passed
+all eight [CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42400274167).
+
+The [pre-measurement local regression](evidence/hf-matrix-2026-11-08/security-upgrade-python312.json)
+ran 303 methods: 302 passed and one Linux-only check was skipped. Suite sizes:
+Core 113, Action 71, HF demo 70, matrix 43, corpus evaluator 6. The labeled corpus
+passed 50/50; fixtures, local consumer simulations, and historical evidence replay
+also passed. The [post-registration regression](evidence/hf-matrix-security-2026-11-08/local-python312.json)
+repeated the full suite successfully with all three registered studies. QAReview
+independently replayed the evidence and eight registration tests, compared all 28
+source files to Git blobs, and verified measured environment/lock agreement. No
+additional blocking finding was reported. Replay checks records; it does not
+independently attest execution or approve a release.
+
+The new [consumer run](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401267868)
+pins root and package Actions to `26613f6`. Its [actual outputs](evidence/hf-matrix-security-2026-11-08/hosted-consumer/verification.json)
+record complete/partial/error behavior, false comment outputs, unchanged synthetic
+symlink target, and report/Summary equality. Its separate eight-job CI passed.
+This is a same-repository PR, not the blocked external/fork distribution gate.
+
 ## Optional ML dependency audit follow-up
 
 The preserved [pip-audit 2.10.1 result](evidence/hf-matrix-2026-11-08/ml-dependency-audit.json)
@@ -14,8 +40,8 @@ The replacement [macOS](evidence/hf-matrix-2026-11-08/updated-macos-audit.json) 
 [CUDA](evidence/hf-matrix-2026-11-08/updated-cuda-audit.json) audits cover all 52 and
 71 lock entries, with zero known advisories and no suppressions. QAReview found no
 concrete defect in the new advisory parser and CUDA preflight checks; seven focused
-tests passed. No CUDA runtime execution was performed. Fresh model verification
-against the replacement dependencies is still required.
+tests passed. No CUDA runtime execution was performed. The replacement model
+verification is now recorded in the new study above.
 
 See [exposure review](ml_dependency_security.md) for the distinct advisories and
 assessment limits. QAReview inspected the new metadata boundary and compared its
