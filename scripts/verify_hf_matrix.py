@@ -21,6 +21,7 @@ from matrix_common import (digest, file_digest, hf_config, load_profiles, read_j
                            source_fingerprint, training_settings, validate_profiles, write_json)
 from oracle import decimal_cost, evaluate_measurements
 from run_validation import _verify_cost_display, worker_env
+from provenance import capture_snapshot, validate_snapshot
 
 
 class MatrixError(Exception):
@@ -241,6 +242,9 @@ def aggregate_status(results):
 def validate_export(name, value):
     """Reject unrecognized fields before sharing local measurement metadata."""
     filename = Path(name).name
+    if filename == "source.json":
+        validate_snapshot(value)
+        return
     run_keys = {"status", "phase", "epochs", "environment", "model_id", "model_revision", "source_sha256",
                 "profile_sha256", "condition_sha256", "config", "observed_training_arguments",
                 "attention_implementation", "model_type", "parameter_count", "encoder_parameter_name",
@@ -384,6 +388,8 @@ def reproduce_report(directory):
 def export_bundle(workspace, selected, outcome):
     # Only metadata/report names are exported; caches, raw data, and weights never are.
     names = ["run-contract.json", "outcome.json"]
+    if (workspace / "source.json").exists():
+        names.append("source.json")
     fixed = ["prepare.json", "selection.json", "calibration.json", "measured-base.json", "measured-pr.json",
              "report.md", "report.json", "step-summary.md", "report-check.json", "timing.json", "result.json"]
     fixed += [f"{phase}-{i}.json" for phase in ("calibration", "base", "pr") for i in range(1, 4)]
@@ -436,6 +442,11 @@ def verify_bundle(directory):
     if not required <= set(manifest["files"]):
         raise MatrixError("BUNDLE_INCOMPLETE")
     contract, outcome = (read_json(directory / name) for name in ("run-contract.json", "outcome.json"))
+    if "source.json" in manifest["files"]:
+        source = read_json(directory / "source.json")
+        validate_snapshot(source)
+        if source["source_sha256"] != contract["source_sha256"]:
+            raise MatrixError("BUNDLE_SOURCE")
     profiles = validate_profiles(contract["profiles"])
     selected = contract["selected_models"]
     if (not selected or len(selected) != len(set(selected)) or set(selected) != set(outcome["models"])
@@ -522,7 +533,9 @@ def main(argv=None):
         if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
             raise MatrixError("TRAINING_NOT_ALLOWED_IN_CI")
         workspace = claim_workspace(args.workspace)
-        source = source_fingerprint()
+        snapshot = capture_snapshot()
+        source = snapshot["source_sha256"]
+        write_json(workspace / "source.json", snapshot)
         write_json(workspace / "run-contract.json", {"schema": 1, "source_sha256": source,
                     "profiles": profiles, "selected_models": [p["key"] for p in selected]})
         budget, results = {"spent": 0.0}, {}

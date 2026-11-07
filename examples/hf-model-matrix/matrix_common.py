@@ -109,10 +109,42 @@ def hf_config(profile, epochs, minutes, budget):
             "training_args": training_settings(epochs)}
 
 
+SOURCE_FIXED = frozenset({
+    "examples/hf-model-matrix/profiles.json", "scripts/verify_hf_matrix.py",
+    "scripts/verify_hf_macos.py", "packages/github-action/traincost_action.py",
+    *("examples/huggingface-demo/" + name for name in
+      ("common.py", "worker.py", "run_validation.py", "oracle.py", "macos-requirements.lock")),
+})
+SOURCE_DIRS = frozenset({"examples/hf-model-matrix", "packages/core/src/traincost_ci_core"})
+# Keep old policies unchanged so later file moves do not invalidate recorded studies.
+SOURCE_POLICY_VERSION = 1
+SOURCE_POLICIES = {1: (SOURCE_FIXED, SOURCE_DIRS)}
+
+
+def execution_paths(names, version=SOURCE_POLICY_VERSION):
+    if type(version) is not int or version not in SOURCE_POLICIES:
+        raise ValueError("Unknown execution inventory version")
+    fixed, directories = SOURCE_POLICIES[version]
+    names = set(names)
+    if not fixed <= names:
+        raise ValueError("Execution source is incomplete")
+    return sorted(fixed | {name for name in names if name.endswith(".py")
+                          and any(name.startswith(directory + "/") for directory in directories)
+                          and not {"tests", "__pycache__"}.intersection(Path(name).parts)})
+
+
+def source_manifest():
+    paths = [ROOT / name for name in SOURCE_FIXED]
+    for directory in SOURCE_DIRS:
+        entries = list((ROOT / directory).rglob("*"))
+        if any(path.is_symlink() for path in entries):
+            raise ValueError("Execution source cannot contain symlinks")
+        paths.extend(path for path in entries if path.is_file() and path.suffix == ".py")
+    if any(path.is_symlink() or any(p.is_symlink() for p in path.parents) for path in paths):
+        raise ValueError("Execution source cannot contain symlinks")
+    return {name: file_digest(ROOT / name)
+            for name in execution_paths(path.relative_to(ROOT).as_posix() for path in paths)}
+
+
 def source_fingerprint():
-    files = list(HERE.glob("*.py")) + [HERE / "profiles.json", ROOT / "scripts/verify_hf_matrix.py"]
-    files += [DEMO / name for name in ("common.py", "worker.py", "run_validation.py", "oracle.py",
-                                       "macos-requirements.lock")]
-    files += [ROOT / "scripts/verify_hf_macos.py", ROOT / "packages/github-action/traincost_action.py"]
-    files += list((ROOT / "packages/core/src/traincost_ci_core").glob("*.py"))
-    return digest({str(path.relative_to(ROOT)): file_digest(path) for path in sorted(files)})
+    return digest(source_manifest())

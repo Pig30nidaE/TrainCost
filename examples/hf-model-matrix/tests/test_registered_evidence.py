@@ -61,6 +61,15 @@ class RegisteredEvidenceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.check()
 
+    def test_historical_source_cannot_be_claimed_available(self):
+        study = self.index["studies"][0]
+        study["source_snapshot_available"] = True
+        with self.assertRaises(ValueError):
+            self.check()
+        study["measured_commit"] = "a" * 40
+        with self.assertRaises(ValueError):
+            self.check()
+
     def test_model_coverage_and_expected_outcome_cannot_be_reduced(self):
         original = deepcopy(self.index)
         for mutation in ("coverage", "outcome", "identity"):

@@ -9,6 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import verify_hf_matrix as matrix
+from provenance import verify_snapshot
 
 INDEX = ROOT / "examples/hf-model-matrix/evidence-index.json"
 STUDY_KEYS = {"id", "bundle", "manifest_sha256", "measured_source_sha256", "measured_commit",
@@ -38,6 +39,8 @@ def verify(index_path=INDEX, *, root=ROOT):
             raise ValueError("A measured commit must be an immutable SHA")
         if type(study["source_snapshot_available"]) is not bool:
             raise ValueError("Invalid source availability flag")
+        if study["source_snapshot_available"] != (commit is not None):
+            raise ValueError("A source snapshot requires a measured commit")
         if (not isinstance(study["models"], list) or not study["models"]
                 or any(not isinstance(key, str) or key not in profiles for key in study["models"])
                 or len(study["models"]) != len(set(study["models"]))):
@@ -61,6 +64,15 @@ def verify(index_path=INDEX, *, root=ROOT):
         if actual_files != set(manifest["files"]) | {"manifest.json"}:
             raise ValueError("Bundle contains missing or unregistered artifacts")
         outcome = matrix.verify_bundle(directory)
+        snapshot_path = directory / "source.json"
+        if snapshot_path.exists() != study["source_snapshot_available"]:
+            raise ValueError("Source availability declaration differs from evidence")
+        if snapshot_path.exists():
+            snapshot = matrix.read_json(snapshot_path)
+            if (snapshot["commit"] != commit
+                    or snapshot["source_sha256"] != study["measured_source_sha256"]):
+                raise ValueError("Registered source identity differs")
+            verify_snapshot(snapshot, root=root)
         contract = matrix.read_json(directory / "run-contract.json")
         expected = study["expected_status"]
         status_keys = {"status", "compatibility_status", "report_status", "timing_status"}

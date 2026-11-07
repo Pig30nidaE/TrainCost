@@ -32,13 +32,19 @@ python3.12 -m venv .venv-hf-matrix
 .venv-hf-matrix/bin/python -m pip install -r examples/huggingface-demo/macos-requirements.lock
 .venv-hf-matrix/bin/python scripts/verify_hf_matrix.py --list
 .venv-hf-matrix/bin/python -I scripts/verify_hf_matrix.py \
-  --workspace /private/tmp/traincost-hf-matrix-new
+  --workspace "$PWD/.hf-validation-matrix-new"
 ```
 
 The workspace must not exist and must not contain symlink path components. On
 macOS, use `/private/tmp` rather than its `/tmp` symlink. To run one reviewed
 profile, add `--models bert`. A subset run is not evidence for the other models.
 No automated retries or resumption are supported. Preserve failed workspaces.
+Commit execution-source changes before running. The controller rejects source
+that differs from HEAD, including untracked execution modules. Its metadata bundle
+contains `source.json` with the commit SHA and every execution-file hash. Use a
+full Git checkout to replay the registered source check. Git objects are read,
+never executed by the checker. Keep the ignored workspace until its evidence is
+reviewed and archived; temporary directories may disappear between sessions.
 
 The controller launches a fresh process and original pretrained weights for every
 measurement. It stops each training process after 600 seconds and limits combined
@@ -113,7 +119,7 @@ cryptographic attestation that training occurred.
    filenames. Do not add Python or pickle files. Keep the existing study protocol.
 3. Run the offline tests and then the opt-in study on the supported device. Record
    failures as well as successes. Do not reuse calibration across models or settings.
-4. Submit metadata evidence and its source fingerprint. Do not commit weights,
+4. Submit metadata evidence, its committed source revision, and file hashes. Do not commit weights,
    raw dataset content, or authentication material.
 
 ```bash
