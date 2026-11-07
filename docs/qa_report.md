@@ -7,8 +7,15 @@ reports 16 entries in datasets 4.8.5, fsspec 2026.2.0, torch 2.9.1, and
 transformers 4.57.6. QAReview found 12 distinct vulnerabilities after duplicate-CVE
 review. Some concern APIs outside the pinned sequence-classification workflow;
 this is not a blanket no-impact conclusion. Dependencies and pre-load metadata
-guards are being updated. The successful training and hosted reports below do
+guards have been updated. The successful training and hosted reports below do
 not approve the old optional ML environment for release.
+
+The replacement [macOS](evidence/hf-matrix-2026-11-08/updated-macos-audit.json) and
+[CUDA](evidence/hf-matrix-2026-11-08/updated-cuda-audit.json) audits cover all 52 and
+71 lock entries, with zero known advisories and no suppressions. QAReview found no
+concrete defect in the new advisory parser and CUDA preflight checks; seven focused
+tests passed. No CUDA runtime execution was performed. Fresh model verification
+against the replacement dependencies is still required.
 
 See [exposure review](ml_dependency_security.md) for the distinct advisories and
 assessment limits. QAReview inspected the new metadata boundary and compared its

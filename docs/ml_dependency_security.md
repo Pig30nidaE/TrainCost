@@ -1,6 +1,6 @@
 # Optional training dependency security
 
-Status on 2026-11-08: release HOLD. Core and Action do not import Torch,
+Status on 2026-11-08: replacement locks audited; fresh training pending. Core and Action do not import Torch,
 Transformers, or datasets. The optional model experiment does. Successful
 training does not substitute for dependency security review.
 
@@ -32,9 +32,20 @@ bounded code-path assessment, not a no-impact guarantee.
 | transformers | Tokenizer paths, [CVE-2026-9856](https://github.com/advisories/GHSA-xrqw-3rrv-vx5w) | No tokenizer save; template/path controls rejected |
 | transformers | Generation download, [CVE-2026-80047](https://github.com/advisories/GHSA-x9r9-c232-4q39) | No generation or custom-generation hook |
 
-Restrictions do not repair upstream libraries. Integration is regenerating both
-platform locks. Remaining advisories need version-specific upstream review and
-an explicit residual-risk decision, not a blanket ignore list.
+Restrictions do not repair upstream libraries. Integration regenerated both
+platform locks. The new versions include Torch 2.14.1, Transformers 5.22.2,
+datasets 5.1.0, and fsspec 2026.7.0. The complete
+[macOS audit](evidence/hf-matrix-2026-11-08/updated-macos-audit.json) covers 52
+packages and the [CUDA audit](evidence/hf-matrix-2026-11-08/updated-cuda-audit.json)
+covers 71. Both report zero known advisory entries without ignored vulnerabilities.
+Each record includes the lock SHA-256, tool version, and timestamp. Absence of
+known advisories is not proof that packages have no vulnerabilities.
+
+`scripts/audit_ml_dependencies.py` audits both locks in CI without installing ML
+packages. It rejects missing hashes, conditional/duplicate entries, unexpected
+direct URLs, skipped results, and incomplete coverage. The official CUDA wheel's
+public Torch version is queried alongside every pinned CUDA dependency. This is
+advisory checking, not binary scanning or GPU compatibility validation.
 
 ## Loading boundary
 
@@ -49,6 +60,7 @@ historical Git replay. Old profiles remain readable for evidence replay; new
 execution requires reviewed metadata hashes. Do not relabel old measurements as
 runs of the new dependencies or loading boundary.
 
-Next: install and audit the new locks, exercise Trainer compatibility, commit the
-new source, and rerun bounded model verification. Preserve all earlier observations.
+Next: commit the new source and rerun the preregistered bounded model study.
+Preserve all earlier observations. The new dependencies cannot inherit the old
+study's timing or training results.
 CUDA execution remains deferred to the user-operated WSL2 machine.

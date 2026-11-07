@@ -10,6 +10,7 @@ import platform
 import os
 from pathlib import Path
 import random
+import re
 import subprocess
 import signal
 import sys
@@ -32,6 +33,26 @@ def arm_parent_death_signal(parent_pid):
         raise ValueError("parent process changed")
 
 
+def validate_cuda_wheel(url_text, installed):
+    from packaging.utils import canonicalize_name, parse_wheel_filename
+    from packaging.version import Version
+    url = urlparse(url_text)
+    name, version, _, tags = parse_wheel_filename(Path(unquote(url.path)).name)
+    if (canonicalize_name(name) != "torch" or version.local != "cu130"
+            or url.scheme != "https" or url.netloc != "download.pytorch.org" or url.query
+            or not url.path.startswith("/whl/cu130/")
+            or not re.fullmatch(r"sha256=[a-f0-9]{64}", url.fragment)
+            or {str(tag) for tag in tags} != {"cp312-cp312-manylinux_2_28_x86_64"}
+            or Version(installed) != version):
+        raise ValueError("Invalid or mismatched CUDA wheel")
+
+
+def validate_cuda_runtime(driver, runtime):
+    if (not isinstance(driver, str) or not re.fullmatch(r"\d{3,4}(?:\.\d{1,3}){1,2}", driver)
+            or int(driver.split(".")[0]) < 580 or runtime != "13.0"):
+        raise ValueError("CUDA 13.0 and an R580-or-newer host driver are required")
+
+
 def environment():
     import torch
     if sys.version_info[:2] != (3, 12):
@@ -40,8 +61,7 @@ def environment():
     if system != "Linux" or machine != "x86_64" or "microsoft" not in kernel.lower() or "wsl2" not in kernel.lower():
         raise ValueError("WSL2 Ubuntu x86-64 required")
     from packaging.requirements import Requirement
-    from packaging.utils import canonicalize_name, parse_wheel_filename
-    from packaging.version import Version
+    from packaging.utils import canonicalize_name
     versions = {}
     for line in (HERE / "requirements.lock").read_text(encoding="utf-8").splitlines():
         line = line.strip()
@@ -52,13 +72,9 @@ def environment():
             continue
         installed = importlib.metadata.version(requirement.name)
         if requirement.url:
-            url = urlparse(requirement.url)
-            wheel_name, wheel_version, _, _ = parse_wheel_filename(Path(unquote(url.path)).name)
-            if (canonicalize_name(requirement.name) != "torch" or canonicalize_name(wheel_name) != "torch"
-                    or url.scheme != "https" or url.netloc != "download.pytorch.org"
-                    or not url.path.startswith("/whl/cu126/") or not url.fragment.startswith("sha256=")
-                    or Version(installed) != wheel_version):
-                raise ValueError("invalid or mismatched PyTorch wheel")
+            if canonicalize_name(requirement.name) != "torch":
+                raise ValueError("Unexpected direct dependency URL")
+            validate_cuda_wheel(requirement.url, installed)
         else:
             if len(list(requirement.specifier)) != 1 or not str(requirement.specifier).startswith("=="):
                 raise ValueError("requirements must use exact pins")
@@ -74,6 +90,7 @@ def environment():
     if len(info) != 1:
         raise ValueError("exactly one physical GPU is required")
     name, driver = (part.strip() for part in info[0].split(",", 1))
+    validate_cuda_runtime(driver, torch.version.cuda)
     if "RTX 3060" not in name or "RTX 3060" not in torch.cuda.get_device_name(0):
         raise ValueError("RTX 3060 required")
     free, total = torch.cuda.mem_get_info(0)

@@ -8,9 +8,10 @@ TrainCost CI compares training configs, estimates GPU-hours and cost, and explai
 Think **Infracost for ML experiments**.
 
 **Status: v0.2.0-beta.1 candidate, not published.** The existing v0.1.0 tag does not include these safeguards.
-Publication is currently blocked by the optional training dependency audit;
-the measured ML lock has known advisories and is being upgraded. Do not treat
-successful model runs or Core/Action CI as a clean audit of that environment.
+The old measured ML lock has known advisories. Its replacement passes the complete
+dependency audit; fresh training verification is pending. Do not treat successful
+historical model runs as approval of another environment. See the
+[dependency security record](docs/ml_dependency_security.md).
 This beta focuses on reports and GitHub Step Summary. PR commenting is experimental.
 The candidate adds an explicit Hugging Face adapter, stale-runtime warnings,
 subcent amounts, an installed CLI, and versioned JSON.
@@ -166,4 +167,6 @@ unrounded numeric estimates. A warning is not budget enforcement.
 - [Labeled upstream-derived HF corpus](examples/hf-config-corpus/README.md)
 - [Contribution guide](CONTRIBUTING.md) and [security reporting](SECURITY.md)
 
-MIT licensed. No dashboard, backend, cloud account, or paid GPU is required.
+Project code is MIT licensed. The [upstream model metadata fixtures](examples/huggingface-demo/tests/fixtures/model-metadata/README.md)
+retain their Apache-2.0 license and attribution. No dashboard, backend, cloud
+account, or paid GPU is required for config review.

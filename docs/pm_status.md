@@ -16,6 +16,10 @@ Core/Action runtime-build CI does not audit this separate training environment.
 Integration owns lock upgrades, QAReview owns exposure review, and PM owns model
 metadata guards and renewed committed-source compatibility evidence. No blanket
 advisory suppression or new GPU run on the old environment is planned.
+The replacement macOS and CUDA locks now report zero known advisories across
+52 and 71 packages respectively. CI now audits these separate locks. A new
+preregistered study must verify the replacement dependencies before this blocker
+can be closed; the old training results cannot stand in for it.
 
 Current release gates are a reviewed immutable candidate, current hosted CI,
 commit-bound real-model evidence, documented support/limitations, independent
