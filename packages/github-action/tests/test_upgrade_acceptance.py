@@ -224,6 +224,7 @@ class ActionUpgradeAcceptance(unittest.TestCase):
             report, machine, output, summary = (root / name for name in ("report.md", "report.json", "outputs", "summary"))
             env = {"GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary)}
             with patch.dict(os.environ, env), patch.object(action, "changed_supported_files", return_value=changes), \
+                    patch.object(action, "resolve_comparison_base", return_value="a" * 40), \
                     patch.object(action, "read_git_file", return_value=json.dumps(config)), \
                     contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 code = action.main(["--repo-root", str(root), "--event-name", "pull_request", "--report-path", str(report),
@@ -233,6 +234,7 @@ class ActionUpgradeAcceptance(unittest.TestCase):
             data = json.loads(machine.read_text())
             self.assertEqual(data["analysis_status"], "error")
             self.assertIsNone(data["summary"]["base_cost_usd"])
+            self.assertIn("Combined estimate arithmetic overflow.", data["diagnostics"])
             self.assertIn("analysis-status=error", output.read_text())
             self.assertEqual(summary.read_text(), report.read_text())
 

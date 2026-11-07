@@ -17,6 +17,11 @@ Both epoch aliases must agree when present. global_batch_size takes precedence o
 Duplicate canonical fields may occur at multiple paths only when their normalized values agree.
 Training fields inside lists are rejected to avoid mixing experiments. Harmless metadata lists are accepted.
 
+For canonical precision warnings, explicit `mixed_precision` takes precedence:
+`true` suppresses the disabled-mixed-precision warning even when `precision` is
+`fp32`; `false` raises it. Only when the flag is missing does an FP32 label imply
+that warning. This interprets declared intent; it does not inspect actual execution.
+
 ## Formats
 
 - YAML uses PyYAML==6.0.3 SafeLoader with duplicate-key, depth, node-count, and cycle checks. Merge keys are rejected.

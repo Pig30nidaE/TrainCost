@@ -9,6 +9,8 @@ Unpublished report-only beta candidate.
 - Require pinned PyYAML with bounded structures and duplicate-key rejection.
 - Record extracted field paths, applied inputs, default assumptions, and separate base/PR price sources.
 - Analyze only matching Git changes, including renames and deletions, without worktree fallback.
+- Use one merge base for both PR changed-file selection and base config values; exclude target-branch-only changes and reject ambiguous ancestry.
+- Respect explicit canonical mixed-precision enablement when interpreting FP32 labels.
 - Add analysis-status and automatic Step Summary. Failed analysis returns exit 2 after writing diagnostics.
 - Add an opt-in Hugging Face TrainingArguments adapter for literal, epoch-based configs. The default remains canonical.
 - Add the `traincost-ci` CLI and a versioned JSON report alongside Markdown.

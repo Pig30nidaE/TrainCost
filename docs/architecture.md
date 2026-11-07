@@ -6,7 +6,8 @@ A PR author controls config contents and filenames. The reviewer expects the rep
 
 ~~~text
 GitHub event base/head SHAs
-  -> verified Git commits and NUL-delimited changed files
+  -> verified Git commits and a single common merge base
+  -> NUL-delimited merge-base/head changes and matching base blobs
   -> bounded Git blobs
   -> YAML/JSON/Python literal parsing
   -> credential exclusion, validation, conflict checks, field paths
@@ -29,7 +30,7 @@ the same schema instead of exposing raw dataclass internals.
 2. Reject conflicting fields. Global first-match traversal could choose evaluation.batch_size over training.batch_size. Field paths now explain extraction; conflicting values stop that file's analysis.
 3. Preserve partial epochs. Truncating 2.9 to 2 understated runtime. Counts such as gpu_count remain integers.
 4. Keep missing inputs distinct from invalid inputs. Missing fields retain visible illustrative defaults. Malformed values cannot produce a numeric estimate.
-5. Read exact Git blobs. Worktree fallback could mix a merge checkout with a requested head commit, and glob expansion included unchanged files.
+5. Read exact Git blobs from the PR merge base and head. Worktree fallback could mix a merge checkout with a requested head commit, and glob expansion included unchanged files. Direct base-tip/head diff also included changes made only on the target branch. Missing or ambiguous common ancestry now fails rather than guessing.
 6. Sanitize before diffing. A sensitive-value warning alone did not prevent the Changed section from printing the value. Sensitive fields and subtrees are now removed before analysis.
 7. Keep reports advisory. A risk warning is not a failed analysis. Status outputs separate complete, partial, skipped, and error without claiming to enforce a spending budget.
 

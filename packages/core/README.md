@@ -1,7 +1,12 @@
 # TrainCost CI core
 
 Deterministic parsing, normalization, comparison, estimation, risk rules, Markdown and versioned JSON.
-Install the package with pip install ./packages/core. Python 3.11+ and PyYAML==6.0.3 are required.
+Python 3.11+ and PyYAML==6.0.3 are required. This beta is not published on PyPI.
+
+From the full repository root, install with `python -m pip install ./packages/core`.
+From an extracted source distribution, use `python -m pip install .` instead.
+To install a downloaded wheel, pass its local `.whl` path to `python -m pip install`.
+The development tests require the full repository, including its JSON schema and fixtures.
 The local CLI targets Linux and macOS. On Windows, use WSL2 Ubuntu; native Windows
 output handling is not validated and can reject paths.
 
@@ -30,5 +35,8 @@ Invalid configs raise value-free ConfigError, a ValueError subclass.
 Fractional epochs are preserved; counts are positive integers.
 
 No GitHub API, network call, backend, or training-code execution occurs in core.
-See [config reference](../../docs/config_reference.md), [JSON contract](../../docs/json_report.md),
-and [architecture](../../docs/architecture.md) for contracts and decisions.
+Candidate documentation is available on the implementation branch:
+[config reference](https://github.com/Pig30nidaE/TrainCost/blob/codex/hf-model-matrix/docs/config_reference.md),
+[JSON contract](https://github.com/Pig30nidaE/TrainCost/blob/codex/hf-model-matrix/docs/json_report.md),
+and [architecture](https://github.com/Pig30nidaE/TrainCost/blob/codex/hf-model-matrix/docs/architecture.md).
+These branch links describe the unpublished candidate, not the existing v0.1.0 tag.

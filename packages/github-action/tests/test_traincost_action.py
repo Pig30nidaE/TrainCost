@@ -204,6 +204,80 @@ class GitIntegrationTests(unittest.TestCase):
         self.assertIn("This PR: $21.33", outcome.report)
         self.assertIn("Increase: +48,662%", outcome.report)
 
+    def test_base_only_changes_are_not_pr_changes(self):
+        self.write("feature.txt", "PR only changes a non-config file")
+        head = self.commit()
+        self.git("checkout", "--detach", self.base)
+        self.write("config.yaml", RISKY)
+        self.write("base-only.yaml", RISKY)
+        self.git("rm", "unchanged.yaml")
+        advanced_base = self.commit()
+        for pattern in ("config.yaml", "*.yaml", ""):
+            with self.subTest(pattern=pattern):
+                outcome = self.analyze(pattern, head=head, base=advanced_base)
+                self.assertEqual(outcome.status, "skipped")
+                self.assertEqual(outcome.excluded_count, 0)
+                self.assertFalse(outcome.analyses)
+
+    def test_diverged_config_uses_merge_base_values(self):
+        self.write("config.yaml", RISKY)
+        head = self.commit()
+        self.git("checkout", "--detach", self.base)
+        self.write("config.yaml", BASE.replace("epochs: 5", "epochs: 100"))
+        advanced_base = self.commit()
+        outcome = self.analyze(head=head, base=advanced_base)
+        self.assertEqual(outcome.status, "complete")
+        self.assertEqual(outcome.analyses[0].result.base_config.epochs, 5)
+        self.assertEqual(outcome.analyses[0].result.pr_config.epochs, 50)
+        self.assertIn("Increase: +48,662%", outcome.report)
+        self.assertIn("merge base " + self.base, outcome.report)
+
+    def test_base_deletion_does_not_turn_pr_modification_into_addition(self):
+        self.write("config.yaml", RISKY)
+        head = self.commit()
+        self.git("checkout", "--detach", self.base)
+        self.git("rm", "config.yaml")
+        advanced_base = self.commit()
+        outcome = self.analyze(head=head, base=advanced_base)
+        self.assertEqual(outcome.status, "complete")
+        self.assertEqual(outcome.analyses[0].result.base_config.epochs, 5)
+        self.assertNotIn("Added config:", outcome.report)
+
+    def test_pr_rename_reads_original_merge_base_path(self):
+        self.git("mv", "config.yaml", "renamed.yaml")
+        head = self.commit()
+        self.git("checkout", "--detach", self.base)
+        self.write("config.yaml", RISKY)
+        advanced_base = self.commit()
+        outcome = self.analyze("renamed.yaml", head=head, base=advanced_base)
+        self.assertEqual(outcome.status, "complete")
+        self.assertIn("Detected rename:", outcome.report)
+        self.assertEqual(outcome.analyses[0].result.base_config.epochs, 5)
+        self.assertEqual(outcome.analyses[0].result.pr_config.epochs, 5)
+
+    def test_unrelated_histories_fail_without_worktree_fallback(self):
+        self.git("checkout", "--orphan", "unrelated")
+        self.write("config.yaml", RISKY)
+        head = self.commit()
+        outcome = self.analyze(head=head)
+        self.assertEqual(outcome.status, "error")
+        self.assertFalse(outcome.analyses)
+        self.assertIn("merge base", outcome.report)
+
+    def test_multiple_merge_bases_are_not_arbitrarily_selected(self):
+        self.write("left.txt", "left")
+        left = self.commit()
+        self.git("checkout", "--detach", self.base)
+        self.write("right.txt", "right")
+        right = self.commit()
+        tree = self.git("rev-parse", right + "^{tree}")
+        first = self.git("commit-tree", tree, "-p", left, "-p", right, "-m", "merge one")
+        second = self.git("commit-tree", tree, "-p", right, "-p", left, "-m", "merge two")
+        self.assertEqual(set(self.git("merge-base", "--all", first, second).splitlines()), {left, right})
+        outcome = self.analyze(head=second, base=first)
+        self.assertEqual(outcome.status, "error")
+        self.assertIn("merge base", outcome.report)
+
     def test_deleted_config_never_estimated(self):
         self.git("rm", "config.yaml")
         self.commit()

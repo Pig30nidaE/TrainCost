@@ -143,7 +143,9 @@ def detect_warnings(
 
     precision_change = change_lookup.get("precision")
     mixed_precision_change = change_lookup.get("mixed_precision")
-    if _uses_fp32(pr_config.precision) or pr_config.mixed_precision is False:
+    if pr_config.mixed_precision is False or (
+        pr_config.mixed_precision is None and _uses_fp32(pr_config.precision)
+    ):
         changed_bits: list[str] = []
         if precision_change is not None:
             changed_bits.append(

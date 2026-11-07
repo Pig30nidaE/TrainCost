@@ -311,11 +311,12 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
     pr = event.get("pull_request")
     base_sha, head_sha = get_nested(pr, "base", "sha"), get_nested(pr, "head", "sha")
     try:
-        changes = changed_supported_files(repo_root, base_sha, head_sha)
+        comparison_sha = resolve_comparison_base(repo_root, base_sha, head_sha)
+        changes = changed_supported_files(repo_root, comparison_sha, head_sha)
         selected = resolve_candidate_paths(config_path_input, changes)
     except ConfigError as exc:
         return error_run(str(exc))
-    reports, notes = [], []
+    reports, notes = [], [f"Comparison baseline: merge base {comparison_sha}."]
     failed = deleted = 0
     for change in selected:
         if change.deleted:
@@ -323,7 +324,7 @@ def run_pull_request_analysis(*, repo_root, event, event_name, config_path_input
             notes.append(f"Deleted config excluded: {safe_text(change.path)}.")
             continue
         try:
-            base_text = read_git_file(repo_root, base_sha, change.base_path) if change.base_path else None
+            base_text = read_git_file(repo_root, comparison_sha, change.base_path) if change.base_path else None
             head_text = read_git_file(repo_root, head_sha, change.path)
             base = normalize_training_config({}) if base_text is None else normalize_training_config(
                 parse_config_text(base_text, Path(change.base_path).suffix), source_path=change.base_path, adapter=adapter)
@@ -406,6 +407,17 @@ def _valid_commit(repo_root, sha):
     result = run_git(repo_root, ["cat-file", "-t", sha])
     if result.returncode or result.stdout.strip() != b"commit":
         raise GitError("Base/head commit unavailable; use checkout with fetch-depth: 0.")
+
+
+def resolve_comparison_base(repo_root, base_sha, head_sha):
+    """Use the PR's common ancestor, not unrelated changes on the target branch."""
+    _valid_commit(repo_root, base_sha)
+    _valid_commit(repo_root, head_sha)
+    result = run_git(repo_root, ["merge-base", "--all", base_sha, head_sha])
+    bases = result.stdout.split()
+    if result.returncode or len(bases) != 1 or not re.fullmatch(rb"[0-9a-fA-F]{40,64}", bases[0]):
+        raise GitError("PR comparison requires one available merge base; use fetch-depth: 0 and update the PR branch if history is ambiguous.")
+    return bases[0].decode("ascii")
 
 
 def changed_supported_files(repo_root, base_sha, head_sha):

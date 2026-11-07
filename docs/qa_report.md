@@ -1,5 +1,23 @@
 # Beta QA evidence
 
+## Resumed final review
+
+QAReview reproduced two findings at `50ce946`. A direct base-tip/head diff selected
+configs changed only on the target branch. Canonical `precision=fp32` with
+`mixed_precision=true` also incorrectly raised `precision_risk`. The new tests
+failed before the fixes. The Action now resolves one merge base and uses it for
+both selection and base blobs, with the SHA in Action notes. Core respects the
+explicit mixed-precision flag and only infers disabled precision from FP32 when
+the flag is missing.
+
+Six real-Git regressions cover unrelated target changes, both-side modifications,
+target-side deletion, PR rename, unrelated histories, and multiple merge bases.
+Two precision tests cover enabled, disabled, and unspecified flags. The aggregate
+overflow test now mocks the new boundary and asserts its actual overflow diagnostic,
+so an unrelated Git error cannot satisfy it. Local full regression passed with
+317 methods, one Linux-only skip. Hosted evidence below applies to earlier SHAs
+until the corrected candidate is verified separately.
+
 ## Real fork consumer follow-up, 2026-11-08
 
 [Consumer PR #2](https://github.com/Pig30nidaE/TrainCost-consumer-validation/pull/2)

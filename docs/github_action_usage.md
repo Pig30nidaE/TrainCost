@@ -55,7 +55,13 @@ Some invalid path inputs fall back to validated `report.md` and `report.json` lo
 ## Commit selection
 
 Checkout must use fetch-depth: 0. PR base and head SHAs come from the GitHub event.
-Git diff uses NUL-delimited status records. Renames read the old base path and the new head path.
+The comparison baseline is their single merge base, matching GitHub's three-dot
+PR diff. Both changed-file selection and base config contents use that commit.
+The report records its SHA. Changes made only on the target branch are excluded.
+This describes the PR's changes, not a prediction of a future merge result.
+Missing or multiple merge bases fail explicitly; fetch full history or update the
+PR branch instead of accepting an arbitrary ancestor.
+Git diff uses NUL-delimited status records. Renames read the old merge-base path and the new head path.
 Deleted configs are excluded. Added configs use illustrative defaults for their absent base, including in Hugging Face adapter mode. These defaults do not describe an actual earlier training run.
 A missing commit or unreadable blob is an error, not an empty config.
 The checked-out worktree is never substituted for a PR blob.

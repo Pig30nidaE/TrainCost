@@ -4,6 +4,13 @@ Updated: 2026-11-08.
 
 ## Current decision
 
+Resumed final review found two additional defects in `50ce946`: target-branch-only
+changes were included by a base-tip/head diff, and canonical FP32 with explicit
+mixed precision enabled produced a disabled warning. Both are fixed locally with
+six real-Git and two precision regressions. The complete local suite passes.
+The new runtime must receive candidate-bound CI and consumer verification before
+the old candidate's release assessment is reused. No merge/tag/release is approved.
+
 The optional ML dependency blocker is resolved for the reviewed replacement locks.
 The [security-upgraded study](hf_security_upgrade_study.md) measured commit
 `26613f604b9a25cecd65a6f8835dfd3ca8f5997e`: 27 fresh runs across DistilBERT, BERT,
