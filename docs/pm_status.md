@@ -22,6 +22,14 @@ Core/Action implementation. External/fork validation, publication approval, and 
 remain unresolved. The repository is still private and Action access is `none`.
 No remote PR merge, release, tag push, or permission/visibility change occurred.
 
+Final CI exposed a Linux test-observer exit race at `40d17a0`. The test-only fix
+`18f209c` adds six regressions and passed all eight
+[hosted jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401955448).
+Local coverage is now 309 methods: 308 passed, one Linux-only skip. QAReview also
+checked the procfs-unavailable case. The measured execution fingerprint remains
+unchanged; no additional GPU study was needed. See the QA record for the preserved
+failed attempt and correction.
+
 ## Earlier security follow-up, superseded
 
 The active user goal now includes an actual release after meeting the open-source,

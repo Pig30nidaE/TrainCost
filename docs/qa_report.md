@@ -19,8 +19,10 @@ measured execution-source files are unchanged. New GPU measurement is unnecessar
 for this test-only correction. The [local full regression](evidence/hf-matrix-security-2026-11-08/process-observer-python312.json)
 passed 308 of 309 methods, with one Linux-only skip. HF demo tests increased from
 70 to 76; other suite counts are unchanged. QAReview confirmed the procfs correction
-after identifying the missing-procfs ambiguity. Hosted Linux must still execute
-the actual parent-death test before merging.
+after identifying the missing-procfs ambiguity. Commit `18f209c` then passed all
+eight [hosted CI jobs](https://github.com/Pig30nidaE/TrainCost/actions/runs/42401955448),
+including the real Linux parent-death test on Python 3.11-3.14. The earlier failed
+attempt remains recorded. This correction changes tests only, not measured code.
 
 ## Security-upgraded real-model study
 
